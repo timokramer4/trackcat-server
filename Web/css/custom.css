@@ -1,0 +1,12 @@
+/* your styles go here */
+.hint {
+    color: #f11313 !important;
+}
+
+a {
+    color: #4680ff; 
+}
+
+a:hover, a:focus {
+    color: #004ef9;
+}
