@@ -30,5 +30,17 @@ def login():
 
 # ^^ testArea
 
+# vv login
+@app.route("/" , methods=['GET'])
+def main():
+    return render_template("login.html")
+
+
+
+# ^^ login
+
+
+
+
 if __name__ == '__main__':
     app.run()
