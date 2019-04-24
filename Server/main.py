@@ -67,7 +67,16 @@ def doLogin():
     else:
         return redirect("/")
 
+@app.route("/loginAPI", methods=['POST'])
+def loginAPI():
+    json = request.json
+    
+    return "okay"
 
-# Run start
+@app.route("/registerAPI", methods=['POST'])
+    json = request.json
+
+    return "okay"
+
 if __name__ == '__main__':
     app.run()
