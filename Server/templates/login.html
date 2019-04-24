@@ -44,7 +44,7 @@
           <h2 class="mb-4">Willkommen zurück</h2>
           <p class="text-muted">Um dein Dashboard, sowie alle persönlichen Streckenaufzeichnungen und Erfolge einsehen
             zu können, melde dich mit den gleichen Zugangsdaten an, wie du es gewöhnlich in der Trackcat-App tust:</p>
-          <form id="loginForm" action="index.html" class="mt-4" data-toggle="validator">
+          <form id="loginForm" action="login" method="POST" class="mt-4" data-toggle="validator">
             <div class="form-group mb-4">
               <input type="email" id="email" name="email" placeholder="E-Mail Adresse" maxlength="20"
                 class="form-control border-1 shadow form-control-lg" validate>
@@ -59,7 +59,7 @@
                 <label for="stayLogged" class="custom-control-label">Angemeldet bleiben</label>
               </div>
             </div>
-            <button type="button" successBtn id="loginBtn" class="btn btn-primary shadow px-5"
+            <button type="submit" successBtn id="loginBtn" class="btn btn-primary shadow px-5"
               disabled>Anmelden</button>
             <small class="form-text text-muted ml-3"><a href="register.html">Konto erstellen</a></small>
           </form>

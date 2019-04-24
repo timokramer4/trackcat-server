@@ -17,14 +17,14 @@ app = Flask(__name__)
 # vv testArea
 
 # first test login
-@app.route("/login", methods=['POST'])
-def login():
+# @app.route("/login", methods=['POST'])
+# def login():
 
-    json = request.json
+#     json = request.json
 
-    print(json)
+#     print(json)
 
-    return simplejson.dumps({'success': json['username'] == 'krypto' and json['password'] == 'koffer'})
+#     return simplejson.dumps({'success': json['username'] == 'krypto' and json['password'] == 'koffer'})
 
     
 
@@ -35,10 +35,22 @@ def login():
 def main():
     return render_template("login.html")
 
+@app.route("/login", methods=['POST'])
+def login():
+    if(request.form['email'] == "test@quatsch.de"):
+        return redirect("/index")
+    else:
+        return redirect("/")
 
 
 # ^^ login
 
+# vv index
+@app.route("/index", methods=["GET"])
+def index():
+    return render_template("index.html")
+
+# ^^ index
 
 
 
