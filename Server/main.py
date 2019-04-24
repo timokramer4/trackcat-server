@@ -54,5 +54,24 @@ def index():
 
 
 
+
+## ------------vv api
+
+@app.route("/loginAPI", methods=['POST'])
+def loginAPI():
+
+    json = request.json
+
+    return "okay"
+
+@app.route("/registerAPI", methods=['POST'])
+    json = request.json
+
+    return "okay"
+
+
+## ------------^^ api
+
+
 if __name__ == '__main__':
     app.run()
