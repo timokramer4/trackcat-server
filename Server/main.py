@@ -24,35 +24,50 @@ app = Flask(__name__)
 
 #     print(json)
 
-#     return simplejson.dumps({'success': json['username'] == 'krypto' and json['password'] == 'koffer'})
-
-    
+#     return simplejson.dumps({'success': json['username'] == 'krypto' and json['password'] == 'koffer'})    
 
 # ^^ testArea
 
-# vv login
+
+### Static page routes ###
+
+# Start and login page
 @app.route("/" , methods=['GET'])
-def main():
+@app.route("/login" , methods=['GET'])
+def loginPage():
     return render_template("login.html")
 
-@app.route("/login", methods=['POST'])
-def login():
+# Register page
+@app.route("/register" , methods=['GET'])
+def registerPage():
+    return render_template("register.html")
+
+# Profile page
+@app.route("/dashboard", methods=["GET"])
+def dashboardPage():
+    return render_template("dashboard.html")
+
+# Profile page
+@app.route("/profile", methods=["GET"])
+def profilePage():
+    return render_template("profile.html")
+
+# Profile page
+@app.route("/settings", methods=["GET"])
+def settingsPage():
+    return render_template("settings.html")
+
+### Handler ###
+
+# Login handler
+@app.route("/doLogin", methods=['POST'])
+def doLogin():
     if(request.form['email'] == "test@quatsch.de"):
         return redirect("/index")
     else:
         return redirect("/")
 
 
-# ^^ login
-
-# vv index
-@app.route("/index", methods=["GET"])
-def index():
-    return render_template("index.html")
-
-# ^^ index
-
-
-
+# Run start
 if __name__ == '__main__':
     app.run()
