@@ -15,7 +15,7 @@
                 <h2 class="mb-4">Neu dabei?</h2>
                 <p class="text-muted">Du bist noch nicht mit von der Partie? Dann werde jetzt Mitglied, lege dir
                     einen kostenlosen Account an und nutze alle Vorteile deiner Mitgliedschaft:</p>
-                <form id="registerForm" class="mt-4">
+                <form action="/registerUser" id="registerForm" method="POST" class="mt-4">
                     <div class="form-group row">
                         <div class="col mb-2">
                             <input type="text" id="firstName" name="firstName" placeholder="Vorname" maxlength="16"
@@ -54,7 +54,7 @@
                                 gelesen und akzeptiert</label>
                         </div>
                     </div>
-                    <button type="button" id="registerBtn" class="btn btn-primary shadow px-5"
+                    <button type="submit" id="registerBtn" class="btn btn-primary shadow px-5"
                         disabled>Registrieren</button>
                     <small class="form-text text-muted ml-3"><a href="/login">Stattdessen anmelden</a></small>
                 </form>

@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `TrackCatDB`.`users` (
   `lastName` VARCHAR(45) NOT NULL,
   `eMail` VARCHAR(45) NOT NULL,
   `password` VARCHAR(45) NOT NULL,
-  `dateOfBirth` INT NOT NULL,
+  `dateOfBirth` INT NULL,
   `weight` FLOAT NULL,
   `gender` TINYINT(1) NULL,
   `dateOfRegistration` INT NOT NULL,

@@ -3,6 +3,7 @@
 from flask import Flask, request, render_template, redirect, jsonify
 from flaskext.mysql import MySQL
 import simplejson
+import time
 
 
 # ^^ import Area
@@ -33,26 +34,25 @@ mysql.init_app(app)
 
 #     print(json)
 
-#     return simplejson.dumps({'success': json['username'] == 'krypto' and json['password'] == 'koffer'})    
-
+#     return simplejson.dumps({'success': json['username'] == 'krypto' and json['password'] == 'koffer'})
 
 
 # ^^ testArea
-
 
 
 # vv user Login
 def check_user_and_password(username, password):
 
     conn = mysql.connect()
-
     cursor = conn.cursor()
+    cursor.execute(
+        "SELECT password FROM users WHERE email = '" + username + "';")
 
-    cursor.execute("SELECT * FROM users")
-
+    result = cursor.fetchone()
     cursor.close()
 
-    return username == "test@quatsch.de" and password == "a2@Ahhhhh"
+    return password == result[0]  # "a2@Ahhhhh"
+
 
 def authenticate():
     message = {'message': "Authenticate."}
@@ -60,7 +60,8 @@ def authenticate():
     resp.status_code = 401
     resp.headers['WWW-Authenticate'] = 'Basic realm="Main"'
 
-    return resp
+    # return resp
+    return simplejson.dumps("1")
 
 
 def requires_authorization(f):
@@ -74,17 +75,16 @@ def requires_authorization(f):
 # ^^ user Login
 
 
-  
 ### Static page routes ###
 
 # Start and login page
-@app.route("/" , methods=['GET'])
-@app.route("/login" , methods=['GET'])
+@app.route("/", methods=['GET'])
+@app.route("/login", methods=['GET'])
 def loginPage():
     return render_template("login.html")
 
 # Register page
-@app.route("/register" , methods=['GET'])
+@app.route("/register", methods=['GET'])
 def registerPage():
     return render_template("register.html")
 
@@ -105,6 +105,7 @@ def settingsPage():
 
 ### Web-Handler ###
 
+
 @app.route("/login", methods=['POST'])
 def login():
     if check_user_and_password(request.form['email'], request.form['password']):
@@ -112,7 +113,22 @@ def login():
     else:
         return authenticate()
 
+# register a user
+@app.route("/registerUser", methods=['POST'])
+def registerUser():
 
+    # add validation
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO users (firstName, lastName, eMail, password, dateOfRegistration, lastLogin, darkTheme,showHelp, timeStamp) VALUES ('" +
+                   request.form['firstName']+"', '"+request.form['lastName']+"', '"+request.form['email']+"', '"+request.form['password1']+"', "+str(int(time.time())) + ", " +
+                   str(int(time.time())) + ", 0, 1, "+str(int(time.time())) + ");")
+
+    conn.commit()
+    cursor.close()
+
+    return "okay"
 
 
 ### API-Handler ###
@@ -120,11 +136,8 @@ def login():
 @app.route("/loginAPI", methods=['POST'])
 @requires_authorization
 def loginAPI():
+    return simplejson.dumps("0")
 
-    print(request.authorization.username)
-    test = request
-
-    return simplejson.dumps("okay")  
 
 @app.route("/registerAPI", methods=['POST'])
 def registerAPI():
@@ -132,5 +145,6 @@ def registerAPI():
 
     return "okay"
 
+
 if __name__ == '__main__':
-    app.run(host= '0.0.0.0')
+    app.run(host='0.0.0.0')
