@@ -1,0 +1,86 @@
+{% extends "model/base.html" %}
+
+{% block content %}
+<header class="header">
+    <nav class="navbar navbar-expand-lg px-4 py-2 bg-white shadow">
+        {% block topNav %}
+        <a href="/dashboard" class="sidebar-toggler text-gray-500 mr-4 mr-lg-5 lead"><i class="fas fa-chevron-circle-left"></i></a>
+        {% endblock %}
+
+        <a href="/dashboard" class="navbar-brand font-weight-bold text-uppercase text-base text-red">Trackcat
+            Dashboard</a>
+        <ul class="ml-auto d-flex align-items-center list-unstyled mb-0">
+            <li class="nav-item dropdown mr-3"><a id="notifications" href="http://example.com" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle text-gray-400 px-1"><i
+                        class="fa fa-bell"></i><span class="notification-icon"></span></a>
+                <div aria-labelledby="notifications" class="dropdown-menu">
+                    {% block notifications %}
+                    <a href="#" class="dropdown-item">
+                        <div class="d-flex align-items-center">
+                            <div class="icon icon-sm bg-blue text-white">
+                                <img src="{{ url_for('static', filename='img/defaultUser.jpg')}}" alt="Jason Doe"
+                                    style="max-width: 1.7rem;" class="img-fluid rounded-circle shadow" />
+                            </div>
+                            <div class="text ml-2">
+                                <p class="mb-0">Finn Lenz hat eine neue Route mit dir geteilt!</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <div class="d-flex align-items-center">
+                            <div class="icon icon-sm bg-blue text-white">
+                                <i class="fas fa-map-marked-alt"></i>
+                            </div>
+                            <div class="text ml-2">
+                                <p class="mb-0">Neue Route online verfügbar!</p>
+                            </div>
+                        </div>
+                    </a>
+                    {% endblock %}
+                </div>
+            </li>
+            <li class="nav-item dropdown ml-auto"><a id="userInfo" href="trackcat.de" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle"><img
+                        src="{{ url_for('static', filename='img/defaultUser.jpg')}}" alt="Jason Doe"
+                        style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow"></a>
+                <div aria-labelledby="userInfo" class="dropdown-menu">
+                    <a href="profile" class="dropdown-item">
+                        <strong id="account_name" class="d-block text-uppercase headings-font-family">Max
+                            Mustermann</strong>
+                        <small id="account_email">max@muster.de</small></a>
+                    <div class="dropdown-divider"></div>
+                    <a href="settings" class="dropdown-item">Einstellungen</a>
+                    <div class="dropdown-divider"></div><a href="login" class="dropdown-item">Abmelden</a>
+                </div>
+            </li>
+        </ul>
+    </nav>
+</header>
+<div class="d-flex align-items-stretch">
+    {% block menu %}
+    {% endblock %}
+    <div class="page-holder w-100 d-flex flex-wrap">
+        {% block subcontent %}
+        {% endblock %}
+
+        {% block footer %}
+        <footer class="footer bg-white shadow align-self-end py-3 px-xl-5 w-100">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6 text-center text-md-left text-primary">
+                        <p class="mb-2 mb-md-0">&copy;
+                            <script>document.write(new Date().getFullYear());</script> — Trackcat App. All rights
+                            reserved.</p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-right text-gray-400">
+                        <p class="mb-0">Design by <a href="https://bootstrapious.com/admin-templates"
+                                class="external text-gray-400">Bootstrapious</a> and <a href="trackcat.de"
+                                class="external text-gray-400">Trackcat</a></p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}
