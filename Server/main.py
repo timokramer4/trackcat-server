@@ -16,6 +16,7 @@ app.config['MYSQL_DATABASE_USER'] = 'remRoot'
 app.config['MYSQL_DATABASE_PASSWORD'] = '1Qayse45&'
 app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
 app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
+app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
 
 #app.config['SECRET_KEY'] = 'hard to guess string'
