@@ -1,7 +1,8 @@
 # vv import Area
 
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template, redirect, jsonify
 import simplejson
+
 
 # ^^ import Area
 
@@ -26,9 +27,38 @@ app = Flask(__name__)
 
 #     return simplejson.dumps({'success': json['username'] == 'krypto' and json['password'] == 'koffer'})
 
-    
+
 
 # ^^ testArea
+
+
+
+# vv user Login
+def check_user_and_password(username, password):
+    return username == "test@quatsch.de" and password == "a2@Ahhhhh"
+
+def authenticate():
+    message = {'message': "Authenticate."}
+    resp = jsonify(message)
+    resp.status_code = 401
+    resp.headers['WWW-Authenticate'] = 'Basic realm="Main"'
+
+    return resp
+
+
+def requires_authorization(f):
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_user_and_password(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
+# ^^ user Login
+
+
+  
+
 
 # vv login
 @app.route("/" , methods=['GET'])
@@ -37,10 +67,10 @@ def main():
 
 @app.route("/login", methods=['POST'])
 def login():
-    if(request.form['email'] == "test@quatsch.de"):
-        return redirect("/index")
+    if check_user_and_password(request.form['email'], request.form['password']):
+        return render_template('index.html')
     else:
-        return redirect("/")
+        return authenticate()
 
 
 # ^^ login
@@ -58,13 +88,16 @@ def index():
 ## ------------vv api
 
 @app.route("/loginAPI", methods=['POST'])
+@requires_authorization
 def loginAPI():
 
-    json = request.json
+    print(request.authorization.username)
+    test = request
 
-    return "okay"
+    return simplejson.dumps("okay")  
 
 @app.route("/registerAPI", methods=['POST'])
+def registerAPI():
     json = request.json
 
     return "okay"
@@ -74,4 +107,4 @@ def loginAPI():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host= '0.0.0.0')
