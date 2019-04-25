@@ -58,10 +58,6 @@ def requires_authorization(f):
 
 
   
-
-
-# vv login
-
 ### Static page routes ###
 
 # Start and login page
@@ -74,12 +70,6 @@ def loginPage():
 @app.route("/register" , methods=['GET'])
 def registerPage():
     return render_template("register.html")
-@app.route("/login", methods=['POST'])
-def login():
-    if check_user_and_password(request.form['email'], request.form['password']):
-        return render_template('index.html')
-    else:
-        return authenticate()
 
 # Profile page
 @app.route("/dashboard", methods=["GET"])
@@ -96,15 +86,19 @@ def profilePage():
 def settingsPage():
     return render_template("settings.html")
 
-### Handler ###
+### Web-Handler ###
 
-# Login handler
-@app.route("/doLogin", methods=['POST'])
-def doLogin():
-    if(request.form['email'] == "test@quatsch.de"):
-        return redirect("/index")
+@app.route("/login", methods=['POST'])
+def login():
+    if check_user_and_password(request.form['email'], request.form['password']):
+        return render_template('dashboard.html')
     else:
-        return redirect("/")
+        return authenticate()
+
+
+
+
+### API-Handler ###
 
 @app.route("/loginAPI", methods=['POST'])
 @requires_authorization
