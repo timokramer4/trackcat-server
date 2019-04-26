@@ -75,6 +75,8 @@ def requires_authorization(f):
 # ^^ user Login
 
 # Check login and redirect
+
+
 def checkSession():
     if not session.get('logged_in'):
         return False
@@ -143,30 +145,33 @@ def login():
     else:
         return redirect("/dashboard")
 
-# register a user
+# Register a user
 @app.route("/registerUser", methods=['POST'])
 def registerUser():
 
-    # add validation
+    # Add validation
+    success = registerUserDB(request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
 
-    success = registerUserDB(
-        request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
+    # 0 = Valid
+    # 1 = Creation error
+    # 3 = Email already exists
 
-    # 0 = okay
-    # 1 = Error
-    # 3 = Email exists
-
-    return str(success)
+    if success == 0:
+        return redirect("/login")
+    elif success == 1:
+        flash('Unbekannter Fehler beim Erstelle des Kontos!')
+        return redirect("/register")
+    elif success == 3:
+        flash('Die E-Mail Adresse existiert bereits!')
+        return redirect("/register")
 
 ### BOTH-Handler ###
-
-
 def registerUserDB(firstName, lastName, email, password):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.execute("INSERT INTO users (firstName, lastName, eMail, password, dateOfRegistration, lastLogin, darkTheme,showHelp, timeStamp) VALUES ('" +
-                       firstName+"', '"+lastName+"', '"+email+"', '"+password+"', "+str(int(time.time())) + ", " +
+                       firstName + "', '" + lastName + "', '" + email + "', '" + password + "', " + str(int(time.time())) + ", " +
                        str(int(time.time())) + ", 0, 1, "+str(int(time.time())) + ");")
 
         conn.commit()
@@ -184,9 +189,7 @@ def registerUserDB(firstName, lastName, email, password):
     pass
     return 0
 
-
 ### API-Handler ###
-
 @app.route("/loginAPI", methods=['POST'])
 @requires_authorization
 def loginAPI():
