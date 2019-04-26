@@ -41,17 +41,15 @@ mysql.init_app(app)
 
 
 # vv user Login
-def check_user_and_password(username, password):
+def validateLogin(email, password):
 
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT password FROM users WHERE email = '" + username + "';")
-
+    cursor.execute("SELECT password FROM users WHERE email = '" + email + "';")
     result = cursor.fetchone()
     cursor.close()
 
-    return password == result[0]  # "a2@Ahhhhh"
+    return password == result[0]
 
 
 def authenticate():
@@ -67,7 +65,7 @@ def authenticate():
 def requires_authorization(f):
     def decorated(*args, **kwargs):
         auth = request.authorization
-        if not auth or not check_user_and_password(auth.username, auth.password):
+        if not auth or not validateLogin(auth.username, auth.password):
             return authenticate()
         return f(*args, **kwargs)
     return decorated
@@ -108,7 +106,7 @@ def settingsPage():
 
 @app.route("/login", methods=['POST'])
 def login():
-    if check_user_and_password(request.form['email'], request.form['password']):
+    if validateLogin(request.form['email'], request.form['password']):
         return render_template('dashboard.html')
     else:
         return authenticate()
