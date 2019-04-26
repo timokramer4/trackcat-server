@@ -1,9 +1,10 @@
 # vv import Area
 
-from flask import Flask, request, render_template, redirect, jsonify
+from flask import Flask, flash, request, render_template, redirect, jsonify, session
 from flaskext.mysql import MySQL
 import simplejson
 import time
+import os
 
 
 # ^^ import Area
@@ -13,6 +14,7 @@ import time
 app = Flask(__name__)
 mysql = MySQL()
 
+app.secret_key = os.urandom(12)
 app.config['MYSQL_DATABASE_USER'] = 'remRoot'
 app.config['MYSQL_DATABASE_PASSWORD'] = '1Qayse45&'
 app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
@@ -20,7 +22,7 @@ app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
 app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
 
-#app.config['SECRET_KEY'] = 'hard to guess string'
+#app.config['SECRET_KEY'] = 'hard to guess page'
 
 # ^^ config
 
@@ -72,6 +74,12 @@ def requires_authorization(f):
 
 # ^^ user Login
 
+# Check login and redirect
+def checkSession(page):
+    if not session.get('logged_in'):
+        return render_template('login.html')
+    else:
+        return render_template(page)
 
 ### Static page routes ###
 
@@ -79,37 +87,52 @@ def requires_authorization(f):
 @app.route("/", methods=['GET'])
 @app.route("/login", methods=['GET'])
 def loginPage():
-    return render_template("login.html")
+    if not session.get('logged_in'):
+        return render_template("login.html")
+    else:
+        return dashboardPage()
+
+# LogOut user
+@app.route("/logout", methods=['GET'])
+def logoutPage():
+    session.clear()
+    return loginPage()
 
 # Register page
 @app.route("/register", methods=['GET'])
 def registerPage():
-    return render_template("register.html")
+    if not session.get('logged_in'):
+        return render_template("register.html")
+    else:
+        return dashboardPage()
 
 # Profile page
 @app.route("/dashboard", methods=["GET"])
 def dashboardPage():
-    return render_template("dashboard.html")
+    return checkSession("dashboard.html")
 
 # Profile page
 @app.route("/profile", methods=["GET"])
 def profilePage():
-    return render_template("profile.html")
+    return checkSession("profile.html")
 
 # Profile page
 @app.route("/settings", methods=["GET"])
 def settingsPage():
-    return render_template("settings.html")
+    return checkSession("settings.html")
 
 ### Web-Handler ###
-
-
 @app.route("/login", methods=['POST'])
 def login():
-    if validateLogin(request.form['email'], request.form['password']):
-        return render_template('dashboard.html')
+    if not session.get('logged_in'):
+        if validateLogin(request.form['email'], request.form['password']):
+            session['logged_in'] = True
+            return dashboardPage()
+        else:
+            flash('Die eingegebenen Zugangsdaten sind falsch!')
+            return loginPage()
     else:
-        return authenticate()
+        return dashboardPage()
 
 # register a user
 @app.route("/registerUser", methods=['POST'])
