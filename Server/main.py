@@ -5,6 +5,7 @@ from flaskext.mysql import MySQL
 import simplejson
 import time
 import os
+import json
 
 
 # ^^ import Area
@@ -22,7 +23,7 @@ app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
 app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
 
-#app.config['SECRET_KEY'] = 'hard to guess page'
+# app.config['SECRET_KEY'] = 'hard to guess page'
 
 # ^^ config
 
@@ -150,11 +151,8 @@ def login():
 def registerUser():
 
     # Add validation
-    success = registerUserDB(request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
-
-    # 0 = Valid
-    # 1 = Creation error
-    # 3 = Email already exists
+    success = registerUserDB(
+        request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
 
     if success == 0:
         return redirect("/login")
@@ -166,7 +164,13 @@ def registerUser():
         return redirect("/register")
 
 ### BOTH-Handler ###
+
+
 def registerUserDB(firstName, lastName, email, password):
+    # 0 = Valid
+    # 1 = Creation error
+    # 3 = Email already exists
+
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -198,9 +202,13 @@ def loginAPI():
 
 @app.route("/registerAPI", methods=['POST'])
 def registerAPI():
+
     json = request.json
 
-    return "okay"
+    success = registerUserDB(
+        json['firstName'], json['lastName'], json['email'], json['password'])
+
+    return simplejson.dumps(str(success))
 
 
 if __name__ == '__main__':
