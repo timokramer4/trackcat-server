@@ -75,11 +75,11 @@ def requires_authorization(f):
 # ^^ user Login
 
 # Check login and redirect
-def checkSession(page):
+def checkSession():
     if not session.get('logged_in'):
-        return render_template('login.html')
+        return False
     else:
-        return render_template(page)
+        return True
 
 ### Static page routes ###
 
@@ -87,16 +87,16 @@ def checkSession(page):
 @app.route("/", methods=['GET'])
 @app.route("/login", methods=['GET'])
 def loginPage():
-    if not session.get('logged_in'):
+    if not checkSession():
         return render_template("login.html")
     else:
-        return dashboardPage()
+        return redirect("/dashboard")
 
 # LogOut user
 @app.route("/logout", methods=['GET'])
 def logoutPage():
     session.clear()
-    return loginPage()
+    return redirect("/login")
 
 # Register page
 @app.route("/register", methods=['GET'])
@@ -104,22 +104,31 @@ def registerPage():
     if not session.get('logged_in'):
         return render_template("register.html")
     else:
-        return dashboardPage()
+        return redirect("/dashboard")
 
 # Profile page
 @app.route("/dashboard", methods=["GET"])
 def dashboardPage():
-    return checkSession("dashboard.html")
+    if checkSession():
+        return render_template("dashboard.html")
+    else:
+        return redirect("/login")
 
 # Profile page
 @app.route("/profile", methods=["GET"])
 def profilePage():
-    return checkSession("profile.html")
+    if checkSession():
+        return render_template("profile.html")
+    else:
+        return redirect("/login")
 
 # Profile page
 @app.route("/settings", methods=["GET"])
 def settingsPage():
-    return checkSession("settings.html")
+    if checkSession():
+        return render_template("settings.html")
+    else:
+        return redirect("/login")
 
 ### Web-Handler ###
 @app.route("/login", methods=['POST'])
@@ -127,12 +136,12 @@ def login():
     if not session.get('logged_in'):
         if validateLogin(request.form['email'], request.form['password']):
             session['logged_in'] = True
-            return dashboardPage()
+            return redirect("/dashboard")
         else:
             flash('Die eingegebenen Zugangsdaten sind falsch!')
-            return loginPage()
+            return redirect("/login")
     else:
-        return dashboardPage()
+        return redirect("/dashboard")
 
 # register a user
 @app.route("/registerUser", methods=['POST'])
@@ -140,16 +149,14 @@ def registerUser():
 
     # add validation
 
-    success = registerUserDB(request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
-
+    success = registerUserDB(
+        request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
 
     # 0 = okay
     # 1 = Error
     # 3 = Email exists
 
-
-
-    return success
+    return str(success)
 
 ### BOTH-Handler ###
 
