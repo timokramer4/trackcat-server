@@ -49,7 +49,7 @@ def validateLogin(email, password):
     result = cursor.fetchone()
     cursor.close()
 
-    return password == result[0]
+    return result is not None and password == result[0]  # "a2@Ahhhhh"
 
 
 def authenticate():
