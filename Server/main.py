@@ -117,16 +117,42 @@ def registerUser():
 
     # add validation
 
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO users (firstName, lastName, eMail, password, dateOfRegistration, lastLogin, darkTheme,showHelp, timeStamp) VALUES ('" +
-                   request.form['firstName']+"', '"+request.form['lastName']+"', '"+request.form['email']+"', '"+request.form['password1']+"', "+str(int(time.time())) + ", " +
-                   str(int(time.time())) + ", 0, 1, "+str(int(time.time())) + ");")
+    success = registerUserDB(request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
 
-    conn.commit()
-    cursor.close()
 
-    return "okay"
+    # 0 = okay
+    # 1 = Error
+    # 3 = Email exists
+
+
+
+    return success
+
+### BOTH-Handler ###
+
+
+def registerUserDB(firstName, lastName, email, password):
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO users (firstName, lastName, eMail, password, dateOfRegistration, lastLogin, darkTheme,showHelp, timeStamp) VALUES ('" +
+                       firstName+"', '"+lastName+"', '"+email+"', '"+password+"', "+str(int(time.time())) + ", " +
+                       str(int(time.time())) + ", 0, 1, "+str(int(time.time())) + ");")
+
+        conn.commit()
+        cursor.close()
+
+        pass
+    except Exception as identifier:
+        print(identifier)
+
+        if(identifier.args[0] == 1062):
+            if('eMail_UNIQUE' in identifier.args[1]):
+                return 3
+            return 1
+
+    pass
+    return 0
 
 
 ### API-Handler ###
