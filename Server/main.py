@@ -7,6 +7,7 @@ import time
 import os
 import json
 
+from mailSend import sendVmail
 
 # ^^ import Area
 
@@ -191,6 +192,9 @@ def registerUserDB(firstName, lastName, email, password):
             return 1
 
     pass
+
+    sendVmail(email, firstName, "http://safe-harbour.de:4242")
+
     return 0
 
 ### API-Handler ###
