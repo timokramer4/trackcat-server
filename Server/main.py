@@ -257,5 +257,17 @@ def getUserByEmail():
     return json.dumps(getUserFromDB(request.json['eMail']))
 
 
+
+
+@app.route("/updateUser", methods=['POST'])
+def updateUser():
+    jsonUpdate = request.json
+
+    jsonSuccess = {}
+    jsonSuccess['success'] = 0
+
+    return json.dumps(jsonSuccess)
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
