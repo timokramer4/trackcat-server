@@ -5,7 +5,7 @@ from email.headerregistry import Address
 from email.utils import make_msgid
 
 SERVER = "smtp.strato.de"
-FROM = "info@trackcat.de"
+FROM = "no-reply@trackcat.de"
 
 def sendVmail(reciever, firstName, vLink):
 
@@ -106,7 +106,7 @@ def sendVmail(reciever, firstName, vLink):
                                   <td style="max-width:600px;padding:50px 40px 40px 40px;width:100%;background-color:#fbfbfc;padding:20px 0px 0px 0px;background-color:#e9ebee;">
                                       <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
                                         <tr align="center">
-                                            <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;color:#8f949b;font-size:12px;padding:0 20px;">This from Trackcat auto generated message was send to <a style="color:#3b5998;text-decoration:none;">finn.lenz@outlook.de</a>.<br>There is no active e-mail subscription that could be terminated.
+                                            <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;color:#8f949b;font-size:12px;padding:0 20px;">This from Trackcat auto generated message was send to <a style="color:#3b5998;text-decoration:none;">finn.lenz@outlook.de</a>. There is no active e-mail subscription that could be terminated.
                                         </tr>
                                         <tr align="center">
                                             <td style="width:100%;height:15px;"></td>
