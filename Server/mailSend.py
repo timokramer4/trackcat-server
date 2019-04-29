@@ -7,34 +7,36 @@ from email.utils import make_msgid
 SERVER = "smtp.strato.de"
 FROM = "no-reply@trackcat.de"
 
+
 def sendVmail(reciever, firstName, vLink):
 
-  # Create the base text message.
-  msg = EmailMessage()
-  msg['Subject'] = "TrackCat Email Verification"
-  msg['From'] = FROM
-  msg['To'] = ["finnjoana56@gmail.com", "timokramer1@me.com", reciever]
+    # Create the base text message.
+    msg = EmailMessage()
+    msg['Subject'] = "TrackCat Email Verification"
+    msg['From'] = FROM
+    msg['To'] = ["finnjoana56@gmail.com", "timokramer1@me.com", reciever]
 
-  msg.set_content("""\
-  Sollte, 
+    msg.set_content("""\
+Please verify your email address
 
-  ein 
+Hi Finn,
 
-  normaler,
-  Text sein
+to get full access to all features, you'll need to verify your email address to make sure it really belongs to you.
+If you have not registered in the Trackcat app or on the website, you can ignore this mail. The account will not be activated and will be deleted automatically after 14 days.
+
+"""+vLink+"""\
+
+Verify email address
+Thanks,
+The Trackcat Team
   """)
 
+    # Add the html version.  This converts the message into a multipart/alternative
+    # container, with the original text message as the first part and the new html
+    # message as the second part.
+    asparagus_cid = make_msgid()
 
-  
-  
-
-  # Add the html version.  This converts the message into a multipart/alternative
-  # container, with the original text message as the first part and the new html
-  # message as the second part.
-  asparagus_cid = make_msgid()
-
-
-  string = """\
+    string = """\
   <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -106,7 +108,8 @@ def sendVmail(reciever, firstName, vLink):
                                   <td style="max-width:600px;padding:50px 40px 40px 40px;width:100%;background-color:#fbfbfc;padding:20px 0px 0px 0px;background-color:#e9ebee;">
                                       <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
                                         <tr align="center">
-                                            <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;color:#8f949b;font-size:12px;padding:0 20px;">This from Trackcat auto generated message was send to <a style="color:#3b5998;text-decoration:none;">finn.lenz@outlook.de</a>. There is no active e-mail subscription that could be terminated.
+                                            <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;color:#8f949b;font-size:12px;padding:0 20px;">This from Trackcat auto generated message was send to <a style="color:#3b5998;text-decoration:none;">"""+reciever+"""\
+                                            </a>. There is no active e-mail subscription that could be terminated.
                                         </tr>
                                         <tr align="center">
                                             <td style="width:100%;height:15px;"></td>
@@ -150,28 +153,29 @@ def sendVmail(reciever, firstName, vLink):
     
   """
 
+    msg.add_alternative(string.format(
+        asparagus_cid=asparagus_cid[1:-1]), subtype='html')
+    # note that we needed to peel the <> off the msgid for use in the html.
 
-  msg.add_alternative(string.format(asparagus_cid=asparagus_cid[1:-1]), subtype='html')
-  # note that we needed to peel the <> off the msgid for use in the html.
+    # Now add the related image to the html part.
+    with open("./static/img/logo.png", 'rb') as img:
+        msg.get_payload()[1].add_related(img.read(), 'image', 'png',
+                                         cid=asparagus_cid)
 
-  # Now add the related image to the html part.
-  with open("./static/img/logo.png", 'rb') as img:
-      msg.get_payload()[1].add_related(img.read(), 'image', 'png',
-                                      cid=asparagus_cid)
+    # Make a local copy of what we are going to send.
+    # with open('outgoing.msg', 'wb') as f:
+    #     f.write(bytes(msg))
 
-  # Make a local copy of what we are going to send.
-  # with open('outgoing.msg', 'wb') as f:
-  #     f.write(bytes(msg))
+    # Send the message via local SMTP server.
+    server = smtplib.SMTP(SERVER, 587)
+    server.ehlo()
+    server.starttls()
+    server.ehlo()
+    server.login(FROM, "@track_c[]t2019")
+    server.send_message(msg)  # sendmail(FROM, TO, msg.as_string())
+    server.quit()
 
-  # Send the message via local SMTP server.
-  server = smtplib.SMTP(SERVER, 587)
-  server.ehlo()
-  server.starttls()
-  server.ehlo()
-  server.login(FROM, "@track_c[]t2019")
-  server.send_message(msg)  # sendmail(FROM, TO, msg.as_string())
-  server.quit()
 
 # test run this py
-sendVmail("finnlenz@outlook.de", "Finn", "http://safe-harbour.de:4242")
+sendVmail("finn1212@hotmail.de", "Finn", "http://safe-harbour.de:4242")
 print("Done test Sending")
