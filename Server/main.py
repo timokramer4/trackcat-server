@@ -5,7 +5,9 @@ from flaskext.mysql import MySQL
 import simplejson
 import time
 import os
+import json
 
+from mailSend import sendVmail
 
 # ^^ import Area
 
@@ -22,7 +24,7 @@ app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
 app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
 
-#app.config['SECRET_KEY'] = 'hard to guess page'
+# app.config['SECRET_KEY'] = 'hard to guess page'
 
 # ^^ config
 
@@ -150,11 +152,8 @@ def login():
 def registerUser():
 
     # Add validation
-    success = registerUserDB(request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
-
-    # 0 = Valid
-    # 1 = Creation error
-    # 3 = Email already exists
+    success = registerUserDB(
+        request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
 
     if success == 0:
         return redirect("/login")
@@ -166,7 +165,13 @@ def registerUser():
         return redirect("/register")
 
 ### BOTH-Handler ###
+
+
 def registerUserDB(firstName, lastName, email, password):
+    # 0 = Valid
+    # 1 = Creation error
+    # 3 = Email already exists
+
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -187,20 +192,52 @@ def registerUserDB(firstName, lastName, email, password):
             return 1
 
     pass
+
+    sendVmail(email, firstName, "http://safe-harbour.de:4242")
+
     return 0
 
 ### API-Handler ###
 @app.route("/loginAPI", methods=['POST'])
 @requires_authorization
 def loginAPI():
-    return simplejson.dumps("0")
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT idusers,eMail,firstName,lastName,image,gender,weight,size,dateOfBirth,password FROM users WHERE email = '" +
+                   request.authorization.username + "';")
+    result = cursor.fetchone()
+    cursor.close()
+
+    jsonObj = {}
+    jsonObj['success'] = 0
+
+    jsonUser = {}
+
+    jsonUser['id'] = result[0]
+    jsonUser['eMail'] = result[1]
+    jsonUser['firstName'] = result[2]
+    jsonUser['lastName'] = result[3]
+    jsonUser['image'] = result[4]
+    jsonUser['gender'] = result[5]
+    jsonUser['weight'] = result[6]
+    jsonUser['size'] = result[7]
+    jsonUser['dateOfBirth'] = result[8]
+    jsonUser['password'] = result[9]
+
+    jsonObj['userData'] = jsonUser
+
+    return json.dumps(jsonObj)
 
 
 @app.route("/registerAPI", methods=['POST'])
 def registerAPI():
+
     json = request.json
 
-    return "okay"
+    success = registerUserDB(
+        json['firstName'], json['lastName'], json['email'], json['password'])
+
+    return simplejson.dumps(str(success))
 
 
 if __name__ == '__main__':
