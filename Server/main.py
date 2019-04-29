@@ -218,7 +218,12 @@ def loginAPI():
     jsonUser['firstName'] = result[2]
     jsonUser['lastName'] = result[3]
     jsonUser['image'] = result[4]
-    jsonUser['gender'] = result[5]
+
+    if result[5] == None:
+        jsonUser['gender'] = 2
+    else:
+        jsonUser['gender'] = result[5]
+    
     jsonUser['weight'] = result[6]
     jsonUser['size'] = result[7]
     jsonUser['dateOfBirth'] = result[8]

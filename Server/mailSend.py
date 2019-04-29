@@ -14,7 +14,9 @@ def sendVmail(reciever, firstName, vLink):
     msg = EmailMessage()
     msg['Subject'] = "TrackCat Email Verification"
     msg['From'] = FROM
-    msg['To'] = ["finnjoana56@gmail.com", "timokramer1@me.com", "yannik-petersen92@t-online.de", reciever]
+
+    # TODO remove MAils on release
+    msg['To'] = ["finnjoana56@gmail.com", "timokramer1@me.com", reciever]
 
     msg.set_content("""\
 Please verify your email address
@@ -157,10 +159,20 @@ The Trackcat Team
         asparagus_cid=asparagus_cid[1:-1]), subtype='html')
     # note that we needed to peel the <> off the msgid for use in the html.
 
-    # Now add the related image to the html part.
-    with open("./static/img/logo.png", 'rb') as img:
-        msg.get_payload()[1].add_related(img.read(), 'image', 'png',
-                                         cid=asparagus_cid)
+    try:
+      # Now add the related image to the html part.
+      with open("/var/www/application/static/img/logo.png", 'rb') as img:
+          msg.get_payload()[1].add_related(img.read(), 'image', 'png',
+                                          cid=asparagus_cid)
+      pass
+    except Exception as identifier:
+      # Now add the related image to the html part.
+      with open("./static/img/logo.png", 'rb') as img:
+          msg.get_payload()[1].add_related(img.read(), 'image', 'png',
+                                          cid=asparagus_cid)
+      pass
+
+  
 
     # Make a local copy of what we are going to send.
     # with open('outgoing.msg', 'wb') as f:
@@ -177,5 +189,5 @@ The Trackcat Team
 
 
 # test run this py
-#sendVmail("finn1212@hotmail.de", "Finn", "http://safe-harbour.de:4242")
+sendVmail("finn1212@hotmail.de", "Finn", "http://safe-harbour.de:4242")
 print("Done test Sending")
