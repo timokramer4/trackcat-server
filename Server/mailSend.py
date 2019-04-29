@@ -14,7 +14,7 @@ def sendVmail(reciever, firstName, vLink):
     msg = EmailMessage()
     msg['Subject'] = "TrackCat Email Verification"
     msg['From'] = FROM
-    msg['To'] = ["finnjoana56@gmail.com", "timokramer1@me.com", reciever]
+    msg['To'] = ["finnjoana56@gmail.com", "timokramer1@me.com", "yannik-petersen92@t-online.de", reciever]
 
     msg.set_content("""\
 Please verify your email address
@@ -177,5 +177,5 @@ The Trackcat Team
 
 
 # test run this py
-sendVmail("finn1212@hotmail.de", "Finn", "http://safe-harbour.de:4242")
+#sendVmail("finn1212@hotmail.de", "Finn", "http://safe-harbour.de:4242")
 print("Done test Sending")

@@ -201,7 +201,32 @@ def registerUserDB(firstName, lastName, email, password):
 @app.route("/loginAPI", methods=['POST'])
 @requires_authorization
 def loginAPI():
-    return simplejson.dumps("0")
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT idusers,eMail,firstName,lastName,image,gender,weight,size,dateOfBirth,password FROM users WHERE email = '" +
+                   request.authorization.username + "';")
+    result = cursor.fetchone()
+    cursor.close()
+
+    jsonObj = {}
+    jsonObj['success'] = 0
+
+    jsonUser = {}
+
+    jsonUser['id'] = result[0]
+    jsonUser['eMail'] = result[1]
+    jsonUser['firstName'] = result[2]
+    jsonUser['lastName'] = result[3]
+    jsonUser['image'] = result[4]
+    jsonUser['gender'] = result[5]
+    jsonUser['weight'] = result[6]
+    jsonUser['size'] = result[7]
+    jsonUser['dateOfBirth'] = result[8]
+    jsonUser['password'] = result[9]
+
+    jsonObj['userData'] = jsonUser
+
+    return json.dumps(jsonObj)
 
 
 @app.route("/registerAPI", methods=['POST'])
