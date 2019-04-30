@@ -1,4 +1,6 @@
-# vv import Area
+###########################
+###       Imports       ###
+###########################
 
 from flask import Flask, flash, request, render_template, redirect, jsonify, session
 from flaskext.mysql import MySQL
@@ -6,12 +8,11 @@ import simplejson
 import time
 import os
 import json
-
 from mailSend import sendVmail
 
-# ^^ import Area
-
-# vv config
+###########################
+###    Configuration    ###
+###########################
 
 app = Flask(__name__)
 mysql = MySQL()
@@ -24,29 +25,24 @@ app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
 app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
 
-# app.config['SECRET_KEY'] = 'hard to guess page'
-
-# ^^ config
-
-# vv testArea
+###########################
+###      Test-Area      ###
+###########################
 
 # first test login
 # @app.route("/login", methods=['POST'])
 # def login():
-
 #     json = request.json
-
 #     print(json)
-
 #     return simplejson.dumps({'success': json['username'] == 'krypto' and json['password'] == 'koffer'})
 
 
-# ^^ testArea
+###########################
+###      Functions      ###
+###########################
 
-
-# vv user Login
+# Validate login data
 def validateLogin(email, password):
-
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.execute("SELECT password FROM users WHERE email = '" + email + "';")
@@ -55,7 +51,7 @@ def validateLogin(email, password):
 
     return result is not None and password == result[0]  # "a2@Ahhhhh"
 
-
+# Basic Authentificate
 def authenticate():
     message = {'message': "Authenticate."}
     resp = jsonify(message)
@@ -65,7 +61,6 @@ def authenticate():
     # return resp
     return simplejson.dumps("1")
 
-
 def requires_authorization(f):
     def decorated(*args, **kwargs):
         auth = request.authorization
@@ -74,18 +69,72 @@ def requires_authorization(f):
         return f(*args, **kwargs)
     return decorated
 
-# ^^ user Login
+# Create new user in database
+def registerUserDB(firstName, lastName, email, password):
+    # 0 = Valid
+    # 1 = Creation error
+    # 3 = Email already exists
 
-# Check login and redirect
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO users (firstName, lastName, eMail, password, dateOfRegistration, lastLogin, darkTheme,showHelp, timeStamp) VALUES ('" +
+                       firstName + "', '" + lastName + "', '" + email + "', '" + password + "', " + str(int(time.time())) + ", " +
+                       str(int(time.time())) + ", 0, 1, "+str(int(time.time())) + ");")
+        conn.commit()
+        cursor.close()
+        pass
+    except Exception as identifier:
+        print(identifier)
 
+        if(identifier.args[0] == 1062):
+            if('eMail_UNIQUE' in identifier.args[1]):
+                return 3
+            return 1
+    pass
+    sendVmail(email, firstName, "http://safe-harbour.de:4242")
+    return 0
 
+# Get selected user from database
+def getUserFromDB(email):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    params = "id, eMail, firstName, lastName, password, image, dateOfBirth, gender, weight, size, darkTheme, hints, dateOfRegistration, lastLogin"
+    cursor.execute("SELECT " + params + " FROM users WHERE email = '" + email + "';")
+    result = cursor.fetchone()
+    cursor.close()
+
+    jsonUser = {}
+    jsonUser['id'] = result[0]
+    jsonUser['eMail'] = result[1]
+    jsonUser['firstName'] = result[2]
+    jsonUser['lastName'] = result[3]
+    jsonUser['password'] = result[4]
+    jsonUser['image'] = result[5]
+    jsonUser['dateOfBirth'] = result[6]
+    if result[7] == None:
+        jsonUser['gender'] = 2
+    else:
+        jsonUser['gender'] = result[7]
+    jsonUser['weight'] = result[8]
+    jsonUser['size'] = result[9]
+    jsonUser['darkTheme'] = result[10]
+    jsonUser['hints'] = result[11]
+    jsonUser['dateOfRegistration'] = result[12]
+    jsonUser['lastLogin'] = result[13]
+
+    return jsonUser
+
+###########################
+###   WEB API-Handler   ###
+###########################
+
+# Check login state and redirect if not logged
 def checkSession():
     if not session.get('logged_in'):
         return False
     else:
         return True
-
-### Static page routes ###
 
 # Start and login page
 @app.route("/", methods=['GET'])
@@ -163,72 +212,12 @@ def registerUser():
     elif success == 3:
         flash('Die E-Mail Adresse existiert bereits!')
         return redirect("/register")
+        
+###########################
+###  REST API-Handler   ###
+###########################
 
-### BOTH-Handler ###
-
-
-def registerUserDB(firstName, lastName, email, password):
-    # 0 = Valid
-    # 1 = Creation error
-    # 3 = Email already exists
-
-    try:
-        conn = mysql.connect()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO users (firstName, lastName, eMail, password, dateOfRegistration, lastLogin, darkTheme,showHelp, timeStamp) VALUES ('" +
-                       firstName + "', '" + lastName + "', '" + email + "', '" + password + "', " + str(int(time.time())) + ", " +
-                       str(int(time.time())) + ", 0, 1, "+str(int(time.time())) + ");")
-
-        conn.commit()
-        cursor.close()
-
-        pass
-    except Exception as identifier:
-        print(identifier)
-
-        if(identifier.args[0] == 1062):
-            if('eMail_UNIQUE' in identifier.args[1]):
-                return 3
-            return 1
-
-    pass
-
-    sendVmail(email, firstName, "http://safe-harbour.de:4242")
-
-    return 0
-
-
-def getUserFromDB(email):
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    params = "id, eMail, firstName, lastName, password, image, dateOfBirth, gender, weight, size, darkTheme, hints, dateOfRegistration, lastLogin"
-    cursor.execute("SELECT " + params + " FROM users WHERE email = '" + email + "';")
-    result = cursor.fetchone()
-    cursor.close()
-
-    jsonUser = {}
-    jsonUser['id'] = result[0]
-    jsonUser['eMail'] = result[1]
-    jsonUser['firstName'] = result[2]
-    jsonUser['lastName'] = result[3]
-    jsonUser['password'] = result[4]
-    jsonUser['image'] = result[5]
-    jsonUser['dateOfBirth'] = result[6]
-    if result[7] == None:
-        jsonUser['gender'] = 2
-    else:
-        jsonUser['gender'] = result[7]
-    jsonUser['weight'] = result[8]
-    jsonUser['size'] = result[9]
-    jsonUser['darkTheme'] = result[10]
-    jsonUser['hints'] = result[11]
-    jsonUser['dateOfRegistration'] = result[12]
-    jsonUser['lastLogin'] = result[13]
-
-    return jsonUser
-
-
-### API-Handler ###
+# Check user login
 @app.route("/loginAPI", methods=['POST'])
 @requires_authorization
 def loginAPI():
@@ -239,7 +228,7 @@ def loginAPI():
 
     return json.dumps(jsonObj)
 
-
+# Create new user in database
 @app.route("/registerAPI", methods=['POST'])
 def registerAPI():
     json = request.json
@@ -249,15 +238,14 @@ def registerAPI():
 
     return simplejson.dumps(str(success))
 
-
+# Get all userdata from user with email
 @app.route("/getUserByEmail", methods=['POST'])
 def getUserByEmail():
 
     return json.dumps(getUserFromDB(request.json['eMail']))
 
 
-
-
+# Update user data in database
 @app.route("/updateUser", methods=['POST'])
 def updateUser():
     jsonUpdate = request.json
@@ -267,6 +255,10 @@ def updateUser():
 
     return json.dumps(jsonSuccess)
 
+
+###########################
+###     Flask start     ###
+###########################
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
