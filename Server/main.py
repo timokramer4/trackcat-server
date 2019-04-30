@@ -49,7 +49,9 @@ def validateLogin(email, password):
     result = cursor.fetchone()
     cursor.close()
 
-    return result is not None and password == result[0]  # "a2@Ahhhhh"
+    if password == result[0]:
+        currentUser = getUserFromDB(email)
+    return result is not None and password == result[0]
 
 # Basic Authentificate
 def authenticate():
@@ -171,7 +173,8 @@ def dashboardPage():
 @app.route("/profile", methods=["GET"])
 def profilePage():
     if checkSession():
-        return render_template("profile.html")
+        currentUser = getUserFromDB("test@trackcat.de")
+        return render_template("profile.html", user=currentUser)
     else:
         return redirect("/login")
 
@@ -241,7 +244,6 @@ def registerAPI():
 # Get all userdata from user with email
 @app.route("/getUserByEmail", methods=['POST'])
 def getUserByEmail():
-
     return json.dumps(getUserFromDB(request.json['eMail']))
 
 
