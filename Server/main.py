@@ -201,29 +201,29 @@ def registerUserDB(firstName, lastName, email, password):
 def getUserFromDB(email):
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.execute("SELECT idusers,eMail,firstName,lastName,image,gender,weight,size,dateOfBirth,password,darkTheme FROM users WHERE email = '" +
-                   email + "';")
+    params = "id, eMail, firstName, lastName, password, image, dateOfBirth, gender, weight, size, darkTheme, hints, dateOfRegistration, lastLogin"
+    cursor.execute("SELECT " + params + " FROM users WHERE email = '" + email + "';")
     result = cursor.fetchone()
     cursor.close()
 
     jsonUser = {}
-
     jsonUser['id'] = result[0]
     jsonUser['eMail'] = result[1]
     jsonUser['firstName'] = result[2]
     jsonUser['lastName'] = result[3]
-    jsonUser['image'] = result[4]
-
-    if result[5] == None:
+    jsonUser['password'] = result[4]
+    jsonUser['image'] = result[5]
+    jsonUser['dateOfBirth'] = result[6]
+    if result[7] == None:
         jsonUser['gender'] = 2
     else:
-        jsonUser['gender'] = result[5]
-
-    jsonUser['weight'] = result[6]
-    jsonUser['size'] = result[7]
-    jsonUser['dateOfBirth'] = result[8]
-    jsonUser['password'] = result[9]
+        jsonUser['gender'] = result[7]
+    jsonUser['weight'] = result[8]
+    jsonUser['size'] = result[9]
     jsonUser['darkTheme'] = result[10]
+    jsonUser['hints'] = result[11]
+    jsonUser['dateOfRegistration'] = result[12]
+    jsonUser['lastLogin'] = result[13]
 
     return jsonUser
 
@@ -235,7 +235,6 @@ def loginAPI():
 
     jsonObj = {}
     jsonObj['success'] = 0
-
     jsonObj['userData'] = getUserFromDB(request.authorization.username)
 
     return json.dumps(jsonObj)
