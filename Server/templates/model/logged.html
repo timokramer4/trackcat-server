@@ -4,7 +4,8 @@
 <header class="header">
     <nav class="navbar navbar-expand-lg px-4 py-2 bg-white shadow">
         {% block topNav %}
-        <a href="/dashboard" class="sidebar-toggler text-gray-500 mr-4 mr-lg-5 lead"><i class="fas fa-chevron-circle-left"></i></a>
+        <a href="/dashboard" class="sidebar-toggler text-gray-500 mr-4 mr-lg-5 lead"><i
+                class="fas fa-chevron-circle-left"></i></a>
         {% endblock %}
 
         <a href="/dashboard" class="navbar-brand font-weight-bold text-uppercase text-base text-red">Trackcat
@@ -41,13 +42,13 @@
             </li>
             <li class="nav-item dropdown ml-auto"><a id="userInfo" href="trackcat.de" data-toggle="dropdown"
                     aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle"><img
-                        src="{{ url_for('static', filename='img/defaultUser.jpg')}}" alt="Jason Doe"
-                        style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow"></a>
+                        src="{% if user.img == None %}{{ url_for('static', filename='img/defaultUser.jpg')}}{% else %}data:image/jpeg;base64,{{ user.img | safe }}{% endif %}"
+                        alt="Jason Doe" style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow"></a>
                 <div aria-labelledby="userInfo" class="dropdown-menu">
                     <a href="profile" class="dropdown-item">
-                        <strong id="account_name" class="d-block text-uppercase headings-font-family">Max
-                            Mustermann</strong>
-                        <small id="account_email">max@muster.de</small></a>
+                        <strong id="account_name" class="d-block text-uppercase headings-font-family">{{user.firstName}}
+                            {{user.lastName}}</strong>
+                        <small id="account_email">{{user.id}}</small></a>
                     <div class="dropdown-divider"></div>
                     <a href="settings" class="dropdown-item">Einstellungen</a>
                     <div class="dropdown-divider"></div><a href="logout" class="dropdown-item">Abmelden</a>
