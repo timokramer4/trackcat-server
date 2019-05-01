@@ -316,13 +316,13 @@ def registerAPI():
     return simplejson.dumps(str(success))
 
 # Get all userdata from user with email
-@app.route("/getUserByEmail", methods=['POST'])
+@app.route("/getUserByEmailAPI", methods=['POST'])
 def getUserByEmail():
     return json.dumps(getUserFromDB(request.json['eMail']))
 
 
 # Update user data in database
-@app.route("/updateUser", methods=['POST'])
+@app.route("/updateUserAPI", methods=['POST'])
 def updateUser():
     j = request.json
 
