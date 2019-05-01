@@ -32,6 +32,21 @@
                         <h2 class="h6 text-uppercase mb-0">Zur Person</h2>
                     </div>
                     <div class="card-body">
+                        <script>
+                            function writeDate(date) {
+                                document.write(`${fillWithZero(date.getDay(), 2)}.${fillWithZero(date.getMonth(), 2)}.${date.getFullYear()}`);
+                            }
+                            /* Fill numbers with zeros */
+                            function fillWithZero(value, fill) {
+                                if (value < Math.pow(10, fill - 1)) {
+                                    for (var i = 0; i < fill - 1; i++) {
+                                        value = "0" + value;
+                                    }
+                                }
+                                return value;
+
+                            }
+                        </script>
                         <div
                             class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
                             <div class="left d-flex align-items-center">
@@ -43,17 +58,8 @@
                             <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
                                 <h5>
                                     <script>
-                                        function fillWithZero(value, fill) {
-                                            if (value < Math.pow(10, fill - 1)) {
-                                                for (var i = 0; i < fill - 1; i++) {
-                                                    value = "0" + value;
-                                                }
-                                            }
-                                            return value;
-
-                                        }
                                         var date = new Date({{ user.dateOfBirth }}* 1000);
-                                        document.write(`${fillWithZero(date.getDay(), 2)}.${fillWithZero(date.getMonth(), 2)}.${date.getFullYear()}`);
+                                        writeDate(date);
                                     </script>
                                 </h5>
                             </div>
@@ -62,13 +68,32 @@
                             class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
                             <div class="left d-flex align-items-center">
                                 <div class="text">
-                                    <h6 class="mb-0 d-flex align-items-center"><span><i class="fas fa-venus-mars"></i>&nbsp;&nbsp;Geschlecht</span></h6>
+                                    <h6 class="mb-0 d-flex align-items-center"><span><i
+                                                class="fas fa-venus-mars"></i>&nbsp;&nbsp;Geschlecht</span></h6>
                                 </div>
                             </div>
                             <div
                                 class="right ml-5 ml-sm-0 pl-3 pl-sm-0 {% if user.gender == 0%}text-violet{% else %}text-blue{% endif %}">
                                 <h5>{% if user.gender == 0%}weiblich <i class="fas fa-venus"></i>{% else %}männlich <i
                                         class="fas fa-mars"></i>{% endif %}</h5>
+                            </div>
+                        </div>
+                        <div
+                            class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
+                            <div class="left d-flex align-items-center">
+                                <div class="text">
+                                    <h6 class="mb-0 d-flex align-items-center"><span><i
+                                                class="far fa-calendar-alt"></i>&nbsp;&nbsp;Registriert seit</span>
+                                    </h6>
+                                </div>
+                            </div>
+                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
+                                <h5>
+                                    <script>
+                                        var date = new Date({{ user.dateOfRegistration }}* 1000);
+                                        writeDate(date);
+                                    </script>
+                                </h5>
                             </div>
                         </div>
                     </div>
