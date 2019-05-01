@@ -312,12 +312,14 @@ def loginAPI():
 # Create new user in database
 @app.route("/registerAPI", methods=['POST'])
 def registerAPI():
-    json = request.json
+    jsonRequest = request.json
 
-    success = registerUserDB(
-        json['firstName'], json['lastName'], json['email'], json['password'])
+    jsonObj = {}
+    jsonObj['success'] = registerUserDB(
+        jsonRequest['firstName'], jsonRequest['lastName'], jsonRequest['email'], jsonRequest['password'])
 
-    return simplejson.dumps(str(success))
+
+    return json.dumps(jsonObj)
 
 # Get all userdata from user with email
 @app.route("/getUserByEmailAPI", methods=['POST'])
