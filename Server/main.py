@@ -9,6 +9,8 @@ import time
 import os
 import json
 from mailSend import sendVmail
+from flask_login import LoginManager, UserMixin
+
 
 ###########################
 ###    Configuration    ###
@@ -24,6 +26,27 @@ app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
 app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
 app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+### models
+
+# @login_required   prüft obuser eingeloggt ist
+
+
+## pass an wies dir passt repr nicht nötig
+class User(UserMixin):
+
+    def __init__(self, id):
+        self.id = id
+        self.name = "user" + str(id)
+        self.password = self.name + "_secret"
+        
+    def __repr__(self):
+        return "%d/%s/%s" % (self.id, self.name, self.password)
+
+
 
 ###########################
 ###      Test-Area      ###
@@ -189,6 +212,12 @@ def settingsPage():
 ### Web-Handler ###
 @app.route("/login", methods=['POST'])
 def login():
+
+    # get user from db instantiate user
+    user = User.__init__(id)
+
+    login_user(user)
+
     if not session.get('logged_in'):
         if validateLogin(request.form['email'], request.form['password']):
             session['logged_in'] = True
