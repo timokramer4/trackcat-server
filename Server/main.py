@@ -39,14 +39,13 @@ login_manager.init_app(app)
 
 class User(UserMixin):
 
-    def __init__(self, id, email, firstName, lastName):
+    def __init__(self, id, idUser, firstName, lastName):
         self.id = id
-        self.email = email
+        self.idUser = idUser
         self.firstName = firstName
         self.lastName = lastName
 
-    def __repr__(self):
-        return "%d/%s/%s" % (self.id, self.email, self.firstName, self.lastName)
+    
 
 
 ###########################
@@ -56,7 +55,7 @@ class User(UserMixin):
 @login_manager.user_loader
 def user_loader(email):
     jsonUser = getUserFromDB(email)
-    user = User(jsonUser['id'], jsonUser['email'],
+    user = User( jsonUser['email'], jsonUser['id'],
                 jsonUser['firstName'], jsonUser['lastName'])
     return user
 
