@@ -39,11 +39,16 @@ login_manager.init_app(app)
 
 class User(UserMixin):
 
-    def __init__(self, id, idUser, firstName, lastName):
+    def __init__(self, id, idUser, firstName, lastName, gender, img, dateOfBirth, dateOfRegistration, lastLogin):
         self.id = id
         self.idUser = idUser
         self.firstName = firstName
         self.lastName = lastName
+        self.gender = gender
+        self.img = img
+        self.dateOfBirth = dateOfBirth
+        self.dateOfRegistration = dateOfRegistration
+        self.lastLogin = lastLogin
 
 
 ###########################
@@ -54,7 +59,9 @@ class User(UserMixin):
 def user_loader(email):
     jsonUser = getUserFromDB(email)
     user = User(jsonUser['email'], jsonUser['id'],
-                jsonUser['firstName'], jsonUser['lastName'])
+                jsonUser['firstName'], jsonUser['lastName'], 
+                jsonUser['gender'], jsonUser['image'], jsonUser['dateOfBirth'], 
+                jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
 
 ###########################
@@ -236,11 +243,8 @@ def registerPage():
 # Profile page
 @app.route("/dashboard", methods=["GET"])
 def dashboardPage():
-
-    # print(current_user.firstName)
-
     if current_user.is_authenticated:
-        return render_template("dashboard.html")
+        return render_template("dashboard.html", user=current_user)
     else:
         return redirect("/login")
 
@@ -256,7 +260,7 @@ def profilePage():
 @app.route("/settings", methods=["GET"])
 def settingsPage():
     if current_user.is_authenticated:
-        return render_template("settings.html")
+        return render_template("settings.html", user=current_user)
     else:
         return redirect("/login")
 
@@ -327,7 +331,7 @@ def updateUser():
     j = request.json
 
     jsonSuccess = {}
-    if updateUserDB(j['email'], j['email'], j['dateOfBirth'], j['firstName'], j['lastName'],j['gender'], j['size'], j['weight'], j['image']):
+    if updateUserDB(j['email'], j['email'], j['dateOfBirth'], j['firstName'], j['lastName'], j['gender'], j['size'], j['weight'], j['image']):
         jsonSuccess['success'] = 0
     else:
         jsonSuccess['success'] = 1
