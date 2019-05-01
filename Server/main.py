@@ -31,43 +31,33 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 ###########################
-###      Models         ###
+###       Models        ###
 ###########################
 
-# @login_required   prüft obuser eingeloggt ist
+# Logged user model
 
 
-## pass an wies dir passt repr nicht nötig
 class User(UserMixin):
 
-    def __init__(self, id, firstName):
+    def __init__(self, id, email, firstName, lastName):
         self.id = id
-        self.name = "user" + str(id)
+        self.email = email
         self.firstName = firstName
-        self.password = self.name + "_secret"
-        
-    def __repr__(self):
-        return "%d/%s/%s" % (self.id, self.name, self.password)
+        self.lastName = lastName
 
+    def __repr__(self):
+        return "%d/%s/%s" % (self.id, self.email, self.firstName, self.lastName)
 
 
 ###########################
 ###      Test-Area      ###
 ###########################
 
-# first test login
-# @app.route("/login", methods=['POST'])
-# def login():
-#     json = request.json
-#     print(json)
-#     return simplejson.dumps({'success': json['username'] == 'krypto' and json['password'] == 'koffer'})
-
 @login_manager.user_loader
 def user_loader(email):
     jsonUser = getUserFromDB(email)
-
-    user = User(jsonUser['eMail'], jsonUser['firstName'])
-    
+    user = User(jsonUser['id'], jsonUser['email'],
+                jsonUser['firstName'], jsonUser['lastName'])
     return user
 
 ###########################
@@ -75,16 +65,19 @@ def user_loader(email):
 ###########################
 
 # Validate login data
+
+
 def validateLogin(email, password):
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.execute("SELECT password FROM users WHERE email = '" + email + "';")
     result = cursor.fetchone()
     cursor.close()
-
     return result is not None and password == result[0]
 
 # Basic Authentificate
+
+
 def authenticate():
     message = {'message': "Authenticate."}
     resp = jsonify(message)
@@ -97,6 +90,7 @@ def authenticate():
     jsonObj['userData'] = None
     return json.dumps(jsonObj)
 
+
 def requires_authorization(f):
     def decorated(*args, **kwargs):
         auth = request.authorization
@@ -106,6 +100,8 @@ def requires_authorization(f):
     return decorated
 
 # Create new user in database
+
+
 def registerUserDB(firstName, lastName, email, password):
     # 0 = Valid
     # 1 = Creation error
@@ -114,7 +110,7 @@ def registerUserDB(firstName, lastName, email, password):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO users (firstName, lastName, eMail, password, dateOfRegistration, lastLogin, darkTheme,showHelp, timeStamp) VALUES ('" +
+        cursor.execute("INSERT INTO users (firstName, lastName, email, password, dateOfRegistration, lastLogin, darkTheme, hints, timeStamp) VALUES ('" +
                        firstName + "', '" + lastName + "', '" + email + "', '" + password + "', " + str(int(time.time())) + ", " +
                        str(int(time.time())) + ", 0, 1, "+str(int(time.time())) + ");")
         conn.commit()
@@ -130,7 +126,6 @@ def registerUserDB(firstName, lastName, email, password):
     pass
 
     # TODO generate add link
-
     sendVmail(email, firstName, "http://safe-harbour.de:4242")
     return 0
 
@@ -138,14 +133,15 @@ def registerUserDB(firstName, lastName, email, password):
 def getUserFromDB(email):
     conn = mysql.connect()
     cursor = conn.cursor()
-    params = "id, eMail, firstName, lastName, password, image, dateOfBirth, gender, weight, size, darkTheme, hints, dateOfRegistration, lastLogin"
-    cursor.execute("SELECT " + params + " FROM users WHERE email = '" + email + "';")
+    params = "id, email, firstName, lastName, password, image, dateOfBirth, gender, weight, size, darkTheme, hints, dateOfRegistration, lastLogin"
+    cursor.execute("SELECT " + params +
+                   " FROM users WHERE email = '" + email + "';")
     result = cursor.fetchone()
     cursor.close()
 
     jsonUser = {}
     jsonUser['id'] = result[0]
-    jsonUser['eMail'] = result[1]
+    jsonUser['email'] = result[1]
     jsonUser['firstName'] = result[2]
     jsonUser['lastName'] = result[3]
     jsonUser['password'] = result[4]
@@ -168,43 +164,36 @@ def getUserFromDB(email):
 ###   WEB API-Handler   ###
 ###########################
 
-# Check login state and redirect if not logged
-def checkSession():
-    if not session.get('logged_in'):
-        return False
-    else:
-        return True
-
 # Start and login page
 @app.route("/", methods=['GET'])
 @app.route("/login", methods=['GET'])
 def loginPage():
-    if not checkSession():
-        return render_template("login.html")
-    else:
+    if current_user.is_authenticated:
         return redirect("/dashboard")
+    else:
+        return render_template("login.html")
 
 # LogOut user
 @app.route("/logout", methods=['GET'])
 def logoutPage():
-    session.clear()
+    logout_user()
     return redirect("/login")
 
 # Register page
 @app.route("/register", methods=['GET'])
 def registerPage():
-    if not session.get('logged_in'):
-        return render_template("register.html")
-    else:
+    if current_user.is_authenticated:
         return redirect("/dashboard")
+    else:
+        return render_template("register.html")
 
 # Profile page
 @app.route("/dashboard", methods=["GET"])
 def dashboardPage():
 
-    print(current_user.name)
+    #print(current_user.firstName)
 
-    if checkSession():
+    if current_user.is_authenticated:
         return render_template("dashboard.html")
     else:
         return redirect("/login")
@@ -212,8 +201,7 @@ def dashboardPage():
 # Profile page
 @app.route("/profile", methods=["GET"])
 def profilePage():
-    if checkSession():
-        
+    if current_user.is_authenticated:
         return render_template("profile.html", user=current_user)
     else:
         return redirect("/login")
@@ -221,7 +209,7 @@ def profilePage():
 # Profile page
 @app.route("/settings", methods=["GET"])
 def settingsPage():
-    if checkSession():
+    if current_user.is_authenticated:
         return render_template("settings.html")
     else:
         return redirect("/login")
@@ -229,30 +217,18 @@ def settingsPage():
 ### Web-Handler ###
 @app.route("/login", methods=['POST'])
 def login():
-
     # get user from db instantiate user
-   
-    user = user_loader(request.form['email'])
-
-    login_user(user)
-
-    
-
-
-    if not session.get('logged_in'):
-        if validateLogin(request.form['email'], request.form['password']):
-            session['logged_in'] = True
-            return redirect("/dashboard")
-        else:
-            flash('Die eingegebenen Zugangsdaten sind falsch!')
-            return redirect("/login")
-    else:
+    if validateLogin(request.form['email'], request.form['password']):
+        user = user_loader(request.form['email'])
+        login_user(user)
         return redirect("/dashboard")
+    else:
+        flash('Die eingegebenen Zugangsdaten sind falsch!')
+        return redirect("/login")
 
 # Register a user
 @app.route("/registerUser", methods=['POST'])
 def registerUser():
-
     # Add validation
     success = registerUserDB(
         request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
@@ -265,7 +241,7 @@ def registerUser():
     elif success == 3:
         flash('Die E-Mail Adresse existiert bereits!')
         return redirect("/register")
-        
+
 ###########################
 ###  REST API-Handler   ###
 ###########################
