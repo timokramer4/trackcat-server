@@ -84,7 +84,10 @@ def authenticate():
     resp.headers['WWW-Authenticate'] = 'Basic realm="Main"'
 
     # return resp
-    return simplejson.dumps("1")
+    jsonObj = {}
+    jsonObj['success'] = 1
+    jsonObj['userData'] = None
+    return json.dumps(jsonObj)
 
 def requires_authorization(f):
     def decorated(*args, **kwargs):
