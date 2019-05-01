@@ -9,7 +9,7 @@ import time
 import os
 import json
 from mailSend import sendVmail
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
 
 
 ###########################
@@ -30,7 +30,9 @@ mysql.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-### models
+###########################
+###      Models         ###
+###########################
 
 # @login_required   prüft obuser eingeloggt ist
 
@@ -38,9 +40,10 @@ login_manager.init_app(app)
 ## pass an wies dir passt repr nicht nötig
 class User(UserMixin):
 
-    def __init__(self, id):
+    def __init__(self, id, firstName):
         self.id = id
         self.name = "user" + str(id)
+        self.firstName = firstName
         self.password = self.name + "_secret"
         
     def __repr__(self):
@@ -59,6 +62,13 @@ class User(UserMixin):
 #     print(json)
 #     return simplejson.dumps({'success': json['username'] == 'krypto' and json['password'] == 'koffer'})
 
+@login_manager.user_loader
+def user_loader(email):
+    jsonUser = getUserFromDB(email)
+
+    user = User(jsonUser['eMail'], jsonUser['firstName'])
+    
+    return user
 
 ###########################
 ###      Functions      ###
@@ -72,8 +82,6 @@ def validateLogin(email, password):
     result = cursor.fetchone()
     cursor.close()
 
-    if password == result[0]:
-        currentUser = getUserFromDB(email)
     return result is not None and password == result[0]
 
 # Basic Authentificate
@@ -120,10 +128,13 @@ def registerUserDB(firstName, lastName, email, password):
                 return 3
             return 1
     pass
+
+    # TODO generate add link
+
     sendVmail(email, firstName, "http://safe-harbour.de:4242")
     return 0
 
-# Get selected user from database
+# Get selected user from database as JSON
 def getUserFromDB(email):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -190,6 +201,9 @@ def registerPage():
 # Profile page
 @app.route("/dashboard", methods=["GET"])
 def dashboardPage():
+
+    print(current_user.name)
+
     if checkSession():
         return render_template("dashboard.html")
     else:
@@ -199,8 +213,8 @@ def dashboardPage():
 @app.route("/profile", methods=["GET"])
 def profilePage():
     if checkSession():
-        currentUser = getUserFromDB("test@trackcat.de")
-        return render_template("profile.html", user=currentUser)
+        
+        return render_template("profile.html", user=current_user)
     else:
         return redirect("/login")
 
@@ -217,9 +231,13 @@ def settingsPage():
 def login():
 
     # get user from db instantiate user
-    user = User.__init__(id)
+   
+    user = user_loader(request.form['email'])
 
     login_user(user)
+
+    
+
 
     if not session.get('logged_in'):
         if validateLogin(request.form['email'], request.form['password']):
