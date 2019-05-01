@@ -11,7 +11,6 @@ import json
 from mailSend import sendVmail
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
 
-
 ###########################
 ###    Configuration    ###
 ###########################
@@ -39,24 +38,29 @@ login_manager.init_app(app)
 
 class User(UserMixin):
 
-    def __init__(self, id, idUser, firstName, lastName):
+    def __init__(self, id, idUser, firstName, lastName, gender, img, dateOfBirth, dateOfRegistration, lastLogin):
         self.id = id
         self.idUser = idUser
         self.firstName = firstName
         self.lastName = lastName
-
-    
-
+        self.gender = gender
+        self.img = img
+        self.dateOfBirth = dateOfBirth
+        self.dateOfRegistration = dateOfRegistration
+        self.lastLogin = lastLogin
 
 ###########################
 ###      Test-Area      ###
 ###########################
 
+
 @login_manager.user_loader
 def user_loader(email):
     jsonUser = getUserFromDB(email)
-    user = User( jsonUser['email'], jsonUser['id'],
-                jsonUser['firstName'], jsonUser['lastName'])
+    user = User(jsonUser['email'], jsonUser['id'],
+                jsonUser['firstName'], jsonUser['lastName'], 
+                jsonUser['gender'], jsonUser['image'], jsonUser['dateOfBirth'], 
+                jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
 
 ###########################
@@ -129,6 +133,8 @@ def registerUserDB(firstName, lastName, email, password):
     return 0
 
 # Get selected user from database as JSON
+
+
 def getUserFromDB(email):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -189,11 +195,8 @@ def registerPage():
 # Profile page
 @app.route("/dashboard", methods=["GET"])
 def dashboardPage():
-
-    #print(current_user.firstName)
-
     if current_user.is_authenticated:
-        return render_template("dashboard.html")
+        return render_template("dashboard.html", user=current_user)
     else:
         return redirect("/login")
 
@@ -209,7 +212,7 @@ def profilePage():
 @app.route("/settings", methods=["GET"])
 def settingsPage():
     if current_user.is_authenticated:
-        return render_template("settings.html")
+        return render_template("settings.html", user=current_user)
     else:
         return redirect("/login")
 
@@ -282,10 +285,10 @@ def updateUser():
 
     return json.dumps(jsonSuccess)
 
-
 ###########################
 ###     Flask start     ###
 ###########################
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

@@ -12,15 +12,18 @@
           <div class="card-body">
             <div class="row align-items-center flex-row">
               <div class="col-lg-4 text-center mb-4">
-                <img src="{{ url_for('static', filename='img/defaultUser.jpg')}}" width="150px" class="img-fluid rounded-circle shadow">
+                <img
+                  src="{% if user.img == None %}{{ url_for('static', filename='img/defaultUser.jpg')}}{% else %}data:image/jpeg;base64,{{ user.img | safe }}{% endif %}"
+                  width="150px" class="img-fluid rounded-circle shadow">
               </div>
               <div class="col-lg-8">
                 <h2 class="mb-0 d-flex align-items-center">
-                  <span id="settings_account_name">Max Mustermann</span>
+                  <span id="settings_account_name">{{user.firstName}} {{user.lastName}}</span>
                 </h2>
-                <span class="text-muted text-uppercase small"><span id="online_state" class="dot bg-green d-inline-block mr-2"></span>
+                <span class="text-muted text-uppercase small"><span id="online_state"
+                    class="dot bg-green d-inline-block mr-2"></span>
                   Online</span>
-                <hr><small class="text-muted" id="settings_account_email">max@muster.de</small>
+                <hr><small class="text-muted" id="settings_account_email">{{user.id}}</small>
               </div>
             </div>
           </div>
@@ -36,21 +39,25 @@
             <form id="editGenerals">
               <div class="form-group">
                 <div class="custom-control custom-radio custom-control-inline">
-                  <input id="maleGender" type="radio" name="genderRadio" class="custom-control-input" validate>
+                  <input id="maleGender" type="radio" name="genderRadio" class="custom-control-input"
+                    {% if user.gender == 1 %}checked="true" {% endif %} validate>
                   <label for="maleGender" class="custom-control-label">Herr</label>
                 </div>
                 <div class="custom-control custom-radio custom-control-inline">
-                  <input id="femaleGender" type="radio" name="genderRadio" class="custom-control-input" validate>
+                  <input id="femaleGender" type="radio" name="genderRadio" class="custom-control-input"
+                    {% if user.gender == 0 %}checked="true" {% endif %} validate>
                   <label for="femaleGender" class="custom-control-label">Frau</label>
                 </div>
               </div>
               <div class="form-group">
                 <label class="form-control-label text-uppercase">Vorname</label>
-                <input type="text" id="firstName" placeholder="Vorname" maxlength="16" class="form-control" validate>
+                <input type="text" id="firstName" placeholder="Vorname" maxlength="16" class="form-control"
+                  value="{{user.firstName}}" validate>
               </div>
               <div class="form-group">
                 <label class="form-control-label text-uppercase">Nachname</label>
-                <input type="text" id="lastName" placeholder="Nachname" maxlength="16" class="form-control" validate>
+                <input type="text" id="lastName" placeholder="Nachname" maxlength="16" class="form-control"
+                  value="{{user.lastName}}" validate>
               </div>
               <button type="button" id="editGeneralsBtn" class="btn btn-primary shadow px-5" disabled>Speichern</button>
             </form>
