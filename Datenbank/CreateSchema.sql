@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `TrackCatDB`.`users` (
   `lastLogin` INT NOT NULL,
   `darkTheme` TINYINT(1) NOT NULL,
   `showHelp` TINYINT(1) NOT NULL,
-  `image` BLOB NULL,
+  `image` TEXT NULL,
   `timeStamp` INT NOT NULL,
   PRIMARY KEY (`idusers`),
   UNIQUE INDEX `eMail_UNIQUE` (`eMail` ASC) )
