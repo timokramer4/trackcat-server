@@ -11,6 +11,7 @@ import json
 from mailSend import sendVmail
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
 
+
 ###########################
 ###    Configuration    ###
 ###########################
@@ -38,29 +39,22 @@ login_manager.init_app(app)
 
 class User(UserMixin):
 
-    def __init__(self, id, idUser, firstName, lastName, gender, img, dateOfBirth, dateOfRegistration, lastLogin):
+    def __init__(self, id, idUser, firstName, lastName):
         self.id = id
         self.idUser = idUser
         self.firstName = firstName
         self.lastName = lastName
-        self.gender = gender
-        self.img = img
-        self.dateOfBirth = dateOfBirth
-        self.dateOfRegistration = dateOfRegistration
-        self.lastLogin = lastLogin
+
 
 ###########################
 ###      Test-Area      ###
 ###########################
 
-
 @login_manager.user_loader
 def user_loader(email):
     jsonUser = getUserFromDB(email)
     user = User(jsonUser['email'], jsonUser['id'],
-                jsonUser['firstName'], jsonUser['lastName'], 
-                jsonUser['gender'], jsonUser['image'], jsonUser['dateOfBirth'], 
-                jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
+                jsonUser['firstName'], jsonUser['lastName'])
     return user
 
 ###########################
@@ -76,6 +70,7 @@ def validateLogin(email, password):
     cursor.execute("SELECT password FROM users WHERE email = '" + email + "';")
     result = cursor.fetchone()
     cursor.close()
+    conn.close()
     return result is not None and password == result[0]
 
 # Basic Authentificate
@@ -118,6 +113,7 @@ def registerUserDB(firstName, lastName, email, password):
                        str(int(time.time())) + ", 0, 1, "+str(int(time.time())) + ");")
         conn.commit()
         cursor.close()
+        conn.close()
         pass
     except Exception as identifier:
         print(identifier)
@@ -143,6 +139,7 @@ def getUserFromDB(email):
                    " FROM users WHERE email = '" + email + "';")
     result = cursor.fetchone()
     cursor.close()
+    conn.close()
 
     jsonUser = {}
     jsonUser['id'] = result[0]
@@ -164,6 +161,50 @@ def getUserFromDB(email):
     jsonUser['lastLogin'] = result[13]
 
     return jsonUser
+
+
+def updateUserLastLogin(email):
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET lastLogin = " +
+                       str(int(time.time())) + " WHERE email = '" + email + "';")
+
+        conn.commit()
+
+        conn.close()
+        pass
+    except Exception as identifier:
+        pass
+    return
+
+
+def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
+                 gender, size, weight, image):
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        cursor.execute('UPDATE users SET email = "' + newEmail
+                       + '", dateOfBirth = "' + dateOfBirth
+                       + '", firstName = "' + firstName
+                       + '", lastName = "' + lastName
+                       + '", gender = "' + gender
+                       + '", size = "' + size
+                       + '", weight = "' + weight
+                       + '", image = "' + image
+                       + '" WHERE email = "' + oldEmail + '";')
+
+        conn.commit()
+
+        conn.close()
+        pass
+        return True
+    except Exception as identifier:
+        print(identifier)
+        return False
+        pass
+
 
 ###########################
 ###   WEB API-Handler   ###
@@ -195,8 +236,11 @@ def registerPage():
 # Profile page
 @app.route("/dashboard", methods=["GET"])
 def dashboardPage():
+
+    # print(current_user.firstName)
+
     if current_user.is_authenticated:
-        return render_template("dashboard.html", user=current_user)
+        return render_template("dashboard.html")
     else:
         return redirect("/login")
 
@@ -212,7 +256,7 @@ def profilePage():
 @app.route("/settings", methods=["GET"])
 def settingsPage():
     if current_user.is_authenticated:
-        return render_template("settings.html", user=current_user)
+        return render_template("settings.html")
     else:
         return redirect("/login")
 
@@ -221,6 +265,7 @@ def settingsPage():
 def login():
     # get user from db instantiate user
     if validateLogin(request.form['email'], request.form['password']):
+        updateUserLastLogin(request.form['email'])
         user = user_loader(request.form['email'])
         login_user(user)
         return redirect("/dashboard")
@@ -252,6 +297,7 @@ def registerUser():
 @app.route("/loginAPI", methods=['POST'])
 @requires_authorization
 def loginAPI():
+    updateUserLastLogin(request.authorization.username)
 
     jsonObj = {}
     jsonObj['success'] = 0
@@ -278,17 +324,20 @@ def getUserByEmail():
 # Update user data in database
 @app.route("/updateUser", methods=['POST'])
 def updateUser():
-    jsonUpdate = request.json
+    j = request.json
 
     jsonSuccess = {}
-    jsonSuccess['success'] = 0
+    if updateUserDB(j['email'], j['email'], j['dateOfBirth'], j['firstName'], j['lastName'],j['gender'], j['size'], j['weight'], j['image']):
+        jsonSuccess['success'] = 0
+    else:
+        jsonSuccess['success'] = 1
 
     return json.dumps(jsonSuccess)
+
 
 ###########################
 ###     Flask start     ###
 ###########################
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
