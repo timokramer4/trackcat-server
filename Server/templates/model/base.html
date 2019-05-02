@@ -28,6 +28,7 @@
     <!--[if lt IE 9]>
         <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]-->
+    <script src="{{ url_for('static', filename='js/custom.js')}}"></script>
     {% endblock %}
 </head>
 
@@ -35,7 +36,7 @@
     {% block content %}
 
     {% endblock %}
-    
+
     <!-- JavaScript files-->
     <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js')}}"></script>
     <script src="{{ url_for('static', filename='vendor/popper.js/umd/popper.min.js')}}"> </script>

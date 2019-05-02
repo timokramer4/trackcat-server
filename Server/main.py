@@ -39,12 +39,14 @@ login_manager.init_app(app)
 
 class User(UserMixin):
 
-    def __init__(self, id, idUser, firstName, lastName, gender, img, dateOfBirth, dateOfRegistration, lastLogin):
+    def __init__(self, id, idUser, firstName, lastName, gender, weight, size, img, dateOfBirth, dateOfRegistration, lastLogin):
         self.id = id
         self.idUser = idUser
         self.firstName = firstName
         self.lastName = lastName
         self.gender = gender
+        self.weight = weight
+        self.size = size
         self.img = img
         self.dateOfBirth = dateOfBirth
         self.dateOfRegistration = dateOfRegistration
@@ -59,8 +61,8 @@ class User(UserMixin):
 def user_loader(email):
     jsonUser = getUserFromDB(email)
     user = User(jsonUser['email'], jsonUser['id'],
-                jsonUser['firstName'], jsonUser['lastName'], 
-                jsonUser['gender'], jsonUser['image'], jsonUser['dateOfBirth'], 
+                jsonUser['firstName'], jsonUser['lastName'],
+                jsonUser['gender'], jsonUser['weight'], jsonUser['size'], jsonUser['image'], jsonUser['dateOfBirth'],
                 jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
 
@@ -317,7 +319,6 @@ def registerAPI():
     jsonObj = {}
     jsonObj['success'] = registerUserDB(
         jsonRequest['firstName'], jsonRequest['lastName'], jsonRequest['email'], jsonRequest['password'])
-
 
     return json.dumps(jsonObj)
 

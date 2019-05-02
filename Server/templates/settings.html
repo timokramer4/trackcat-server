@@ -61,7 +61,11 @@
               </div>
               <div class="form-group">
                 <label class="form-control-label text-uppercase">Geburtstag</label>
-                <input type="date" id="birthday" class="form-control" value="" validate>
+                <input type="date" id="birthday" class="form-control" validate>
+                <script>
+                  var date = new Date("{{ user.dateOfBirth }}" * 1000);
+                  document.getElementById("birthday").value = getDate(date);
+                </script>
               </div>
               <button type="button" id="editGeneralsBtn" class="btn btn-primary shadow px-5" disabled>Speichern</button>
             </form>
@@ -111,21 +115,34 @@
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // TODO: Daten vom Server bekommen
-    console.log("Daten des Nutzers laden!");
-  });
-
   /* Edit general profile data */
   initializeValidation("editGenerals");
-  document.getElementById("editGeneralsBtn").addEventListener("click", function () {
+  $("#editGeneralsBtn")[0].addEventListener("click", function () {
     // TODO: Senden der Daten an Server
+    var gender = $("#maleGender")[0].checked ? 1 : 0;
+    var firstName = $("#firstName")[0].value;
+    var lastName = $("#lastName")[0].value;
+    var birthday = $("#birthday")[0].value != "" ? Math.round((new Date($("#birthday")[0].value)).getTime() / 1000) : "{{ user.dateOfBirth }}";
+    var json = { "email": "{{user.id}}", "newemail": "{{user.id}}", "firstName": firstName, "lastName": lastName, "gender": gender, "dateOfBirth": birthday, "size": "{{user.size}}", "weight": "{{user.weight}}" };
+    console.log(json);
+
+    $.ajax({
+      url: '/updateUserAPI',
+      type: 'post',
+      dataType: 'json',
+      contentType: 'application/json',
+      success: function (data) {
+        $('#target').html(data.msg);
+      },
+      data: JSON.stringify(json)
+    });
+
     console.log("Allgemeine Daten geändert!");
   });
 
   /* Change personal password */
   initializeValidation("changePassword");
-  document.getElementById("changePasswordBtn").addEventListener("click", function () {
+  $("#changePasswordBtn")[0].addEventListener("click", function () {
     // TODO: Senden der Daten an Server
     console.log("Passwort geändert!");
   });
