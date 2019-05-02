@@ -141,7 +141,7 @@ def registerUserDB(firstName, lastName, email, password):
 def getUserFromDB(email):
     conn = mysql.connect()
     cursor = conn.cursor()
-    params = "id, email, firstName, lastName, password, image, dateOfBirth, gender, weight, size, darkTheme, hints, dateOfRegistration, lastLogin"
+    params = "id, email, firstName, lastName, password, image, dateOfBirth, gender, weight, size, darkTheme, hints, dateOfRegistration, lastLogin, timeStamp"
     cursor.execute("SELECT " + params +
                    " FROM users WHERE email = '" + email + "';")
     result = cursor.fetchone()
@@ -166,6 +166,7 @@ def getUserFromDB(email):
     jsonUser['hints'] = result[11]
     jsonUser['dateOfRegistration'] = result[12]
     jsonUser['lastLogin'] = result[13]
+    jsonUser['timeStamp'] = result[14]
 
     return jsonUser
 
