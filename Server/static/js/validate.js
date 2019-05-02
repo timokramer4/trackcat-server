@@ -20,18 +20,18 @@ function initializeValidation(formName) {
 function validate(allInputs) {
     var emailPattern = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     var passwordPattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/;
-    var namePattern = /^[A-Z]+(((\-|\s)[A-Z])?[a-z]*)*$/;
+    var namePattern = /^[A-Z](((\-|\s)[A-Z])?[a-z]*)*$/;
+    var datePattern = /^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/;
 
     var result = true;
 
     for (var i = 0; i < allInputs.length; i++) {
         var item = allInputs[i];
-
         if (item.getAttribute("validate") != null || item.getAttribute("validate") || (item.getAttribute("validateNewPass") > 0 && item.getAttribute("validateNewPass") <= 2)) {
             if (item.value == null) {
                 markField(item, false);
                 result = false;
-            } else if (item.value.length > 0) {
+            } else if (item.value.length > 0 || item.type.toLocaleLowerCase() == "date") {
                 if (item.type.toLocaleLowerCase() == "password") {
                     if (item.getAttribute("validateNewPass") != null) {
                         var pass1 = $('[validateNewPass="1"]');
@@ -43,7 +43,6 @@ function validate(allInputs) {
                             } else {
                                 markField(item, false);
                                 setHint(item, true, "Das Passwort wird von unserem System nicht unterstützt: Das Passwort muss zwischen 8 und 15 Zeichen lang sein und mindestens folgende Parameter enthalten: 1x Groß- und Kleinbuchstabe, 1x Zahl und 1x Sonderzeichen");
-
                                 result = false;
                             }
                         } else {
@@ -53,7 +52,6 @@ function validate(allInputs) {
                             } else {
                                 markField(item, false);
                                 setHint(item, true, "Die Passwörter stimmen nicht überein!");
-
                                 result = false;
                             }
                         }
@@ -74,7 +72,6 @@ function validate(allInputs) {
                     } else {
                         markField(item, false);
                         setHint(item, true, "Bitte kontrolliere deine E-Mail Adresse, sie entspricht keinem gültigen E-Mail Format!");
-
                         result = false;
                     }
                 } else if (item.type.toLocaleLowerCase() == "text") {
@@ -84,9 +81,14 @@ function validate(allInputs) {
                     } else {
                         markField(item, false);
                         setHint(item, true, "Der eingegebene Name entspricht keinem gültigen Format!");
-
                         result = false;
                     }
+                } else if (item.type.toLocaleLowerCase() == "date") {
+                    if (item.value.match(datePattern)) {
+                        markField(item, true);
+                        setHint(item, false);
+                    }
+
                 } else if (item.type.toLocaleLowerCase() == "checkbox") {
                     if (item.checked == true) {
                         markField(item, null);
