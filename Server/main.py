@@ -143,7 +143,7 @@ def registerUserDB(firstName, lastName, email, password):
 def getUserFromDB(email):
     conn = mysql.connect()
     cursor = conn.cursor()
-    params = "id, email, firstName, lastName, password, image, dateOfBirth, gender, weight, size, darkTheme, hints, dateOfRegistration, lastLogin"
+    params = "id, email, firstName, lastName, password, image, dateOfBirth, gender, weight, size, darkTheme, hints, dateOfRegistration, lastLogin, timeStamp"
     cursor.execute("SELECT " + params +
                    " FROM users WHERE email = '" + email + "';")
     result = cursor.fetchone()
@@ -168,6 +168,7 @@ def getUserFromDB(email):
     jsonUser['hints'] = result[11]
     jsonUser['dateOfRegistration'] = result[12]
     jsonUser['lastLogin'] = result[13]
+    jsonUser['timeStamp'] = result[14]
 
     return jsonUser
 
@@ -194,15 +195,80 @@ def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
         conn = mysql.connect()
         cursor = conn.cursor()
 
-        cursor.execute('UPDATE users SET email = "' + newEmail
-                       + '", dateOfBirth = "' + dateOfBirth
-                       + '", firstName = "' + firstName
-                       + '", lastName = "' + lastName
-                       + '", gender = "' + gender
-                       + '", size = "' + size
-                       + '", weight = "' + weight
-                       + '", image = "' + image
+        # cursor.execute('UPDATE users SET email = "' + newEmail
+        #                + '", dateOfBirth = IsNull(@dateOfBirth, "' + dateOfBirth
+        #                + '"), firstName = IsNull(@firstName, "' + firstName
+        #                + '"), lastName = IsNull(@lastName, )"' + lastName
+        #                + '"), gender = IsNull(@gender, "' + gender
+        #                + '"), size = IsNull(@size, "' + size
+        #                + '"), weight = IsNull(@weight, "' + weight
+        #                + '"), image = IsNull(@image, "' + image
+        #                + '") WHERE email = "' + oldEmail + '";')
+
+
+        try:
+            cursor.execute('UPDATE users SET dateOfBirth =  "' + dateOfBirth
                        + '" WHERE email = "' + oldEmail + '";')
+
+            pass
+        except Exception as identifier:
+            pass
+
+
+        try:
+            cursor.execute('UPDATE users SET firstName = "' + firstName
+                       + '" WHERE email = "' + oldEmail + '";')
+
+            pass
+        except Exception as identifier:
+            pass
+
+        try:
+            cursor.execute('UPDATE users SET  lastName = "' + lastName
+                       + '" WHERE email = "' + oldEmail + '";')
+
+            pass
+        except Exception as identifier:
+            pass
+
+        try:
+            cursor.execute('UPDATE users SET gender = "' + gender
+                       + '" WHERE email = "' + oldEmail + '";')
+            pass
+        except Exception as identifier:
+            pass
+
+        try:
+            cursor.execute('UPDATE users SET size = "' + size
+                       + '" WHERE email = "' + oldEmail + '";')
+
+            pass
+        except Exception as identifier:
+            pass
+
+        try:
+            cursor.execute('UPDATE users SET  weight = "' + weight
+                       + '" WHERE email = "' + oldEmail + '";')
+
+            pass
+        except Exception as identifier:
+            pass
+
+        try:
+            cursor.execute('UPDATE users SET image = "' + image
+                       + '" WHERE email = "' + oldEmail + '";') 
+
+            pass
+        except Exception as identifier:
+            pass
+
+      
+        try:
+            cursor.execute('UPDATE users SET email = "' + newEmail
+                           + '" WHERE email = "' + oldEmail + '";')
+            pass
+        except Exception as identifier:
+            pass
 
         conn.commit()
 
@@ -324,7 +390,8 @@ def registerAPI():
 
 # Get all userdata from user with email
 @app.route("/getUserByEmailAPI", methods=['POST'])
-def getUserByEmail():
+def getUserByEmailAPI():
+
     return json.dumps(getUserFromDB(request.json['eMail']))
 
 
@@ -334,7 +401,71 @@ def updateUser():
     j = request.json
 
     jsonSuccess = {}
-    if updateUserDB(j['email'], j['email'], j['dateOfBirth'], j['firstName'], j['lastName'], j['gender'], j['size'], j['weight'], j['image']):
+
+    try:
+        email = j['email']
+        pass
+    except Exception as identifier:
+        email = None
+        pass
+
+    try:
+        newEmail = j['newemail']
+        pass
+    except Exception as identifier:
+        newEmail = None
+        pass
+
+    try:
+        dateOfBirth = j['dateOfBirth']
+        pass
+    except Exception as identifier:
+        dateOfBirth = None
+        pass
+
+    try:
+        firstName = j['firstName']
+        pass
+    except Exception as identifier:
+        firstName = None
+        pass
+
+    try:
+        lastName = j['lastName']
+        pass
+    except Exception as identifier:
+        lastName = None
+        pass
+
+    try:
+        gender = j['gender']
+        pass
+    except Exception as identifier:
+        gender = None
+        pass
+
+    try:
+        size = j['size']
+        pass
+    except Exception as identifier:
+        size = None
+        pass
+
+    try:
+        weight = j['weight']
+        pass
+    except Exception as identifier:
+        weight = None
+        pass
+
+    try:
+        image = j['image']
+        pass
+    except Exception as identifier:
+        image = None
+        pass
+
+    if updateUserDB(email, newEmail, dateOfBirth, firstName, lastName, gender, size, weight, image):
         jsonSuccess['success'] = 0
     else:
         jsonSuccess['success'] = 1
@@ -342,9 +473,34 @@ def updateUser():
     return json.dumps(jsonSuccess)
 
 
+@app.route("/synchronizeDataAPI", methods=['POST'])
+def synchronizeDataAPI():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    params = "timeStamp"
+    cursor.execute("SELECT " + params +
+                   " FROM users WHERE email = '" + request.json['email'] + "';")
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    jsonAnswer = {}
+
+    if(int(request.json['timeStamp']) < result[0]):
+        jsonAnswer['state'] = 0
+        jsonAnswer['user'] = getUserFromDB(request.json['email'])
+    elif (int(request.json['timeStamp']) == result[0]):
+        jsonAnswer['state'] = 2
+        jsonAnswer['user'] = None
+    else:
+        jsonAnswer['state'] = 1
+        jsonAnswer['user'] = None
+
+    return json.dumps(jsonAnswer)
+
+
 ###########################
 ###     Flask start     ###
 ###########################
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
