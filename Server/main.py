@@ -323,7 +323,7 @@ def registerAPI():
 
 # Get all userdata from user with email
 @app.route("/getUserByEmailAPI", methods=['POST'])
-def getUserByEmail():
+def getUserByEmailAPI():
     return json.dumps(getUserFromDB(request.json['eMail']))
 
 
@@ -339,6 +339,33 @@ def updateUser():
         jsonSuccess['success'] = 1
 
     return json.dumps(jsonSuccess)
+
+@app.route("/synchronizeDataAPI", methods=['POST'])
+def synchronizeDataAPI():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    params = "timeStamp"
+    cursor.execute("SELECT " + params +
+                   " FROM users WHERE email = '" + request.json['email'] + "';")
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close() 
+
+    jsonAnswer = {}
+
+    if(int(request.json['timeStamp']) < result[0]):
+        jsonAnswer['state'] = 0
+        jsonAnswer['user'] = getUserFromDB(request.json['email'])
+    elif (int(request.json['timeStamp']) == result[0]):
+        jsonAnswer['state'] = 2
+        jsonAnswer['user'] = None
+    else:
+        jsonAnswer['state'] = 1
+        jsonAnswer['user'] = None
+
+    return json.dumps(jsonAnswer)
+
+
 
 
 ###########################
