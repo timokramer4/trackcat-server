@@ -42,7 +42,7 @@
             </li>
             <li class="nav-item dropdown ml-auto"><a id="userInfo" href="trackcat.de" data-toggle="dropdown"
                     aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle"><img
-                        src="{% if user.img == None %}{{ url_for('static', filename='img/defaultUser.jpg')}}{% else %}data:image/jpeg;base64,{{ user.img | safe }}{% endif %}"
+                        src="{% if user.img == None %}{{ url_for('static', filename='img/defaultUser.jpg')}}{% else %}/image?userEmail={{user.id}}{% endif %}"
                         alt="{{user.firstName}} {{user.lastName}}" style="max-width: 2.5rem;"
                         class="img-fluid rounded-circle shadow"></a>
                 <div aria-labelledby="userInfo" class="dropdown-menu">
