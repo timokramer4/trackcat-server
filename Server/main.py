@@ -97,10 +97,9 @@ def authenticate():
     jsonObj = {}
     jsonObj['success'] = 1
     jsonObj['userData'] = None
-    #return json.dumps(jsonObj)
+    # return json.dumps(jsonObj)
 
-
-    return make_response("", 401) 
+    return make_response("", 401)
 
 
 def requires_authorization(f):
@@ -196,7 +195,7 @@ def updateUserLastLogin(email):
 
 
 def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
-                 gender, size, weight, image):
+                 gender, size, weight, image, hints, darkTheme):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -267,6 +266,20 @@ def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
         except Exception as identifier:
             pass
 
+        try:
+            cursor.execute('UPDATE users SET hints = "' + hints
+                           + '" WHERE email = "' + oldEmail + '";')
+            pass
+        except Exception as identifier:
+            pass
+
+        try:
+            cursor.execute('UPDATE users SET darkTheme = "' + darkTheme
+                           + '" WHERE email = "' + oldEmail + '";')
+            pass
+        except Exception as identifier:
+            pass
+
         conn.commit()
 
         conn.close()
@@ -277,6 +290,29 @@ def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
         return False
         pass
 
+def changeUserPasswordDB(email, password, newPw, timeStamp):
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        params = "password"
+        cursor.execute("SELECT " + params +
+                       " FROM users WHERE email = '" + email + "';")
+        result = cursor.fetchone()
+
+        if result[0] == password:
+            cursor.execute('UPDATE users SET password = "' +
+                           newPw + '", timeStamp = ' +
+                           timeStamp
+                           + ' WHERE email = "' + email + '";')
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+        return 0
+
+    except Exception as identifier:
+        print(identifier)
+        return 1
 
 ###########################
 ###   WEB API-Handler   ###
@@ -365,7 +401,7 @@ def updateUser():
         birthday = int(datetime.strptime(
             request.form['birthday'], "%Y-%m-%d").timestamp())
         success = updateUserDB(current_user.id, None, str(birthday),
-                               request.form['firstName'], request.form['lastName'], request.form['genderRadio'], None, None, None)
+                               request.form['firstName'], request.form['lastName'], request.form['genderRadio'], None, None, None,None,None)
 
         if success:
             flash('Profil wurde erfolgreich editiert!')
@@ -481,7 +517,21 @@ def updateUserAPI():
         image = None
         pass
 
-    if updateUserDB(email, newEmail, dateOfBirth, firstName, lastName, gender, size, weight, image):
+    try:
+        hints = j['hints']
+        pass
+    except Exception as identifier:
+        hints = None
+        pass
+
+    try:
+        darkTheme = j['darkTheme']
+        pass
+    except Exception as identifier:
+        darkTheme = None
+        pass
+
+    if updateUserDB(email, newEmail, dateOfBirth, firstName, lastName, gender, size, weight, image, hints, darkTheme):
         jsonSuccess['success'] = 0
     else:
         jsonSuccess['success'] = 1
@@ -519,30 +569,14 @@ def synchronizeDataAPI():
 @requires_authorization
 def changeUserPasswordAPI():
     jsonSuccess = {}
-        
-    try:
-        conn = mysql.connect()
-        cursor = conn.cursor()
-        params = "pasword"
-        cursor.execute("SELECT " + params +
-                    " FROM users WHERE email = '" + request.authorization.username + "';")
-        result = cursor.fetchone()
 
-        if result[0] == request.authorization.password:
-            cursor.execute('UPDATE users SET password = "' +
-                        request.json['newPw'] + '" WHERE email = "' + request.authorization.username +'";')
-        conn.commit()
-
-        cursor.close()
-        conn.close()
-
-        jsonSuccess['success'] = 0
-        pass
-    except Exception as identifier:
-        jsonSuccess['success'] = 1    
-        pass
+    jsonSuccess['success'] = changeUserPasswordDB(request.authorization.username, request.authorization.password,
+                                                  request.json['newPw'], request.json['timeStamp'])
 
     return json.dumps(jsonSuccess)
+
+
+
 
 
 ###########################
