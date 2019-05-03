@@ -1,6 +1,37 @@
 {% extends "model/logged.html" %}
 
 {% block subcontent %}
+<style>
+  #profileImg {
+    opacity: 1;
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: .5s ease;
+    backface-visibility: hidden;
+  }
+
+  .middle {
+    transition: .5s ease;
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  #changeProfileImg:hover #profileImg {
+    opacity: 0.3;
+    cursor: pointer;
+  }
+
+  #changeProfileImg:hover .middle {
+    opacity: 1;
+    cursor: pointer;
+  }
+</style>
 <div class="container-fluid px-xl-5">
   <section class="py-5">
     <div class="row mb-4">
@@ -11,10 +42,14 @@
           </div>
           <div class="card-body">
             <div class="row align-items-center flex-row">
-              <div class="col-lg-4 text-center mb-4">
+              <div class="col-lg-4 text-center mb-4" id="changeProfileImg">
+                <input type="file" id="newProfileImg" accept="image/*" style="display:none" />
                 <img
                   src="{% if user.img == None %}{{ url_for('static', filename='img/defaultUser.jpg')}}{% else %}data:image/jpeg;base64,{{ user.img | safe }}{% endif %}"
-                  width="150px" class="img-fluid rounded-circle shadow">
+                  width="150px" class="img-fluid rounded-circle shadow" id="profileImg">
+                <div class="middle">
+                  <img src="https://img.icons8.com/ios/50/000000/unsplash-filled.png" id="profileImgIcon" />
+                </div>
               </div>
               <div class="col-lg-8">
                 <h2 class="mb-0 d-flex align-items-center">
@@ -127,6 +162,9 @@
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
 <script>
+  $('#profileImg').click(function () { $('#newProfileImg').trigger('click'); });
+  $('#profileImgIcon').click(function () { $('#newProfileImg').trigger('click'); });
+
   /* Edit general profile data */
   initializeValidation("editGenerals");
 
