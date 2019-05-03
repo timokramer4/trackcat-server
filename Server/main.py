@@ -2,7 +2,7 @@
 ###       Imports       ###
 ###########################
 
-from flask import Flask, flash, request, render_template, redirect, jsonify, session, make_response
+from flask import Flask, flash, request, render_template, redirect, jsonify, session, make_response, send_file
 from flaskext.mysql import MySQL
 import simplejson
 import time
@@ -12,6 +12,8 @@ from mailSend import sendVmail
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
 from datetime import datetime
 from functools import wraps
+import base64
+import io
 
 
 ###########################
@@ -37,9 +39,11 @@ login_manager.init_app(app)
 ###########################
 
 # Logged user model
+
+
 class User(UserMixin):
 
-    def __init__(self, id, idUser, firstName, lastName, gender, weight, size, img, dateOfBirth, dateOfRegistration, lastLogin):
+    def __init__(self, id, idUser, firstName, lastName, gender, weight, size,  dateOfBirth, dateOfRegistration, lastLogin):
         self.id = id
         self.idUser = idUser
         self.firstName = firstName
@@ -47,7 +51,6 @@ class User(UserMixin):
         self.gender = gender
         self.weight = weight
         self.size = size
-        self.img = img
         self.dateOfBirth = dateOfBirth
         self.dateOfRegistration = dateOfRegistration
         self.lastLogin = lastLogin
@@ -56,6 +59,8 @@ class User(UserMixin):
 ###########################
 ###      Test-Area      ###
 ###########################
+
+
 
 
 ###########################
@@ -68,7 +73,7 @@ def user_loader(email):
     jsonUser = getUserFromDB(email)
     user = User(jsonUser['email'], jsonUser['id'],
                 jsonUser['firstName'], jsonUser['lastName'],
-                jsonUser['gender'], jsonUser['weight'], jsonUser['size'], jsonUser['image'], jsonUser['dateOfBirth'],
+                jsonUser['gender'], jsonUser['weight'], jsonUser['size'], jsonUser['dateOfBirth'],
                 jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
 
@@ -83,6 +88,8 @@ def validateLogin(email, password):
     return result is not None and password == result[0]
 
 # Basic Authentificate
+
+
 def authenticate():
     message = {'message': "Authenticate."}
     resp = jsonify(message)
@@ -108,6 +115,8 @@ def requires_authorization(f):
     return decorated
 
 # Create new user in database
+
+
 def registerUserDB(firstName, lastName, email, password):
     # 0 = Valid
     # 1 = Creation error
@@ -137,10 +146,12 @@ def registerUserDB(firstName, lastName, email, password):
     return 0
 
 # Get selected user from database as JSON
+
+
 def getUserFromDB(email):
     conn = mysql.connect()
     cursor = conn.cursor()
-    params = "id, email, firstName, lastName, password, image, dateOfBirth, gender, weight, size, darkTheme, hints, dateOfRegistration, lastLogin, timeStamp"
+    params = "id, email, firstName, lastName, password, dateOfBirth, gender, weight, size, darkTheme, hints, dateOfRegistration, lastLogin, timeStamp"
     cursor.execute("SELECT " + params +
                    " FROM users WHERE email = '" + email + "';")
     result = cursor.fetchone()
@@ -153,23 +164,39 @@ def getUserFromDB(email):
     jsonUser['firstName'] = result[2]
     jsonUser['lastName'] = result[3]
     jsonUser['password'] = result[4]
-    jsonUser['image'] = result[5]
-    jsonUser['dateOfBirth'] = result[6]
-    if result[7] == None:
+    jsonUser['dateOfBirth'] = result[5]
+    if result[6] == None:
         jsonUser['gender'] = 2
     else:
-        jsonUser['gender'] = result[7]
-    jsonUser['weight'] = result[8]
-    jsonUser['size'] = result[9]
-    jsonUser['darkTheme'] = result[10]
-    jsonUser['hints'] = result[11]
-    jsonUser['dateOfRegistration'] = result[12]
-    jsonUser['lastLogin'] = result[13]
-    jsonUser['timeStamp'] = result[14]
+        jsonUser['gender'] = result[6]
+    jsonUser['weight'] = result[7]
+    jsonUser['size'] = result[8]
+    jsonUser['darkTheme'] = result[9]
+    jsonUser['hints'] = result[10]
+    jsonUser['dateOfRegistration'] = result[11]
+    jsonUser['lastLogin'] = result[12]
+    jsonUser['timeStamp'] = result[13]
+
+    return jsonUser
+
+
+def getUserWithImageFromDB(email):
+    jsonUser = getUserFromDB(email)
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT image FROM users WHERE email = '" + email + "';")
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    jsonUser['image'] = result[0]
 
     return jsonUser
 
 # Update last login in database
+
+
 def updateUserLastLogin(email):
     try:
         conn = mysql.connect()
@@ -186,6 +213,8 @@ def updateUserLastLogin(email):
     return
 
 # Update user informations in database
+
+
 def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
                  gender, size, weight, image, hints, darkTheme):
     try:
@@ -273,6 +302,8 @@ def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
         pass
 
 # Change user password in database
+
+
 def changeUserPasswordDB(email, password, newPw, timeStamp):
     result = 0
     try:
@@ -428,6 +459,24 @@ def changePassword():
     else:
         return redirect("/login")
 
+@app.route("/image", methods=['GET'])
+def getImage():
+    email = request.args.get('userEmail')
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT image FROM users WHERE email = '" + email + "';")
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    imgFile = base64.b64decode(result[0])
+
+    return send_file(io.BytesIO(imgFile),
+                     mimetype='image/jpeg',
+                     as_attachment=True,
+                     attachment_filename='.jpg')
+
 
 ###########################
 ###  REST API-Handler   ###
@@ -441,7 +490,7 @@ def loginAPI():
 
     jsonObj = {}
     jsonObj['success'] = 0
-    jsonObj['userData'] = getUserFromDB(request.authorization.username)
+    jsonObj['userData'] = getUserWithImageFromDB(request.authorization.username)
 
     return json.dumps(jsonObj)
 
@@ -460,7 +509,7 @@ def registerAPI():
 @app.route("/getUserByEmailAPI", methods=['POST'])
 def getUserByEmailAPI():
 
-    return json.dumps(getUserFromDB(request.json['eMail']))
+    return json.dumps(getUserWithImageFromDB(request.json['eMail']))
 
 
 # Update user data in database
@@ -582,7 +631,7 @@ def synchronizeDataAPI():
 
     if(int(request.json['timeStamp']) < result[0]):
         jsonAnswer['state'] = 0
-        jsonAnswer['user'] = getUserFromDB(request.json['email'])
+        jsonAnswer['user'] = getUserWithImageFromDB(request.json['email'])
     elif (int(request.json['timeStamp']) == result[0]):
         jsonAnswer['state'] = 2
         jsonAnswer['user'] = None
