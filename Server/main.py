@@ -58,6 +58,13 @@ class User(UserMixin):
 ###      Test-Area      ###
 ###########################
 
+
+
+###########################
+###      Functions      ###
+###########################
+
+# Validate login data
 @login_manager.user_loader
 def user_loader(email):
     jsonUser = getUserFromDB(email)
@@ -66,13 +73,6 @@ def user_loader(email):
                 jsonUser['gender'], jsonUser['weight'], jsonUser['size'], jsonUser['image'], jsonUser['dateOfBirth'],
                 jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
-
-###########################
-###      Functions      ###
-###########################
-
-# Validate login data
-
 
 def validateLogin(email, password):
     conn = mysql.connect()
@@ -356,17 +356,21 @@ def registerUser():
 # Update user informations
 @app.route("/updateUser", methods=['POST'])
 def updateUser():
-    birthday = int(datetime.strptime(
+    if current_user.is_authenticated:
+        birthday = int(datetime.strptime(
         request.form['birthday'], "%Y-%m-%d").timestamp())
-    success = updateUserDB(current_user.id, None, birthday,
-                           request.form['firstName'], request.form['lastName'], request.form['genderRadio'], None, None, None)
+        success = updateUserDB(current_user.id, None, str(birthday),
+                            request.form['firstName'], request.form['lastName'], request.form['genderRadio'], None, None, None)
 
-    if success:
-        flash('Profil wurde erfolgreich editiert!')
-        return redirect("/settings")
+        if success:
+            flash('Profil wurde erfolgreich editiert!')
+            return redirect("/settings")
+        else:
+            flash('Unbekannter Fehler beim Bearbeiten der Profilinformationen')
+            return redirect("/settings")
     else:
-        flash('Unbekannter Fehler beim Bearbeiten der Profilinformationen')
-        return redirect("/settings")
+        return redirect("/login")
+    
 
 ###########################
 ###  REST API-Handler   ###
