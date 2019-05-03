@@ -37,8 +37,6 @@ login_manager.init_app(app)
 ###########################
 
 # Logged user model
-
-
 class User(UserMixin):
 
     def __init__(self, id, idUser, firstName, lastName, gender, weight, size, img, dateOfBirth, dateOfRegistration, lastLogin):
@@ -85,8 +83,6 @@ def validateLogin(email, password):
     return result is not None and password == result[0]
 
 # Basic Authentificate
-
-
 def authenticate():
     message = {'message': "Authenticate."}
     resp = jsonify(message)
@@ -112,8 +108,6 @@ def requires_authorization(f):
     return decorated
 
 # Create new user in database
-
-
 def registerUserDB(firstName, lastName, email, password):
     # 0 = Valid
     # 1 = Creation error
@@ -143,8 +137,6 @@ def registerUserDB(firstName, lastName, email, password):
     return 0
 
 # Get selected user from database as JSON
-
-
 def getUserFromDB(email):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -177,7 +169,7 @@ def getUserFromDB(email):
 
     return jsonUser
 
-
+# Update last login in database
 def updateUserLastLogin(email):
     try:
         conn = mysql.connect()
@@ -193,22 +185,12 @@ def updateUserLastLogin(email):
         pass
     return
 
-
+# Update user informations in database
 def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
                  gender, size, weight, image, hints, darkTheme):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
-
-        # cursor.execute('UPDATE users SET email = "' + newEmail
-        #                + '", dateOfBirth = IsNull(@dateOfBirth, "' + dateOfBirth
-        #                + '"), firstName = IsNull(@firstName, "' + firstName
-        #                + '"), lastName = IsNull(@lastName, )"' + lastName
-        #                + '"), gender = IsNull(@gender, "' + gender
-        #                + '"), size = IsNull(@size, "' + size
-        #                + '"), weight = IsNull(@weight, "' + weight
-        #                + '"), image = IsNull(@image, "' + image
-        #                + '") WHERE email = "' + oldEmail + '";')
 
         try:
             cursor.execute('UPDATE users SET dateOfBirth =  "' + dateOfBirth
@@ -290,7 +272,9 @@ def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
         return False
         pass
 
+# Change user password in database
 def changeUserPasswordDB(email, password, newPw, timeStamp):
+    result = 0
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -301,18 +285,20 @@ def changeUserPasswordDB(email, password, newPw, timeStamp):
 
         if result[0] == password:
             cursor.execute('UPDATE users SET password = "' +
-                           newPw + '", timeStamp = ' +
-                           timeStamp
-                           + ' WHERE email = "' + email + '";')
-        conn.commit()
+                           newPw + '", timeStamp = ' + timeStamp + ' WHERE email = "' + email + '";')
+            result = 0
+        else:
+            result = 1
 
+        conn.commit()
         cursor.close()
         conn.close()
-        return 0
+        return result
 
     except Exception as identifier:
         print(identifier)
-        return 1
+        result = 2
+        return result
 
 ###########################
 ###   WEB API-Handler   ###
@@ -325,7 +311,8 @@ def loginPage():
     if current_user.is_authenticated:
         return redirect("/dashboard")
     else:
-        return render_template("login.html")
+        alertType = request.args.get('alert')
+        return render_template("login.html", alert=alertType)
 
 # LogOut user
 @app.route("/logout", methods=['GET'])
@@ -339,7 +326,8 @@ def registerPage():
     if current_user.is_authenticated:
         return redirect("/dashboard")
     else:
-        return render_template("register.html")
+        alertType = request.args.get('alert')
+        return render_template("register.html", alert=alertType)
 
 # Profile page
 @app.route("/dashboard", methods=["GET"])
@@ -361,7 +349,8 @@ def profilePage():
 @app.route("/settings", methods=["GET"])
 def settingsPage():
     if current_user.is_authenticated:
-        return render_template("settings.html", user=current_user)
+        alertType = request.args.get('alert')
+        return render_template("settings.html", user=current_user, alert=alertType)
     else:
         return redirect("/login")
 
@@ -376,7 +365,7 @@ def login():
         return redirect("/dashboard")
     else:
         flash('Die eingegebenen Zugangsdaten sind falsch!')
-        return redirect("/login")
+        return redirect("/login?alert=warning")
 
 # Register a user
 @app.route("/registerUser", methods=['POST'])
@@ -386,13 +375,15 @@ def registerUser():
         request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
 
     if success == 0:
-        return redirect("/login")
+        flash('Ihr Konto wurde erstellt. Bitte überprüfen Sie Ihr E-Mail Postfach und bestätigen Sie Ihre Registrierung, '
+              + 'um Zugang zu Ihrem Konto zu erhalten!')
+        return redirect("/login?alert=success")
     elif success == 1:
-        flash('Unbekannter Fehler beim Erstelle des Kontos!')
-        return redirect("/register")
+        flash('Unbekannter Fehler beim Erstellen des Kontos!')
+        return redirect("/register?alert=danger")
     elif success == 3:
         flash('Die E-Mail Adresse existiert bereits!')
-        return redirect("/register")
+        return redirect("/register?alert=warning")
 
 # Update user informations
 @app.route("/updateUser", methods=['POST'])
@@ -401,14 +392,39 @@ def updateUser():
         birthday = int(datetime.strptime(
             request.form['birthday'], "%Y-%m-%d").timestamp())
         success = updateUserDB(current_user.id, None, str(birthday),
-                               request.form['firstName'], request.form['lastName'], request.form['genderRadio'], None, None, None,None,None)
+                               request.form['firstName'], request.form['lastName'], request.form['genderRadio'], None, None, None, None, None)
 
         if success:
             flash('Profil wurde erfolgreich editiert!')
-            return redirect("/settings")
+            return redirect("/settings?alert=success")
         else:
             flash('Unbekannter Fehler beim Bearbeiten der Profilinformationen')
-            return redirect("/settings")
+            return redirect("/settings?alert=danger")
+    else:
+        return redirect("/login")
+
+# Change user password
+@app.route("/changePassword", methods=['POST'])
+def changePassword():
+    if current_user.is_authenticated:
+        pw1 = request.form['newPass']
+        pw2 = request.form['newPass2']
+        if pw1 == pw2:
+            success = changeUserPasswordDB(
+                current_user.id, request.form['currentPass'], request.form['newPass'], str(int(time.time())))
+
+            if success == 0:
+                flash('Passwort wurde erfolgreich geändert!')
+                return redirect("/settings?alert=success")
+            elif success == 1:
+                flash('Authentifizierung fehlgeschlagen!')
+                return redirect("/settings?alert=danger")
+            else:
+                flash('Unbekannter Fehler beim Ändern des Passworts!')
+                return redirect("/settings?alert=danger")
+        else:
+            flash('Die neu gewählten Passwörter stimmen nicht überein!')
+            return redirect("/settings?alert=warning")
     else:
         return redirect("/login")
 
@@ -538,7 +554,19 @@ def updateUserAPI():
 
     return json.dumps(jsonSuccess)
 
+# Change user password
+@app.route("/changeUserPasswordAPI", methods=['POST'])
+@requires_authorization
+def changeUserPasswordAPI():
+    jsonSuccess = {}
 
+    jsonSuccess['success'] = changeUserPasswordDB(request.authorization.username, request.authorization.password,
+                                                  request.json['newPw'], request.json['timeStamp'])
+
+    return json.dumps(jsonSuccess)
+
+
+# Synchronize user data with app database
 @app.route("/synchronizeDataAPI", methods=['POST'])
 def synchronizeDataAPI():
     conn = mysql.connect()
@@ -565,22 +593,9 @@ def synchronizeDataAPI():
     return json.dumps(jsonAnswer)
 
 
-@app.route("/changeUserPasswordAPI", methods=['POST'])
-@requires_authorization
-def changeUserPasswordAPI():
-    jsonSuccess = {}
-
-    jsonSuccess['success'] = changeUserPasswordDB(request.authorization.username, request.authorization.password,
-                                                  request.json['newPw'], request.json['timeStamp'])
-
-    return json.dumps(jsonSuccess)
-
-
-
-
-
 ###########################
 ###     Flask start     ###
 ###########################
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
