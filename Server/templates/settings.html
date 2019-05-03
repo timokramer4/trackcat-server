@@ -36,38 +36,38 @@
           </div>
           <div class="card-body">
             <p>Im folgenden Abschnitt hast du die Möglichkeit deine allgemeinen Profilinformationen zu ändern:</p>
-            <form id="editGenerals">
+            <form id="editGenerals" action="updateUser" method="POST">
               <div class="form-group">
                 <div class="custom-control custom-radio custom-control-inline">
-                  <input id="maleGender" type="radio" name="genderRadio" class="custom-control-input"
+                  <input id="maleGender" type="radio" name="genderRadio" value="1" class="custom-control-input"
                     {% if user.gender == 1 %}checked="true" {% endif %} validate>
                   <label for="maleGender" class="custom-control-label">Herr</label>
                 </div>
                 <div class="custom-control custom-radio custom-control-inline">
-                  <input id="femaleGender" type="radio" name="genderRadio" class="custom-control-input"
+                  <input id="femaleGender" type="radio" name="genderRadio" value="0" class="custom-control-input"
                     {% if user.gender == 0 %}checked="true" {% endif %} validate>
                   <label for="femaleGender" class="custom-control-label">Frau</label>
                 </div>
               </div>
               <div class="form-group">
                 <label class="form-control-label text-uppercase">Vorname</label>
-                <input type="text" id="firstName" placeholder="Vorname" maxlength="16" class="form-control"
-                  value="{{user.firstName}}" validate>
+                <input type="text" id="firstName" name="firstName" placeholder="Vorname" maxlength="16"
+                  class="form-control" value="{{user.firstName}}" validate>
               </div>
               <div class="form-group">
                 <label class="form-control-label text-uppercase">Nachname</label>
-                <input type="text" id="lastName" placeholder="Nachname" maxlength="16" class="form-control"
-                  value="{{user.lastName}}" validate>
+                <input type="text" id="lastName" name="lastName" placeholder="Nachname" maxlength="16"
+                  class="form-control" value="{{user.lastName}}" validate>
               </div>
               <div class="form-group">
                 <label class="form-control-label text-uppercase">Geburtstag</label>
-                <input type="date" id="birthday" class="form-control" validate>
+                <input type="date" id="birthday" name="birthday" class="form-control" validate>
                 <script>
                   var date = new Date("{{ user.dateOfBirth }}" * 1000);
                   document.getElementById("birthday").value = getDate(date);
                 </script>
               </div>
-              <button type="button" id="editGeneralsBtn" class="btn btn-primary shadow px-5" disabled>Speichern</button>
+              <button type="submit" id="editGeneralsBtn" class="btn btn-primary shadow px-5" disabled>Speichern</button>
             </form>
           </div>
         </div>
@@ -114,37 +114,4 @@
 
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
-<script>
-  /* Edit general profile data */
-  initializeValidation("editGenerals");
-  $("#editGeneralsBtn")[0].addEventListener("click", function () {
-    // TODO: Senden der Daten an Server
-    var gender = $("#maleGender")[0].checked ? 1 : 0;
-    var firstName = $("#firstName")[0].value;
-    var lastName = $("#lastName")[0].value;
-    var birthday = $("#birthday")[0].value != "" ? Math.round((new Date($("#birthday")[0].value)).getTime() / 1000) : "{{ user.dateOfBirth }}";
-    var json = { "email": "{{user.id}}", "newemail": "{{user.id}}", "firstName": firstName, "lastName": lastName, "gender": gender, "dateOfBirth": birthday, "size": "{{user.size}}", "weight": "{{user.weight}}" };
-    console.log(json);
-
-    $.ajax({
-      url: '/updateUserAPI',
-      type: 'post',
-      dataType: 'json',
-      contentType: 'application/json',
-      success: function (data) {
-        $('#target').html(data.msg);
-      },
-      data: JSON.stringify(json)
-    });
-
-    console.log("Allgemeine Daten geändert!");
-  });
-
-  /* Change personal password */
-  initializeValidation("changePassword");
-  $("#changePasswordBtn")[0].addEventListener("click", function () {
-    // TODO: Senden der Daten an Server
-    console.log("Passwort geändert!");
-  });
-</script>
 {% endblock %}

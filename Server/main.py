@@ -10,6 +10,7 @@ import os
 import json
 from mailSend import sendVmail
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
+from datetime import datetime
 
 
 ###########################
@@ -205,64 +206,55 @@ def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
         #                + '"), image = IsNull(@image, "' + image
         #                + '") WHERE email = "' + oldEmail + '";')
 
-
         try:
             cursor.execute('UPDATE users SET dateOfBirth =  "' + dateOfBirth
-                       + '" WHERE email = "' + oldEmail + '";')
-
+                           + '" WHERE email = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
-
         try:
             cursor.execute('UPDATE users SET firstName = "' + firstName
-                       + '" WHERE email = "' + oldEmail + '";')
-
+                           + '" WHERE email = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE users SET  lastName = "' + lastName
-                       + '" WHERE email = "' + oldEmail + '";')
-
+                           + '" WHERE email = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE users SET gender = "' + gender
-                       + '" WHERE email = "' + oldEmail + '";')
+                           + '" WHERE email = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE users SET size = "' + size
-                       + '" WHERE email = "' + oldEmail + '";')
-
+                           + '" WHERE email = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE users SET  weight = "' + weight
-                       + '" WHERE email = "' + oldEmail + '";')
-
+                           + '" WHERE email = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE users SET image = "' + image
-                       + '" WHERE email = "' + oldEmail + '";') 
-
+                           + '" WHERE email = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
-      
         try:
             cursor.execute('UPDATE users SET email = "' + newEmail
                            + '" WHERE email = "' + oldEmail + '";')
@@ -361,6 +353,21 @@ def registerUser():
         flash('Die E-Mail Adresse existiert bereits!')
         return redirect("/register")
 
+# Update user informations
+@app.route("/updateUser", methods=['POST'])
+def updateUser():
+    birthday = int(datetime.strptime(
+        request.form['birthday'], "%Y-%m-%d").timestamp())
+    success = updateUserDB(current_user.id, None, birthday,
+                           request.form['firstName'], request.form['lastName'], request.form['genderRadio'], None, None, None)
+
+    if success:
+        flash('Profil wurde erfolgreich editiert!')
+        return redirect("/settings")
+    else:
+        flash('Unbekannter Fehler beim Bearbeiten der Profilinformationen')
+        return redirect("/settings")
+
 ###########################
 ###  REST API-Handler   ###
 ###########################
@@ -397,7 +404,7 @@ def getUserByEmailAPI():
 
 # Update user data in database
 @app.route("/updateUserAPI", methods=['POST'])
-def updateUser():
+def updateUserAPI():
     j = request.json
 
     jsonSuccess = {}
