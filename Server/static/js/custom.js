@@ -1,9 +1,9 @@
 function writeDate(date) {
-    document.write(`${fillWithZero(date.getDay(), 2)}.${fillWithZero(date.getMonth(), 2)}.${date.getFullYear()}`);
+    document.write(`${fillWithZero(date.getDay(), 2)}.${fillWithZero(date.getMonth() + 1, 2)}.${date.getFullYear()}`);
 }
 
 function getDate(date) {
-    return `${date.getFullYear()}-${fillWithZero(date.getMonth(), 2)}-${fillWithZero(date.getDay(), 2)}`;
+    return `${date.getFullYear()}-${fillWithZero(date.getMonth() + 1, 2)}-${fillWithZero(date.getDay(), 2)}`;
 }
 
 /* Fill numbers with zeros */

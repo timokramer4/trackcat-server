@@ -114,4 +114,11 @@
 
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
+<script>
+  /* Edit general profile data */
+  initializeValidation("editGenerals");
+
+  /* Change personal password */
+  initializeValidation("changePassword");
+</script>
 {% endblock %}
