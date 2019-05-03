@@ -2,7 +2,7 @@
 ###       Imports       ###
 ###########################
 
-from flask import Flask, flash, request, render_template, redirect, jsonify, session
+from flask import Flask, flash, request, render_template, redirect, jsonify, session, make_response
 from flaskext.mysql import MySQL
 import simplejson
 import time
@@ -11,6 +11,7 @@ import json
 from mailSend import sendVmail
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
 from datetime import datetime
+from functools import wraps
 
 
 ###########################
@@ -59,7 +60,6 @@ class User(UserMixin):
 ###########################
 
 
-
 ###########################
 ###      Functions      ###
 ###########################
@@ -73,6 +73,7 @@ def user_loader(email):
                 jsonUser['gender'], jsonUser['weight'], jsonUser['size'], jsonUser['image'], jsonUser['dateOfBirth'],
                 jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
+
 
 def validateLogin(email, password):
     conn = mysql.connect()
@@ -96,10 +97,14 @@ def authenticate():
     jsonObj = {}
     jsonObj['success'] = 1
     jsonObj['userData'] = None
-    return json.dumps(jsonObj)
+    #return json.dumps(jsonObj)
+
+
+    return make_response("", 401) 
 
 
 def requires_authorization(f):
+    @wraps(f)
     def decorated(*args, **kwargs):
         auth = request.authorization
         if not auth or not validateLogin(auth.username, auth.password):
@@ -358,9 +363,9 @@ def registerUser():
 def updateUser():
     if current_user.is_authenticated:
         birthday = int(datetime.strptime(
-        request.form['birthday'], "%Y-%m-%d").timestamp())
+            request.form['birthday'], "%Y-%m-%d").timestamp())
         success = updateUserDB(current_user.id, None, str(birthday),
-                            request.form['firstName'], request.form['lastName'], request.form['genderRadio'], None, None, None)
+                               request.form['firstName'], request.form['lastName'], request.form['genderRadio'], None, None, None)
 
         if success:
             flash('Profil wurde erfolgreich editiert!')
@@ -370,7 +375,7 @@ def updateUser():
             return redirect("/settings")
     else:
         return redirect("/login")
-    
+
 
 ###########################
 ###  REST API-Handler   ###
@@ -508,6 +513,36 @@ def synchronizeDataAPI():
         jsonAnswer['user'] = None
 
     return json.dumps(jsonAnswer)
+
+
+@app.route("/changeUserPasswordAPI", methods=['POST'])
+@requires_authorization
+def changeUserPasswordAPI():
+    jsonSuccess = {}
+        
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        params = "pasword"
+        cursor.execute("SELECT " + params +
+                    " FROM users WHERE email = '" + request.authorization.username + "';")
+        result = cursor.fetchone()
+
+        if result[0] == request.authorization.password:
+            cursor.execute('UPDATE users SET password = "' +
+                        request.json['newPw'] + '" WHERE email = "' + request.authorization.username +'";')
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        jsonSuccess['success'] = 0
+        pass
+    except Exception as identifier:
+        jsonSuccess['success'] = 1    
+        pass
+
+    return json.dumps(jsonSuccess)
 
 
 ###########################
