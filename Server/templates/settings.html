@@ -162,13 +162,33 @@
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
 <script>
-  $('#profileImg').click(function () { $('#newProfileImg').trigger('click'); });
-  $('#profileImgIcon').click(function () { $('#newProfileImg').trigger('click'); });
+  var fileDialog = $('#newProfileImg');
+  $('#profileImg').click(function () { fileDialog.trigger('click'); });
+  $('#profileImgIcon').click(function () { fileDialog.trigger('click'); });
+
+  console.log(fileDialog);
+  fileDialog.change(function () {
+    var file = this.files[0];
+    if (file.size > 0) {
+      getBase64(file);
+    }
+  });
 
   /* Edit general profile data */
   initializeValidation("editGenerals");
 
   /* Change personal password */
   initializeValidation("changePassword");
+
+  function getBase64(file) {
+    var reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function () {
+      console.log(reader.result);
+    };
+    reader.onerror = function (error) {
+      console.log('Error: ', error);
+    };
+  }
 </script>
 {% endblock %}

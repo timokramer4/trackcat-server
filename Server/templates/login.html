@@ -61,11 +61,7 @@
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
 <script>
-  /* Login */
+  /* Login validation */
   initializeValidation("loginForm");
-  document.getElementById("loginBtn").addEventListener("click", function () {
-    // TODO: Senden der Daten an Server
-    console.log("Nutzer anmelden!");
-  });
 </script>
 {% endblock %}
