@@ -36,20 +36,29 @@
 </style>
 <div class="container-fluid px-xl-5">
   <div id="imageResizer" class="modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Modal title</h5>
+          <h5 class="modal-title">Neues Profilbild festlegen</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
-          <p>Modal body text goes here.</p>
+          <img id="newProfileImagePreview" width="100%" />
         </div>
+
+        <input type="text" id="x" name="coord_x" style="display: none" />
+        <input type="text" id="y" name="coord_y" style="display: none" />
+        <input type="text" id="x2" name="coord_x2" style="display: none" />
+        <input type="text" id="y2" name="coord_y2" style="display: none" />
+        <input type="text" id="w" name="size_w" style="display: none" />
+        <input type="text" id="h" name="size_h" style="display: none" />
+        <canvas id="resultNewProfileImg" width="320" height="320"></canvas>
+
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary">Save changes</button>
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button id="cancelNewProfileImg" type="button" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
+          <button id="saveNewProfileImg" type="button" class="btn btn-primary">Profilbild speichern</button>
         </div>
       </div>
     </div>
@@ -187,12 +196,64 @@
   $('#profileImg').click(function () { fileDialog.trigger('click'); });
   $('#profileImgIcon').click(function () { fileDialog.trigger('click'); });
 
-  console.log(fileDialog);
+  var jcrop_api, boundx, boundy;
+
+  function updatePreview(c) { // croping image preview
+    if (parseInt(c.w) > 0) {
+      var rx = 220 / c.w, ry = 220 / c.h;
+    }
+  }
+
+  function showCoords(c) { // show all coords
+    $('#x').val(c.x);
+    $('#y').val(c.y);
+    $('#x2').val(c.x2);
+    $('#y2').val(c.y2);
+    $('#w').val(c.w);
+    $('#h').val(c.h);
+  }
+
+  $("#saveNewProfileImg").on("click", function () {
+    console.log("RESIZE IN PROGRESS...");
+    var canvas = $("#resultNewProfileImg")[0];
+    var context = canvas.getContext("2d");
+    var img = $("#newProfileImagePreview")[0],
+      $img = $(img),
+      imgW = img.width,
+      imgH = img.height;
+
+    console.log($img.width());
+    console.log($img.height());
+
+    var ratioY = imgH / $img.height(),
+      ratioX = imgW / $img.width();
+
+    var getX = $('#x').val() * ratioX,
+      getY = $('#y').val() * ratioY,
+      getWidth = $('#w').val() * ratioX,
+      getHeight = $('#h').val() * ratioY;
+
+    context.drawImage(img, getX, getY, getWidth, getHeight, 0, 0, 320, 320);
+  });
+
   fileDialog.change(function () {
     var file = this.files[0];
     if (file.size > 0) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        $('#newProfileImagePreview')[0].src = reader.result;
+        $('#newProfileImagePreview').Jcrop({
+          onChange: updatePreview,
+          onSelect: showCoords,
+          bgColor: 'black',
+          bgOpacity: .2,
+          minSize: [200, 200],
+          setSelect: [ 0, 0, 220, 220 ],
+          aspectRatio: 1
+        });
+      };
+      reader.readAsDataURL(file);
       $('#imageResizer').modal('toggle');
-      getBase64(file);
     }
   });
 
@@ -201,16 +262,5 @@
 
   /* Change personal password */
   initializeValidation("changePassword");
-
-  function getBase64(file) {
-    var reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = function () {
-      console.log(reader.result);
-    };
-    reader.onerror = function (error) {
-      console.log('Error: ', error);
-    };
-  }
 </script>
 {% endblock %}
