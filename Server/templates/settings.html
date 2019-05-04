@@ -75,7 +75,7 @@
               <div class="col-lg-4 text-center mb-4" id="changeProfileImg">
                 <input type="file" id="newProfileImg" accept="image/*" style="display:none" />
                 <img
-                  src="{% if user.img == None %}{{ url_for('static', filename='img/defaultUser.jpg')}}{% else %}data:image/jpeg;base64,{{ user.img | safe }}{% endif %}"
+                  src="/image?userEmail={{user.id}}"
                   width="150px" class="img-fluid rounded-circle shadow" id="profileImg">
                 <div class="middle">
                   <img src="https://img.icons8.com/ios/50/000000/unsplash-filled.png" id="profileImgIcon" />

@@ -14,7 +14,7 @@
                     <div class="card-body">
                         <div class="row align-items-center flex-row">
                             <div class="col-lg-4 text-center mb-4">
-                                <img src="{% if user.img == None %}{{ url_for('static', filename='img/defaultUser.jpg')}}{% else %}data:image/jpeg;base64,{{ user.img | safe }}{% endif %}"
+                                <img src="/image?userEmail={{user.id}}"
                                     width="150px" height="150px !important" class="img-fluid rounded-circle shadow">
                             </div>
                             <div class="col-lg-8">
