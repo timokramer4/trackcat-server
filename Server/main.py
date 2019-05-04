@@ -507,6 +507,7 @@ def registerAPI():
 
 # Get all userdata from user with email
 @app.route("/getUserByEmailAPI", methods=['POST'])
+@requires_authorization
 def getUserByEmailAPI():
 
     return json.dumps(getUserWithImageFromDB(request.json['eMail']))
@@ -514,6 +515,7 @@ def getUserByEmailAPI():
 
 # Update user data in database
 @app.route("/updateUserAPI", methods=['POST'])
+@requires_authorization
 def updateUserAPI():
     j = request.json
 
@@ -617,6 +619,7 @@ def changeUserPasswordAPI():
 
 # Synchronize user data with app database
 @app.route("/synchronizeDataAPI", methods=['POST'])
+@requires_authorization
 def synchronizeDataAPI():
     conn = mysql.connect()
     cursor = conn.cursor()
