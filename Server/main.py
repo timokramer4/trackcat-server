@@ -461,21 +461,26 @@ def changePassword():
 
 @app.route("/image", methods=['GET'])
 def getImage():
-    email = request.args.get('userEmail')
+    try:
+        email = request.args.get('userEmail')
 
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.execute("SELECT image FROM users WHERE email = '" + email + "';")
-    result = cursor.fetchone()
-    cursor.close()
-    conn.close()
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.execute("SELECT image FROM users WHERE email = '" + email + "';")
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+    
+        imgFile = base64.b64decode(result[0])
 
-    imgFile = base64.b64decode(result[0])
-
-    return send_file(io.BytesIO(imgFile),
-                     mimetype='image/jpeg',
-                     as_attachment=True,
-                     attachment_filename='.jpg')
+        return send_file(io.BytesIO(imgFile),
+                        mimetype='image/jpeg',
+                        as_attachment=True,
+                        attachment_filename='.jpg')
+        
+    except Exception as identifier:
+        return send_file("./static/img/defaultUser.jpg",attachment_filename='.jpg')
+    
 
 
 ###########################
