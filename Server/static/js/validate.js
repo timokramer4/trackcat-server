@@ -84,7 +84,7 @@ function validate(allInputs) {
                         result = false;
                     }
                 } else if (item.type.toLocaleLowerCase() == "date") {
-                    var unixToday = (new Date()).getTime() / 1000;
+                    var unixToday = new Date().getTime() / 1000;
                     var unixSelected = new Date(item.value).getTime() / 1000;
                     if (item.value.match(datePattern)) {
                         if (unixSelected > unixToday) {

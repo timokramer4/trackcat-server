@@ -123,7 +123,7 @@ def validateLogin(email, password):
     cursor.close()
     conn.close()
 
-    return password is not None and password == result[0]
+    return result is not None and password == result[0]
 
 
 # Basic Authentificate
@@ -406,7 +406,7 @@ def deleteUserById(id):
         cursor = conn.cursor()
 
         cursor.execute('DELETE FROM ' + app.config['DB_TABLE_USERS'] +
-                       ' WHERE '+app.config['DB_USERS_ID']+' = "' + id + '";')
+                       ' WHERE '+app.config['DB_USERS_ID']+' = "' + str(id) + '";')
 
         conn.commit()
         cursor.close()
@@ -489,7 +489,8 @@ def login():
         conn.close()
 
         if result[0] != None:
-            return "verifizier deine Email"
+            flash('Deine Email-Adresse ist noch nicht verifiziert. Bitte gehe in dein E-Mail Postfach und verifiziere die Echheit deiner Person.')
+            return redirect("/login?alert=warning")
         else:
             updateUserLastLogin(request.form['email'])
             login_user(user)
@@ -497,8 +498,7 @@ def login():
     else:
         flash('Die eingegebenen Zugangsdaten sind falsch!')
         return redirect("/login?alert=warning")
-
-
+    
 # Register a user
 @app.route("/registerUser", methods=['POST'])
 def registerUser():
@@ -557,6 +557,22 @@ def changePassword():
         else:
             flash('Die neu gewählten Passwörter stimmen nicht überein!')
             return redirect("/settings?alert=warning")
+    else:
+        return redirect("/login")
+
+# Delete user account
+@app.route("/deleteAccount", methods=['POST'])
+def deleteAccount():
+    if current_user.is_authenticated:
+        success = deleteUserById(current_user.idUser)
+
+        if success == 0:
+            flash('Ihr Account wurde erfolgreich gelöscht!')
+            logout_user()
+            return redirect("/login?alert=success")
+        else:
+            flash('Unbekannter Fehler beim Löschen des Accounts!')
+            return redirect("/settings?alert=danger")
     else:
         return redirect("/login")
 
