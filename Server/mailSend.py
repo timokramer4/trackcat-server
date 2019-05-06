@@ -189,5 +189,5 @@ The Trackcat Team
 
 
 # test run this py
-sendVmail("finn1212@hotmail.de", "Finn", "http://safe-harbour.de:4242")
+# sendVmail("finn1212@hotmail.de", "Finn", "http://safe-harbour.de:4242")
 print("Done test Sending")
