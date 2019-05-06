@@ -32,6 +32,7 @@ function validate(allInputs) {
                 markField(item, false);
                 result = false;
             } else if (item.value.length > 0 || item.type.toLocaleLowerCase() == "date") {
+                console.log(item);
                 if (item.type.toLocaleLowerCase() == "password") {
                     if (item.getAttribute("validateNewPass") != null) {
                         var pass1 = $('[validateNewPass="1"]');
@@ -84,9 +85,14 @@ function validate(allInputs) {
                         result = false;
                     }
                 } else if (item.type.toLocaleLowerCase() == "date") {
+                    console.log(item.value);
                     if (item.value.match(datePattern)) {
                         markField(item, true);
                         setHint(item, false);
+                    } else {
+                        markField(item, false);
+                        setHint(item, true, "Bitte geben Sie ein gültiges Geburtsdatum ein!");
+                        result = false;
                     }
 
                 } else if (item.type.toLocaleLowerCase() == "checkbox") {
