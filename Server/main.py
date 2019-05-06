@@ -14,6 +14,8 @@ from datetime import datetime
 from functools import wraps
 import base64
 import io
+from passlib.hash import pbkdf2_sha256
+import random
 
 
 ###########################
@@ -30,6 +32,10 @@ app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
 app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
 app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
+
+
+app.config['BASE_URL'] = "http://safe-harbour.de:4242"#"http://192.186.178.52:5000"#
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -59,8 +65,6 @@ class User(UserMixin):
 ###########################
 ###      Test-Area      ###
 ###########################
-
-
 
 
 ###########################
@@ -123,27 +127,51 @@ def registerUserDB(firstName, lastName, email, password):
     # 3 = Email already exists
 
     try:
+
+        baseUrl = app.config['BASE_URL']+"/verifyEmail?email="+email+"&token="
+
+        token = generateVerifyToken(
+            firstName, lastName, email)
+
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO users (firstName, lastName, email, password, dateOfRegistration, lastLogin, darkTheme, hints, timeStamp) VALUES ('" +
-                       firstName + "', '" + lastName + "', '" + email + "', '" + password + "', " + str(int(time.time())) + ", " +
-                       str(int(time.time())) + ", 0, 1, "+str(int(time.time())) + ");")
+
+        cursor.execute('INSERT INTO users (firstName, lastName, email, password, dateOfRegistration, lastLogin, darkTheme, hints, timeStamp, verifyToken) VALUES ("' +
+                       firstName + '", "' + lastName + '", "' + email + '", "' + password + '", ' + str(int(time.time())) + ', ' +
+                       str(int(time.time())) + ', 0, 1, '+str(int(time.time())) + ',"' + token + '");')
+
         conn.commit()
         cursor.close()
         conn.close()
-        pass
+
+        sendVmail(email, firstName,  baseUrl + token)
+        return 0
+
     except Exception as identifier:
         print(identifier)
 
         if(identifier.args[0] == 1062):
             if('eMail_UNIQUE' in identifier.args[1]):
                 return 3
-            return 1
+        return 1
     pass
 
-    # TODO generate add link
-    sendVmail(email, firstName, "http://safe-harbour.de:4242")
-    return 0
+
+def generateVerifyToken(firstName, lastName, email):
+
+    # if want to use custom iterations instead of default 29000
+    #  custom_pbkdf2 = pbkdf2_sha256.using(rounds=123456)
+    #   custom_pbkdf2.default_rounds
+    # 123456
+
+    #  custom_pbkdf2.hash("password")
+
+    userData = [firstName, lastName, email]
+
+    random.shuffle(userData)
+    token = pbkdf2_sha256.hash(userData[0]+userData[1]+userData[2])
+
+    return token
 
 # Get selected user from database as JSON
 
@@ -459,6 +487,7 @@ def changePassword():
     else:
         return redirect("/login")
 
+
 @app.route("/image", methods=['GET'])
 def getImage():
     try:
@@ -466,27 +495,49 @@ def getImage():
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.execute("SELECT image FROM users WHERE email = '" + email + "';")
+        cursor.execute(
+            "SELECT image FROM users WHERE email = '" + email + "';")
         result = cursor.fetchone()
         cursor.close()
         conn.close()
-    
+
         imgFile = base64.b64decode(result[0])
 
         return send_file(io.BytesIO(imgFile),
-                        mimetype='image/jpeg',
-                        as_attachment=True,
-                        attachment_filename='.jpg')
-        
+                         mimetype='image/jpeg',
+                         as_attachment=True,
+                         attachment_filename='.jpg')
+
     except Exception as identifier:
-        return send_file("./static/img/defaultUser.jpg",attachment_filename='.jpg')
-    
+        return send_file("./static/img/defaultUser.jpg", attachment_filename='.jpg')
+
+
+@app.route("/verifyEmail", methods=['GET'])
+def verifyEmail():
+    email = request.args.get('email')
+    token = request.args.get('token')
+
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        cursor.execute('UPDATE users SET verifyToken = NULL WHERE email = "' +
+                    email + '" AND verifyToken = "' + token+ '";')
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return "Wohoooooo Verifiziert"
+        pass
+    except Exception as identifier:
+        return "Verifizierung vergüppelt...."
+        pass
 
 
 ###########################
 ###  REST API-Handler   ###
 ###########################
-
 # Check user login
 @app.route("/loginAPI", methods=['POST'])
 @requires_authorization
@@ -495,7 +546,8 @@ def loginAPI():
 
     jsonObj = {}
     jsonObj['success'] = 0
-    jsonObj['userData'] = getUserWithImageFromDB(request.authorization.username)
+    jsonObj['userData'] = getUserWithImageFromDB(
+        request.authorization.username)
 
     return json.dumps(jsonObj)
 
