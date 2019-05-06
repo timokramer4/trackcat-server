@@ -489,7 +489,7 @@ def login():
         conn.close()
 
         if result[0] != None:
-            flash('Deine Email-Adresse ist noch nicht verifiziert. Bitte gehe in dein E-Mail Postfach und verifiziere die Echheit deiner Person.')
+            flash('Ihre E-Mail Adresse ist noch nicht verifiziert. Bitte gehen Sie Ihr E-Mail Postfach und verifiziere Sie damit Echheit Ihrer E-Mail Adresse.')
             return redirect("/login?alert=warning")
         else:
             updateUserLastLogin(request.form['email'])
@@ -617,10 +617,10 @@ def verifyEmail():
         cursor.close()
         conn.close()
 
-        return "Wohoooooo Verifiziert"
+        return render_template("verification.html", state=1)
         pass
     except Exception as identifier:
-        return "Verifizierung vergüppelt...."
+        return render_template("verification.html", state=0)
         pass
 
 
