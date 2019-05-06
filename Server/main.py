@@ -116,19 +116,15 @@ def validateLogin(email, password):
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.execute('SELECT ' + app.config['DB_USERS_PASSWORD'] +
-                   ', ' + app.config['DB_USERS_VERIFYTOKEN'] + ' FROM '+app.config['DB_TABLE_USERS'] +
+                   ' FROM '+app.config['DB_TABLE_USERS'] +
                    ' WHERE ' + app.config['DB_USERS_EMAIL']
                    + ' = "' + email + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
 
-    if(result[1] != None):
-        return 2
-    elif result is not None and password == result[0]:
-        return 0
-    else:
-        return 1
+    return password is not None and password == result[0]
+
 
 # Basic Authentificate
 
@@ -478,19 +474,31 @@ def settingsPage():
 @app.route("/login", methods=['POST'])
 def login():
     # get user from db instantiate user
-    success = validateLogin(request.form['email'], request.form['password'])
-    if success == 0:
-        updateUserLastLogin(request.form['email'])
+
+    if validateLogin(request.form['email'], request.form['password']):
         user = user_loader(request.form['email'])
-        login_user(user)
-        return redirect("/dashboard")
-    elif success == 1:
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.execute('SELECT ' + app.config['DB_USERS_VERIFYTOKEN'] +
+                       ' FROM '+app.config['DB_TABLE_USERS'] +
+                       ' WHERE ' + app.config['DB_USERS_ID']
+                       + ' = "' + str(user.idUser) + '";')
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if result[0] != None:
+            return "verifizier deine Email"
+        else:
+            updateUserLastLogin(request.form['email'])
+            login_user(user)
+            return redirect("/dashboard")
+    else:
         flash('Die eingegebenen Zugangsdaten sind falsch!')
         return redirect("/login?alert=warning")
-    elif success == 2:
-        return "verifizier deine Email"
-        # email verify alert
-    
+
+
 # Register a user
 @app.route("/registerUser", methods=['POST'])
 def registerUser():
