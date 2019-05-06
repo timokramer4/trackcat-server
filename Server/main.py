@@ -470,6 +470,16 @@ def settingsPage():
     else:
         return redirect("/login")
 
+# AGB page
+@app.route("/agb", methods=["GET"])
+def agbPage():
+    return render_template("agb.html")
+
+# Data protection page
+@app.route("/datenschutz", methods=["GET"])
+def dataProtectionPage():
+    return render_template("datenschutz.html")
+
 ### Web-Handler ###
 @app.route("/login", methods=['POST'])
 def login():
