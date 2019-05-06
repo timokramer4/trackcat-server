@@ -96,7 +96,15 @@ class User(UserMixin):
 # Validate login data
 @login_manager.user_loader
 def user_loader(email):
-    jsonUser = getUserFromDB(email)
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute('SELECT ' + app.config['DB_USERS_ID'] +
+                   ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    jsonUser = getUserFromDB(result[0])
     user = User(jsonUser['email'], jsonUser['id'],
                 jsonUser['firstName'], jsonUser['lastName'],
                 jsonUser['gender'], jsonUser['weight'], jsonUser['size'], jsonUser['dateOfBirth'],
@@ -206,7 +214,7 @@ def getUserFromDB(id):
     cursor = conn.cursor()
     params = app.config['DB_USERS_ID']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_PASSWORD']+', '+app.config['DB_USERS_DATEOFBIRTH']+', '+app.config['DB_USERS_GENDER']+', '+app.config['DB_USERS_WEIGHT']+', '+app.config['DB_USERS_SIZE']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_TIMESTAMP']+''
     cursor.execute('SELECT ' + params +
-                   ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_ID']+' = "' + id + '";')
+                   ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_ID']+' = "' + str(id) + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -233,12 +241,12 @@ def getUserFromDB(id):
     return jsonUser
 
 
-def getUserWithImageFromDB(email):
-    jsonUser = getUserFromDB(email)
+def getUserWithImageFromDB(id):
+    jsonUser = getUserFromDB(id)
 
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.execute('SELECT '+app.config['DB_USERS_IMAGE']+' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
+    cursor.execute('SELECT '+app.config['DB_USERS_IMAGE']+' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_ID']+' = "' + str(id) + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -584,11 +592,17 @@ def verifyEmail():
 def loginAPI():
     updateUserLastLogin(request.authorization.username)
 
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute('SELECT ' + app.config['DB_USERS_ID'] +
+                   ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + request.authorization.username + '";')
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
     jsonObj = {}
     jsonObj['success'] = 0
-    jsonObj['userData'] = getUserWithImageFromDB(
-        request.authorization.username)
-
+    jsonObj['userData'] = getUserWithImageFromDB(result[0])
     return json.dumps(jsonObj)
 
 # Create new user in database
