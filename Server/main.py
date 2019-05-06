@@ -201,12 +201,12 @@ def generateVerifyToken(firstName, lastName, email):
 # Get selected user from database as JSON
 
 
-def getUserFromDB(email):
+def getUserFromDB(id):
     conn = mysql.connect()
     cursor = conn.cursor()
     params = app.config['DB_USERS_ID']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_PASSWORD']+', '+app.config['DB_USERS_DATEOFBIRTH']+', '+app.config['DB_USERS_GENDER']+', '+app.config['DB_USERS_WEIGHT']+', '+app.config['DB_USERS_SIZE']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_TIMESTAMP']+''
     cursor.execute('SELECT ' + params +
-                   ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
+                   ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_ID']+' = "' + id + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -383,6 +383,21 @@ def changeUserPasswordDB(email, password, newPw, timeStamp):
         print(identifier)
         result = 2
         return result
+
+def deleteUserById(id):
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        cursor.execute('DELETE FROM ' +app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_ID']+' = "' + id + '";')
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return 0
+    except Exception as identifier:
+        return 1
+
 
 ###########################
 ###   WEB API-Handler   ###
@@ -588,11 +603,11 @@ def registerAPI():
     return json.dumps(jsonObj)
 
 # Get all userdata from user with email
-@app.route("/getUserByEmailAPI", methods=['POST'])
+@app.route("/getUserByIdAPI", methods=['POST'])
 @requires_authorization
-def getUserByEmailAPI():
+def getUserByIdAPI():
 
-    return json.dumps(getUserWithImageFromDB(request.json['eMail']))
+    return json.dumps(getUserWithImageFromDB(request.json['id']))
 
 
 # Update user data in database
@@ -726,7 +741,13 @@ def synchronizeDataAPI():
 
     return json.dumps(jsonAnswer)
 
-
+@app.route("/deleteUserAPI", methods=['POST'])
+@requires_authorization
+def deleteUserAPI():
+    jsonSuccess = {}
+    jsonSuccess['success'] = deleteUserById(request.json['id'])
+    
+    return json.dumps(jsonSuccess)
 ###########################
 ###     Flask start     ###
 ###########################
