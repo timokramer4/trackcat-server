@@ -21,7 +21,7 @@ def sendVmail(reciever, firstName, vLink):
     msg.set_content("""\
 Please verify your email address
 
-Hi Finn,
+Hi """+firstName+""",
 
 to get full access to all features, you'll need to verify your email address to make sure it really belongs to you.
 If you have not registered in the Trackcat app or on the website, you can ignore this mail. The account will not be activated and will be deleted automatically after 14 days.
@@ -189,5 +189,5 @@ The Trackcat Team
 
 
 # test run this py
-#sendVmail("finn1212@hotmail.de", "Finn", "http://safe-harbour.de:4242")
+sendVmail("finn1212@hotmail.de", "Finn", "http://safe-harbour.de:4242")
 print("Done test Sending")
