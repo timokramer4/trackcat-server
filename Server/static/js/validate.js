@@ -32,7 +32,6 @@ function validate(allInputs) {
                 markField(item, false);
                 result = false;
             } else if (item.value.length > 0 || item.type.toLocaleLowerCase() == "date") {
-                console.log(item);
                 if (item.type.toLocaleLowerCase() == "password") {
                     if (item.getAttribute("validateNewPass") != null) {
                         var pass1 = $('[validateNewPass="1"]');
@@ -85,16 +84,23 @@ function validate(allInputs) {
                         result = false;
                     }
                 } else if (item.type.toLocaleLowerCase() == "date") {
-                    console.log(item.value);
+                    var unixToday = (new Date()).getTime() / 1000;
+                    var unixSelected = new Date(item.value).getTime() / 1000;
                     if (item.value.match(datePattern)) {
-                        markField(item, true);
-                        setHint(item, false);
+                        if (unixSelected > unixToday) {
+                            markField(item, false);
+                            setHint(item, true, "Sie sind noch nicht geboren, das könnte schwierig werden!");
+                            result = false;
+                        } else {
+                            markField(item, true);
+                            setHint(item, false);
+                            result = true;
+                        }
                     } else {
                         markField(item, false);
                         setHint(item, true, "Bitte geben Sie ein gültiges Geburtsdatum ein!");
                         result = false;
                     }
-
                 } else if (item.type.toLocaleLowerCase() == "checkbox") {
                     if (item.checked == true) {
                         markField(item, null);
