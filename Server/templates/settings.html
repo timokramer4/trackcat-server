@@ -1,20 +1,86 @@
 {% extends "model/logged.html" %}
 
+{% block title %}- Einstellungen{% endblock %}
+
 {% block subcontent %}
+<style>
+  #profileImg {
+    opacity: 1;
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: .5s ease;
+    backface-visibility: hidden;
+  }
+
+  .middle {
+    transition: .5s ease;
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  #changeProfileImg:hover #profileImg {
+    opacity: 0.3;
+    cursor: pointer;
+  }
+
+  #changeProfileImg:hover .middle {
+    opacity: 1;
+    cursor: pointer;
+  }
+</style>
 <div class="container-fluid px-xl-5">
+  <div id="imageResizer" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Neues Profilbild festlegen</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div>
+            <img id="newProfileImagePreview" />
+          </div>
+
+          <input type="text" id="x" name="coord_x" style="display: none" />
+          <input type="text" id="y" name="coord_y" style="display: none" />
+          <input type="text" id="x2" name="coord_x2" style="display: none" />
+          <input type="text" id="y2" name="coord_y2" style="display: none" />
+          <input type="text" id="w" name="size_w" style="display: none" />
+          <input type="text" id="h" name="size_h" style="display: none" />
+          <canvas id="resultNewProfileImg" width="320" height="320"></canvas>
+        </div>
+
+        <div class="modal-footer">
+          <button id="cancelNewProfileImg" type="button" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
+          <button id="saveNewProfileImg" type="button" class="btn btn-primary">Profilbild speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <section class="py-5">
     <div class="row mb-4">
       <div class="col-lg-5 mb-5">
-        <div class="card">
+        <div class="card mb-4">
           <div class="card-header">
             <h2 class="h6 text-uppercase mb-0">Profilbild</h2>
           </div>
           <div class="card-body">
             <div class="row align-items-center flex-row">
-              <div class="col-lg-4 text-center mb-4">
-                <img
-                  src="{% if user.img == None %}{{ url_for('static', filename='img/defaultUser.jpg')}}{% else %}data:image/jpeg;base64,{{ user.img | safe }}{% endif %}"
-                  width="150px" class="img-fluid rounded-circle shadow">
+              <div class="col-lg-4 text-center mb-4" id="changeProfileImg">
+                <input type="file" id="newProfileImg" accept="image/*" style="display:none" />
+                <img src="/image?userEmail={{user.id}}" width="150px" class="img-fluid rounded-circle shadow"
+                  id="profileImg">
+                <div class="middle">
+                  <img src="https://img.icons8.com/ios/50/000000/unsplash-filled.png" id="profileImgIcon" />
+                </div>
               </div>
               <div class="col-lg-8">
                 <h2 class="mb-0 d-flex align-items-center">
@@ -28,6 +94,35 @@
             </div>
           </div>
         </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="h6 text-uppercase mb-0 text-red">Account löschen</h3>
+          </div>
+          <div class="card-body">
+            <p>Wenn Sie Ihren Account löschen, werden sämtliche Benutzerdaten gelöscht. Folgende Informationen sind davon betroffen:</p>
+            <ul>
+              <li>Personenbezogene Daten (<i>Name, Profilbild, Status, etc.</i>)</li>
+              <li>Aufzeichnungen</li>
+              <li>Freunde</li>
+            </ul>
+            <p>Ihre Daten werden dabei restlos gelöscht und können <b><u>nicht wiederhergestellt</u></b> werden!</p>
+            <form id="deleteAccount" action="deleteAccount" method="POST">
+              <div class="form-group mb-4">
+                <div class="custom-control custom-checkbox">
+                  <input id="checkTerms" type="checkbox" class="custom-control-input" validate>
+                  <label for="checkTerms" class="custom-control-label">Ich akzeptiere und will meinen Account
+                    <b>unwiderruflich</b> löschen</label>
+                </div>
+              </div>
+              <div class="col align-self-end text-center">
+                <button type="submit" id="deleteAccount" class="btn btn-primary shadow px-5" disabled>Account
+                  unwideruflich löschen</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
       </div>
       <div class="col-lg-7 mb-5">
         <div class="card mb-4">
@@ -35,31 +130,51 @@
             <h3 class="h6 text-uppercase mb-0">Allgemeine Einstellungen</h3>
           </div>
           <div class="card-body">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{alert}} alert-dismissible" role="alert">
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+              {{message}}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
             <p>Im folgenden Abschnitt hast du die Möglichkeit deine allgemeinen Profilinformationen zu ändern:</p>
-            <form id="editGenerals">
+            <form id="editGenerals" action="updateUser" method="POST">
               <div class="form-group">
                 <div class="custom-control custom-radio custom-control-inline">
-                  <input id="maleGender" type="radio" name="genderRadio" class="custom-control-input"
+                  <input id="maleGender" type="radio" name="genderRadio" value="1" class="custom-control-input"
                     {% if user.gender == 1 %}checked="true" {% endif %} validate>
                   <label for="maleGender" class="custom-control-label">Herr</label>
                 </div>
                 <div class="custom-control custom-radio custom-control-inline">
-                  <input id="femaleGender" type="radio" name="genderRadio" class="custom-control-input"
+                  <input id="femaleGender" type="radio" name="genderRadio" value="0" class="custom-control-input"
                     {% if user.gender == 0 %}checked="true" {% endif %} validate>
                   <label for="femaleGender" class="custom-control-label">Frau</label>
                 </div>
               </div>
               <div class="form-group">
                 <label class="form-control-label text-uppercase">Vorname</label>
-                <input type="text" id="firstName" placeholder="Vorname" maxlength="16" class="form-control"
-                  value="{{user.firstName}}" validate>
+                <input type="text" id="firstName" name="firstName" placeholder="Vorname" maxlength="16"
+                  class="form-control" value="{{user.firstName}}" validate>
               </div>
               <div class="form-group">
                 <label class="form-control-label text-uppercase">Nachname</label>
-                <input type="text" id="lastName" placeholder="Nachname" maxlength="16" class="form-control"
-                  value="{{user.lastName}}" validate>
+                <input type="text" id="lastName" name="lastName" placeholder="Nachname" maxlength="16"
+                  class="form-control" value="{{user.lastName}}" validate>
               </div>
-              <button type="button" id="editGeneralsBtn" class="btn btn-primary shadow px-5" disabled>Speichern</button>
+              <div class="form-group">
+                <label class="form-control-label text-uppercase">Geburtstag</label>
+                <input type="date" id="birthday" name="birthday" class="form-control" validate>
+                <script>
+                  var date = new Date("{{ user.dateOfBirth }}" * 1000);
+                  document.getElementById("birthday").value = getDate(date);
+                </script>
+              </div>
+              <button type="submit" id="editGeneralsBtn" class="btn btn-primary shadow px-5" disabled>Speichern</button>
             </form>
           </div>
         </div>
@@ -69,29 +184,29 @@
           </div>
           <div class="card-body">
             <p>Hier kannst du dein Passwort ändern. Das Passwort ermöglicht dir den Zugang zu deinem Konto:</p>
-            <form id="changePassword">
+            <form id="changePassword" action="changePassword" method="POST">
               <div class="row">
                 <div class="col-lg-6 mb-3">
                   <div class="form-group">
                     <label class="form-control-label text-uppercase">Aktuelles Passwort</label>
-                    <input type="password" id="currentPass" placeholder="Aktuelles Passwort" maxlength="15"
-                      class="form-control" validate>
+                    <input type="password" id="currentPass" name="currentPass" placeholder="Aktuelles Passwort"
+                      maxlength="15" class="form-control" validate>
                   </div>
                 </div>
                 <div class="col-lg-6 mb-2">
                   <div class="form-group">
                     <label class="form-control-label text-uppercase">Neues Passwort</label>
-                    <input type="password" id="newPass" placeholder="Neues Passwort" maxlength="15" class="form-control"
-                      validateNewPass="1">
+                    <input type="password" id="newPass" name="newPass" placeholder="Neues Passwort" maxlength="15"
+                      class="form-control" validateNewPass="1">
                   </div>
                   <div class="form-group">
                     <label class="form-control-label text-uppercase">Neues Passwort wdh.</label>
-                    <input type="password" id="newPass2" placeholder="Neues Passwort wdh." maxlength="15"
-                      class="form-control" validateNewPass="2">
+                    <input type="password" id="newPass2" name="newPass2" placeholder="Neues Passwort wdh."
+                      maxlength="15" class="form-control" validateNewPass="2">
                   </div>
                 </div>
                 <div class="col align-self-end">
-                  <button type="button" id="changePasswordBtn" class="btn btn-primary shadow px-5"
+                  <button type="submit" id="changePasswordBtn" class="btn btn-primary shadow px-5"
                     disabled>Ändern</button>
                 </div>
               </div>
@@ -107,23 +222,78 @@
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // TODO: Daten vom Server bekommen
-    console.log("Daten des Nutzers laden!");
+  var fileDialog = $('#newProfileImg');
+  $('#profileImg').click(function () { fileDialog.trigger('click'); });
+  $('#profileImgIcon').click(function () { fileDialog.trigger('click'); });
+
+  var jcrop_api, boundx, boundy;
+
+  function updatePreview(c) { // croping image preview
+    if (parseInt(c.w) > 0) {
+      var rx = 220 / c.w, ry = 220 / c.h;
+    }
+  }
+
+  function showCoords(c) { // show all coords
+    $('#x').val(c.x);
+    $('#y').val(c.y);
+    $('#x2').val(c.x2);
+    $('#y2').val(c.y2);
+    $('#w').val(c.w);
+    $('#h').val(c.h);
+  }
+
+  $("#saveNewProfileImg").on("click", function () {
+    console.log("RESIZE IN PROGRESS...");
+    var canvas = $("#resultNewProfileImg")[0];
+    var context = canvas.getContext("2d");
+    var img = $("#newProfileImagePreview")[0],
+      $img = $(img),
+      imgW = img.width,
+      imgH = img.height;
+
+    console.log($img.width());
+    console.log($img.height());
+
+    var ratioY = imgH / $img.height(),
+      ratioX = imgW / $img.width();
+
+    var getX = $('#x').val() * ratioX,
+      getY = $('#y').val() * ratioY,
+      getWidth = $('#w').val() * ratioX,
+      getHeight = $('#h').val() * ratioY;
+
+    context.drawImage(img, getX, getY, getWidth, getHeight, 0, 0, 320, 320);
+  });
+
+  fileDialog.change(function () {
+    var file = this.files[0];
+    if (file.size > 0) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        $('#newProfileImagePreview')[0].src = reader.result;
+        $('#newProfileImagePreview').Jcrop({
+          onChange: updatePreview,
+          onSelect: showCoords,
+          bgColor: 'black',
+          bgOpacity: .2,
+          minSize: [200, 200],
+          setSelect: [0, 0, 220, 220],
+          aspectRatio: 1
+        });
+      };
+      reader.readAsDataURL(file);
+      $('#imageResizer').modal('toggle');
+    }
   });
 
   /* Edit general profile data */
   initializeValidation("editGenerals");
-  document.getElementById("editGeneralsBtn").addEventListener("click", function () {
-    // TODO: Senden der Daten an Server
-    console.log("Allgemeine Daten geändert!");
-  });
 
   /* Change personal password */
   initializeValidation("changePassword");
-  document.getElementById("changePasswordBtn").addEventListener("click", function () {
-    // TODO: Senden der Daten an Server
-    console.log("Passwort geändert!");
-  });
+
+  /* Delete account */
+  initializeValidation("deleteAccount");
 </script>
 {% endblock %}

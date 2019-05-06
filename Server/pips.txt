@@ -2,3 +2,4 @@ pip install flask
 pip install simplejson
 pip install flask-mysql
 pip install flask-login
+pip install passlib
