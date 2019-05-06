@@ -39,6 +39,8 @@ app.config['BASE_URL'] = "http://safe-harbour.de:4242"
 
 # DB Table Names
 app.config['DB_TABLE_USERS'] = "users"
+app.config['DB_TABLE_ROUTE'] = "route"
+app.config['DB_TABLE_LOCATION'] = "location"
 
 # DB colum-names
 app.config['DB_USERS_ID'] = "id"
@@ -57,6 +59,22 @@ app.config['DB_USERS_DATEOFREGISTRATION'] = "dateOfRegistration"
 app.config['DB_USERS_LASTLOGIN'] = "lastLogin"
 app.config['DB_USERS_TIMESTAMP'] = "timeStamp"
 app.config['DB_USERS_VERIFYTOKEN'] = "verifyToken"
+
+app.config['DB_ROUTE_NAME'] = "name"
+app.config['DB_ROUTE_TIME'] = "time"
+app.config['DB_ROUTE_DATE'] = "date"
+app.config['DB_ROUTE_TYPE'] = "type"
+app.config['DB_ROUTE_RIDETIME'] = "rideTime"
+app.config['DB_ROUTE_DISTANCE'] = "distance"
+app.config['DB_ROUTE_TIMESTAMP'] = "timeStamp"
+app.config['DB_ROUTE_USERS_ID'] = "users_id"
+
+app.config['DB_LOCATION_LATITUDE'] = "latitude"
+app.config['DB_LOCATION_LONGITUDE'] = "longitude"
+app.config['DB_LOCATION_ALTITUDE'] = "altitude"
+app.config['DB_LOCATION_TIME'] = "time"
+app.config['DB_LOCATION_SPEED'] = "speed"
+app.config['DB_LOCATION_ROUTE_ID'] = "route_id"
 
 
 login_manager = LoginManager()
@@ -498,7 +516,7 @@ def login():
     else:
         flash('Die eingegebenen Zugangsdaten sind falsch!')
         return redirect("/login?alert=warning")
-    
+
 # Register a user
 @app.route("/registerUser", methods=['POST'])
 def registerUser():
@@ -808,10 +826,97 @@ def deleteUserAPI():
     jsonSuccess['success'] = deleteUserById(request.json['id'])
 
     return json.dumps(jsonSuccess)
+
+
+@app.route("/uploadTrackAPI", methods=['POST'])
+@requires_authorization
+def uploadTrackAPI():
+    jsonSuccess = {}
+
+    try:
+        jsonTrack = request.json
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        print('INSERT INTO '+app.config['DB_TABLE_ROUTE'] +
+            ' ('
+            + app.config['DB_ROUTE_NAME'] + ','
+            + app.config['DB_ROUTE_TIME'] + ','
+            + app.config['DB_ROUTE_DATE'] + ','
+            + app.config['DB_ROUTE_TYPE'] + ','
+            + app.config['DB_ROUTE_RIDETIME'] + ','
+            + app.config['DB_ROUTE_DISTANCE'] + ','
+           # + app.config['DB_ROUTE_TIMESTAMP'] + ','
+            + app.config['DB_ROUTE_USERS_ID']+') VALUES ("'
+            + jsonTrack['name'] + '", '
+            + str(jsonTrack['time']) + ', '
+            + str(jsonTrack['date']) + ', '
+            + str(jsonTrack['type']) + ', '
+            + str(jsonTrack['rideTime']) + ', '
+            + str(jsonTrack['distance']) + ', '
+            #+ jsonTrack['trackTimeStamp'] + ', '
+            + str(jsonTrack['userId']) + ');')
+
+
+        cursor.execute(
+            'INSERT INTO '+app.config['DB_TABLE_ROUTE'] +
+            ' ('
+            + app.config['DB_ROUTE_NAME'] + ','
+            + app.config['DB_ROUTE_TIME'] + ','
+            + app.config['DB_ROUTE_DATE'] + ','
+            + app.config['DB_ROUTE_TYPE'] + ','
+            + app.config['DB_ROUTE_RIDETIME'] + ','
+            + app.config['DB_ROUTE_DISTANCE'] + ','
+           # + app.config['DB_ROUTE_TIMESTAMP'] + ','
+            + app.config['DB_ROUTE_USERS_ID']+') VALUES ("'
+            + jsonTrack['name'] + '", '
+            + str(jsonTrack['time']) + ', '
+            + str(jsonTrack['date']) + ', '
+            + str(jsonTrack['type']) + ', '
+            + str(jsonTrack['rideTime']) + ', '
+            + str(jsonTrack['distance']) + ', '
+            #+ jsonTrack['trackTimeStamp'] + ', '
+            + str(jsonTrack['userId']) + ');')
+
+        routeId = cursor.lastrowid
+
+        for jsonLocation in jsonTrack['locations']:
+            cursor.execute(
+                'INSERT INTO ' + app.config['DB_TABLE_LOCATION'] +
+                ' ('
+                + app.config['DB_LOCATION_LATITUDE'] + ','
+                + app.config['DB_LOCATION_LONGITUDE'] + ','
+                + app.config['DB_LOCATION_ALTITUDE'] + ','
+                + app.config['DB_LOCATION_TIME'] + ','
+                + app.config['DB_LOCATION_SPEED'] + ','
+                + app.config['DB_LOCATION_ROUTE_ID'] + ') VALUES ('
+                + str(jsonLocation['latitude']) + ', '
+                + str(jsonLocation['longitude']) + ', '
+                + str(jsonLocation['altitude']) + ', '
+                + str(jsonLocation['time']) + ', '
+                + str(jsonLocation['speed']) + ', '
+                + str(routeId) + ');')
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        jsonSuccess['success'] = 0
+
+        pass
+    except Exception as identifier:
+
+        jsonSuccess['success'] = 1
+
+        pass
+        
+    return json.dumps(jsonSuccess)
+
+
 ###########################
 ###     Flask start     ###
 ###########################
-
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
