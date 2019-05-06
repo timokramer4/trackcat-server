@@ -99,7 +99,7 @@ def user_loader(email):
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.execute('SELECT ' + app.config['DB_USERS_ID'] +
-                   ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
+                   ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -116,13 +116,19 @@ def validateLogin(email, password):
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.execute('SELECT ' + app.config['DB_USERS_PASSWORD'] +
-                   ' FROM '+app.config['DB_TABLE_USERS'] +
+                   ', ' + app.config['DB_USERS_VERIFYTOKEN'] + ' FROM '+app.config['DB_TABLE_USERS'] +
                    ' WHERE ' + app.config['DB_USERS_EMAIL']
                    + ' = "' + email + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
-    return result is not None and password == result[0]
+
+    if(result[1] != None):
+        return 2
+    elif result is not None and password == result[0]:
+        return 0
+    else:
+        return 1
 
 # Basic Authentificate
 
@@ -169,7 +175,7 @@ def registerUserDB(firstName, lastName, email, password):
         conn = mysql.connect()
         cursor = conn.cursor()
 
-        cursor.execute('INSERT INTO '+app.config['DB_TABLE_USERS'] +' ('+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_PASSWORD']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_TIMESTAMP']+', '+app.config['DB_USERS_VERIFYTOKEN']+') VALUES ("' +
+        cursor.execute('INSERT INTO '+app.config['DB_TABLE_USERS'] + ' ('+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_PASSWORD']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_TIMESTAMP']+', '+app.config['DB_USERS_VERIFYTOKEN']+') VALUES ("' +
                        firstName + '", "' + lastName + '", "' + email + '", "' + password + '", ' + str(int(time.time())) + ', ' +
                        str(int(time.time())) + ', 0, 1, '+str(int(time.time())) + ',"' + token + '");')
 
@@ -212,9 +218,13 @@ def generateVerifyToken(firstName, lastName, email):
 def getUserFromDB(id):
     conn = mysql.connect()
     cursor = conn.cursor()
-    params = app.config['DB_USERS_ID']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_PASSWORD']+', '+app.config['DB_USERS_DATEOFBIRTH']+', '+app.config['DB_USERS_GENDER']+', '+app.config['DB_USERS_WEIGHT']+', '+app.config['DB_USERS_SIZE']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_TIMESTAMP']+''
+    params = app.config['DB_USERS_ID']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_PASSWORD']+', '+app.config['DB_USERS_DATEOFBIRTH']+', '+app.config['DB_USERS_GENDER']+', ' + \
+        app.config['DB_USERS_WEIGHT']+', '+app.config['DB_USERS_SIZE']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS'] + \
+        ', '+app.config['DB_USERS_DATEOFREGISTRATION']+', ' + \
+        app.config['DB_USERS_LASTLOGIN']+', ' + \
+        app.config['DB_USERS_TIMESTAMP']+''
     cursor.execute('SELECT ' + params +
-                   ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_ID']+' = "' + str(id) + '";')
+                   ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = "' + str(id) + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -246,7 +256,8 @@ def getUserWithImageFromDB(id):
 
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.execute('SELECT '+app.config['DB_USERS_IMAGE']+' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_ID']+' = "' + str(id) + '";')
+    cursor.execute('SELECT '+app.config['DB_USERS_IMAGE']+' FROM '+app.config['DB_TABLE_USERS'] +
+                   ' WHERE '+app.config['DB_USERS_ID']+' = "' + str(id) + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -262,7 +273,7 @@ def updateUserLastLogin(email):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.execute('UPDATE ' +app.config['DB_TABLE_USERS']+' SET '+app.config['DB_USERS_LASTLOGIN']+' = ' +
+        cursor.execute('UPDATE ' + app.config['DB_TABLE_USERS']+' SET '+app.config['DB_USERS_LASTLOGIN']+' = ' +
                        str(int(time.time())) + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
 
         conn.commit()
@@ -283,70 +294,70 @@ def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
         cursor = conn.cursor()
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_DATEOFBIRTH']+' =  "' + dateOfBirth
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_DATEOFBIRTH']+' =  "' + dateOfBirth
                            + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_FIRSTNAME']+' = "' + firstName
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_FIRSTNAME']+' = "' + firstName
                            + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET  '+app.config['DB_USERS_LASTNAME']+' = "' + lastName
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '+app.config['DB_USERS_LASTNAME']+' = "' + lastName
                            + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_GENDER']+' = "' + gender
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_GENDER']+' = "' + gender
                            + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_SIZE']+' = "' + size
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_SIZE']+' = "' + size
                            + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET  '+app.config['DB_USERS_WEIGHT']+' = "' + weight
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '+app.config['DB_USERS_WEIGHT']+' = "' + weight
                            + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_IMAGE']+' = "' + image
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_IMAGE']+' = "' + image
                            + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_EMAIL']+' = "' + newEmail
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_EMAIL']+' = "' + newEmail
                            + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_HINTS']+' = "' + hints
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_HINTS']+' = "' + hints
                            + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_DARKTHEME']+' = "' + darkTheme
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_DARKTHEME']+' = "' + darkTheme
                            + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
@@ -372,11 +383,11 @@ def changeUserPasswordDB(email, password, newPw, timeStamp):
         cursor = conn.cursor()
         params = "password"
         cursor.execute('SELECT ' + params +
-                       ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
+                       ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
         result = cursor.fetchone()
 
         if result[0] == password:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_PASSWORD']+' = "' +
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_PASSWORD']+' = "' +
                            newPw + '", '+app.config['DB_USERS_TIMESTAMP']+' = ' + timeStamp + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
             result = 0
         else:
@@ -392,13 +403,15 @@ def changeUserPasswordDB(email, password, newPw, timeStamp):
         result = 2
         return result
 
+
 def deleteUserById(id):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
 
-        cursor.execute('DELETE FROM ' +app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_ID']+' = "' + id + '";')
-        
+        cursor.execute('DELETE FROM ' + app.config['DB_TABLE_USERS'] +
+                       ' WHERE '+app.config['DB_USERS_ID']+' = "' + id + '";')
+
         conn.commit()
         cursor.close()
         conn.close()
@@ -465,15 +478,19 @@ def settingsPage():
 @app.route("/login", methods=['POST'])
 def login():
     # get user from db instantiate user
-    if validateLogin(request.form['email'], request.form['password']):
+    success = validateLogin(request.form['email'], request.form['password'])
+    if success == 0:
         updateUserLastLogin(request.form['email'])
         user = user_loader(request.form['email'])
         login_user(user)
         return redirect("/dashboard")
-    else:
+    elif success == 1:
         flash('Die eingegebenen Zugangsdaten sind falsch!')
         return redirect("/login?alert=warning")
-
+    elif success == 2:
+        return "verifizier deine Email"
+        # email verify alert
+    
 # Register a user
 @app.route("/registerUser", methods=['POST'])
 def registerUser():
@@ -544,7 +561,7 @@ def getImage():
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.execute(
-            'SELECT '+app.config['DB_USERS_IMAGE']+' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
+            'SELECT '+app.config['DB_USERS_IMAGE']+' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
         result = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -569,7 +586,7 @@ def verifyEmail():
         conn = mysql.connect()
         cursor = conn.cursor()
 
-        cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_VERIFYTOKEN']+' = NULL WHERE '+app.config['DB_USERS_EMAIL']+' = "' +
+        cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_VERIFYTOKEN']+' = NULL WHERE '+app.config['DB_USERS_EMAIL']+' = "' +
                        email + '" AND '+app.config['DB_USERS_VERIFYTOKEN']+' = "' + token + '";')
 
         conn.commit()
@@ -595,14 +612,18 @@ def loginAPI():
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.execute('SELECT ' + app.config['DB_USERS_ID'] +
-                   ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + request.authorization.username + '";')
+                   ', ' + app.config['DB_USERS_VERIFYTOKEN'] + ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + request.authorization.username + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
 
     jsonObj = {}
-    jsonObj['success'] = 0
     jsonObj['userData'] = getUserWithImageFromDB(result[0])
+    if result[1] == None:
+        jsonObj['success'] = 0
+    else:
+        jsonObj['success'] = 2
+
     return json.dumps(jsonObj)
 
 # Create new user in database
@@ -736,7 +757,7 @@ def synchronizeDataAPI():
     cursor = conn.cursor()
     params = "timeStamp"
     cursor.execute('SELECT ' + params +
-                   ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + request.json['email'] + '";')
+                   ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + request.json['email'] + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -755,16 +776,18 @@ def synchronizeDataAPI():
 
     return json.dumps(jsonAnswer)
 
+
 @app.route("/deleteUserAPI", methods=['POST'])
 @requires_authorization
 def deleteUserAPI():
     jsonSuccess = {}
     jsonSuccess['success'] = deleteUserById(request.json['id'])
-    
+
     return json.dumps(jsonSuccess)
 ###########################
 ###     Flask start     ###
 ###########################
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
