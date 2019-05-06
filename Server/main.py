@@ -34,7 +34,29 @@ app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
 
 
-app.config['BASE_URL'] = "http://safe-harbour.de:4242"#"http://192.186.178.52:5000"#
+# "http://192.186.178.52:5000"#
+app.config['BASE_URL'] = "http://safe-harbour.de:4242"
+
+# DB Table Names
+app.config['DB_TABLE_USERS'] = "users"
+
+# DB colum-names
+app.config['DB_USERS_ID'] = "id"
+app.config['DB_USERS_EMAIL'] = "email"
+app.config['DB_USERS_FIRSTNAME'] = "firstName"
+app.config['DB_USERS_LASTNAME'] = "lastName"
+app.config['DB_USERS_PASSWORD'] = "password"
+app.config['DB_USERS_IMAGE'] = "image"
+app.config['DB_USERS_DATEOFBIRTH'] = "dateOfBirth"
+app.config['DB_USERS_GENDER'] = "gender"
+app.config['DB_USERS_WEIGHT'] = "weight"
+app.config['DB_USERS_SIZE'] = "size"
+app.config['DB_USERS_DARKTHEME'] = "darkTheme"
+app.config['DB_USERS_HINTS'] = "hints"
+app.config['DB_USERS_DATEOFREGISTRATION'] = "dateOfRegistration"
+app.config['DB_USERS_LASTLOGIN'] = "lastLogin"
+app.config['DB_USERS_TIMESTAMP'] = "timeStamp"
+app.config['DB_USERS_VERIFYTOKEN'] = "verifyToken"
 
 
 login_manager = LoginManager()
@@ -85,7 +107,10 @@ def user_loader(email):
 def validateLogin(email, password):
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.execute("SELECT password FROM users WHERE email = '" + email + "';")
+    cursor.execute('SELECT ' + app.config['DB_USERS_PASSWORD'] +
+                   ' FROM '+app.config['DB_TABLE_USERS'] +
+                   ' WHERE ' + app.config['DB_USERS_EMAIL']
+                   + ' = "' + email + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -136,7 +161,7 @@ def registerUserDB(firstName, lastName, email, password):
         conn = mysql.connect()
         cursor = conn.cursor()
 
-        cursor.execute('INSERT INTO users (firstName, lastName, email, password, dateOfRegistration, lastLogin, darkTheme, hints, timeStamp, verifyToken) VALUES ("' +
+        cursor.execute('INSERT INTO '+app.config['DB_TABLE_USERS'] +' ('+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_PASSWORD']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_TIMESTAMP']+', '+app.config['DB_USERS_VERIFYTOKEN']+') VALUES ("' +
                        firstName + '", "' + lastName + '", "' + email + '", "' + password + '", ' + str(int(time.time())) + ', ' +
                        str(int(time.time())) + ', 0, 1, '+str(int(time.time())) + ',"' + token + '");')
 
@@ -179,9 +204,9 @@ def generateVerifyToken(firstName, lastName, email):
 def getUserFromDB(email):
     conn = mysql.connect()
     cursor = conn.cursor()
-    params = "id, email, firstName, lastName, password, dateOfBirth, gender, weight, size, darkTheme, hints, dateOfRegistration, lastLogin, timeStamp"
-    cursor.execute("SELECT " + params +
-                   " FROM users WHERE email = '" + email + "';")
+    params = app.config['DB_USERS_ID']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_PASSWORD']+', '+app.config['DB_USERS_DATEOFBIRTH']+', '+app.config['DB_USERS_GENDER']+', '+app.config['DB_USERS_WEIGHT']+', '+app.config['DB_USERS_SIZE']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_TIMESTAMP']+''
+    cursor.execute('SELECT ' + params +
+                   ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -213,7 +238,7 @@ def getUserWithImageFromDB(email):
 
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.execute("SELECT image FROM users WHERE email = '" + email + "';")
+    cursor.execute('SELECT '+app.config['DB_USERS_IMAGE']+' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -229,8 +254,8 @@ def updateUserLastLogin(email):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.execute("UPDATE users SET lastLogin = " +
-                       str(int(time.time())) + " WHERE email = '" + email + "';")
+        cursor.execute('UPDATE ' +app.config['DB_TABLE_USERS']+' SET '+app.config['DB_USERS_LASTLOGIN']+' = ' +
+                       str(int(time.time())) + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
 
         conn.commit()
 
@@ -250,71 +275,71 @@ def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
         cursor = conn.cursor()
 
         try:
-            cursor.execute('UPDATE users SET dateOfBirth =  "' + dateOfBirth
-                           + '" WHERE email = "' + oldEmail + '";')
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_DATEOFBIRTH']+' =  "' + dateOfBirth
+                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE users SET firstName = "' + firstName
-                           + '" WHERE email = "' + oldEmail + '";')
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_FIRSTNAME']+' = "' + firstName
+                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE users SET  lastName = "' + lastName
-                           + '" WHERE email = "' + oldEmail + '";')
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET  '+app.config['DB_USERS_LASTNAME']+' = "' + lastName
+                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE users SET gender = "' + gender
-                           + '" WHERE email = "' + oldEmail + '";')
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_GENDER']+' = "' + gender
+                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE users SET size = "' + size
-                           + '" WHERE email = "' + oldEmail + '";')
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_SIZE']+' = "' + size
+                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE users SET  weight = "' + weight
-                           + '" WHERE email = "' + oldEmail + '";')
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET  '+app.config['DB_USERS_WEIGHT']+' = "' + weight
+                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE users SET image = "' + image
-                           + '" WHERE email = "' + oldEmail + '";')
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_IMAGE']+' = "' + image
+                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE users SET email = "' + newEmail
-                           + '" WHERE email = "' + oldEmail + '";')
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_EMAIL']+' = "' + newEmail
+                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE users SET hints = "' + hints
-                           + '" WHERE email = "' + oldEmail + '";')
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_HINTS']+' = "' + hints
+                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE users SET darkTheme = "' + darkTheme
-                           + '" WHERE email = "' + oldEmail + '";')
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_DARKTHEME']+' = "' + darkTheme
+                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
             pass
         except Exception as identifier:
             pass
@@ -338,13 +363,13 @@ def changeUserPasswordDB(email, password, newPw, timeStamp):
         conn = mysql.connect()
         cursor = conn.cursor()
         params = "password"
-        cursor.execute("SELECT " + params +
-                       " FROM users WHERE email = '" + email + "';")
+        cursor.execute('SELECT ' + params +
+                       ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
         result = cursor.fetchone()
 
         if result[0] == password:
-            cursor.execute('UPDATE users SET password = "' +
-                           newPw + '", timeStamp = ' + timeStamp + ' WHERE email = "' + email + '";')
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_PASSWORD']+' = "' +
+                           newPw + '", '+app.config['DB_USERS_TIMESTAMP']+' = ' + timeStamp + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
             result = 0
         else:
             result = 1
@@ -496,7 +521,7 @@ def getImage():
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT image FROM users WHERE email = '" + email + "';")
+            'SELECT '+app.config['DB_USERS_IMAGE']+' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
         result = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -521,8 +546,8 @@ def verifyEmail():
         conn = mysql.connect()
         cursor = conn.cursor()
 
-        cursor.execute('UPDATE users SET verifyToken = NULL WHERE email = "' +
-                    email + '" AND verifyToken = "' + token+ '";')
+        cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] +' SET '+app.config['DB_USERS_VERIFYTOKEN']+' = NULL WHERE '+app.config['DB_USERS_EMAIL']+' = "' +
+                       email + '" AND '+app.config['DB_USERS_VERIFYTOKEN']+' = "' + token + '";')
 
         conn.commit()
         cursor.close()
@@ -681,8 +706,8 @@ def synchronizeDataAPI():
     conn = mysql.connect()
     cursor = conn.cursor()
     params = "timeStamp"
-    cursor.execute("SELECT " + params +
-                   " FROM users WHERE email = '" + request.json['email'] + "';")
+    cursor.execute('SELECT ' + params +
+                   ' FROM '+app.config['DB_TABLE_USERS'] +' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + request.json['email'] + '";')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
