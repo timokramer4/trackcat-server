@@ -617,10 +617,10 @@ def verifyEmail():
         cursor.close()
         conn.close()
 
-        return "Wohoooooo Verifiziert"
+        return render_template("verification.html", state=1)
         pass
     except Exception as identifier:
-        return "Verifizierung vergüppelt...."
+        return render_template("verification.html", state=0)
         pass
 
 
