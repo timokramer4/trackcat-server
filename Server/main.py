@@ -895,7 +895,7 @@ def uploadTrackAPI():
             + app.config['DB_ROUTE_TYPE'] + ','
             + app.config['DB_ROUTE_RIDETIME'] + ','
             + app.config['DB_ROUTE_DISTANCE'] + ','
-           # + app.config['DB_ROUTE_TIMESTAMP'] + ','
+            + app.config['DB_ROUTE_TIMESTAMP'] + ','
             + app.config['DB_ROUTE_USERS_ID']+') VALUES ("'
             + jsonTrack['name'] + '", '
             + str(jsonTrack['time']) + ', '
@@ -903,7 +903,7 @@ def uploadTrackAPI():
             + str(jsonTrack['type']) + ', '
             + str(jsonTrack['rideTime']) + ', '
             + str(jsonTrack['distance']) + ', '
-            #+ jsonTrack['trackTimeStamp'] + ', '
+            + str(jsonTrack['timeStamp']) + ', '
             + str(jsonTrack['userId']) + ');')
 
         routeId = cursor.lastrowid
@@ -934,6 +934,8 @@ def uploadTrackAPI():
 
         pass
     except Exception as identifier:
+
+        print(identifier)
 
         jsonSuccess['success'] = 1
 
