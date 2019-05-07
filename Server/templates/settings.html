@@ -64,6 +64,23 @@
   <!-- Content -->
   <section class="py-5">
     <div class="row mb-4">
+      <!-- Alert messages -->
+
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      <div class="col-lg-12 mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{alert}} alert-dismissible" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          {{message}}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
       <div class="col-lg-6 mb-5">
 
         <!-- Profile image -->
@@ -99,18 +116,6 @@
             <h3 class="h6 text-uppercase mb-0">Allgemeine Einstellungen</h3>
           </div>
           <div class="card-body">
-            {% with messages = get_flashed_messages() %}
-            {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-{{alert}} alert-dismissible" role="alert">
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-              {{message}}
-            </div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
             <p>Im folgenden Abschnitt haben Sie die Möglichkeit Ihre allgemeinen Profilinformationen zu ändern:</p>
             <form id="editGenerals" action="updateUser" method="POST">
               <div class="form-group">
