@@ -1,4 +1,4 @@
-/* your styles go here */
+/* Custom link */
 .hint {
     color: #f11313 !important;
 }
@@ -9,4 +9,92 @@ a {
 
 a:hover, a:focus {
     color: #004ef9;
+}
+
+/* Define word breaks */
+h1, h2, h3, h4, h5, h6, p {
+    -ms-word-break: break-all;
+    word-break: break-all;
+
+    /* Non standard for webkit */
+    word-break: break-word;
+
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    hyphens: auto;
+}
+
+/* Badges */
+.btn-bd-primary {
+    font-weight: 500;
+    color: #7952b3;
+    border-color: #7952b3;
+}
+
+.btn-bd-primary:hover, .btn-bd-primary:active {
+    color: #fff;
+    background-color: #7952b3;
+    border-color: #7952b3;
+}
+
+.btn-bd-download {
+    font-weight: 500;
+    color: #ffe484;
+    border-color: #ffe484;
+}
+
+.btn-bd-download:hover, .btn-bd-download:active {
+    color: #2a2730;
+    background-color: #ffe484;
+    border-color: #ffe484;
+}
+
+.bd-callout {
+    padding: 1.25rem;
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid #eee;
+    border-left-width: .25rem;
+    border-radius: .25rem;
+}
+
+.bd-callout h4 {
+    margin-top: 0;
+    margin-bottom: .25rem;
+}
+
+.bd-callout p:last-child {
+    margin-bottom: 0;
+}
+
+.bd-callout code {
+    border-radius: .25rem;
+}
+
+.bd-callout + .bd-callout {
+    margin-top: -.25rem;
+}
+
+.bd-callout-info {
+    border-left-color: #5bc0de !important;
+}
+
+.bd-callout-info h4 {
+    color: #5bc0de !important;
+}
+
+.bd-callout-warning {
+    border-left-color: #f0ad4e !important;
+}
+
+.bd-callout-warning h4 {
+    color: #f0ad4e !important;
+}
+
+.bd-callout-danger {
+    border-left-color: #d9534f !important;
+}
+
+.bd-callout-danger h4 {
+    color: #d9534f !important;
 }

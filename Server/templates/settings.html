@@ -34,40 +34,55 @@
     cursor: pointer;
   }
 </style>
-<div class="container-fluid px-xl-5">
-  <div id="imageResizer" class="modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<div id="main" class="container-fluid px-xl-5">
+
+  <!-- Modal window: Confirm delete account -->
+  <div id="confirmDeleteAccount" class="modal fade" tabindex="-1" role="dialog"
+    aria-labelledby="confirmDeleteAccountLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Neues Profilbild festlegen</h5>
+          <h5 class="modal-title" id="confirmDeleteAccountLabel">Account unwiderruflich löschen?</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
-          <div>
-            <img id="newProfileImagePreview" />
-          </div>
-
-          <input type="text" id="x" name="coord_x" style="display: none" />
-          <input type="text" id="y" name="coord_y" style="display: none" />
-          <input type="text" id="x2" name="coord_x2" style="display: none" />
-          <input type="text" id="y2" name="coord_y2" style="display: none" />
-          <input type="text" id="w" name="size_w" style="display: none" />
-          <input type="text" id="h" name="size_h" style="display: none" />
-          <canvas id="resultNewProfileImg" width="320" height="320"></canvas>
+          Beim Löschen Ihres Accounts verlieren Sie den Zugriff auf samtliche damit verbundene Funktionen. <br></br><b>Sind Sie sich sicher, dass Sie Ihren Account löschen wollen?</b>
         </div>
-
         <div class="modal-footer">
-          <button id="cancelNewProfileImg" type="button" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
-          <button id="saveNewProfileImg" type="button" class="btn btn-primary">Profilbild speichern</button>
+          <form action="deleteAccount" method="POST">
+            <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
+            <button type="submit" class="btn btn-danger">Account löschen</button>
+          </form>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Content -->
   <section class="py-5">
     <div class="row mb-4">
-      <div class="col-lg-5 mb-5">
+      <!-- Alert messages -->
+
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      <div class="col-lg-12 mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{alert}} alert-dismissible" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          {{message}}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <div class="col-lg-6 mb-5">
+
+        <!-- Profile image -->
         <div class="card mb-4">
           <div class="card-header">
             <h2 class="h6 text-uppercase mb-0">Profilbild</h2>
@@ -76,10 +91,9 @@
             <div class="row align-items-center flex-row">
               <div class="col-lg-4 text-center mb-4" id="changeProfileImg">
                 <input type="file" id="newProfileImg" accept="image/*" style="display:none" />
-                <img src="/image?userEmail={{user.id}}" width="150px" class="img-fluid rounded-circle shadow"
-                  id="profileImg">
+                <img id="profileImg" src="/image?userEmail={{user.id}}" class="img-fluid rounded-circle shadow">
                 <div class="middle">
-                  <img src="https://img.icons8.com/ios/50/000000/unsplash-filled.png" id="profileImgIcon" />
+                  <img id="profileImgIcon" src="https://img.icons8.com/ios/50/000000/unsplash-filled.png" />
                 </div>
               </div>
               <div class="col-lg-8">
@@ -95,54 +109,13 @@
           </div>
         </div>
 
+        <!-- General settings -->
         <div class="card">
-          <div class="card-header">
-            <h3 class="h6 text-uppercase mb-0 text-red">Account löschen</h3>
-          </div>
-          <div class="card-body">
-            <p>Wenn Sie Ihren Account löschen, werden sämtliche Benutzerdaten gelöscht. Folgende Informationen sind davon betroffen:</p>
-            <ul>
-              <li>Personenbezogene Daten (<i>Name, Profilbild, Status, etc.</i>)</li>
-              <li>Aufzeichnungen</li>
-              <li>Freunde</li>
-            </ul>
-            <p>Ihre Daten werden dabei restlos gelöscht und können <b><u>nicht wiederhergestellt</u></b> werden!</p>
-            <form id="deleteAccount" action="deleteAccount" method="POST">
-              <div class="form-group mb-4">
-                <div class="custom-control custom-checkbox">
-                  <input id="checkTerms" type="checkbox" class="custom-control-input" validate>
-                  <label for="checkTerms" class="custom-control-label">Ich akzeptiere und will meinen Account
-                    <b>unwiderruflich</b> löschen</label>
-                </div>
-              </div>
-              <div class="col align-self-end text-center">
-                <button type="submit" id="deleteAccount" class="btn btn-primary shadow px-5" disabled>Account
-                  unwideruflich löschen</button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-      </div>
-      <div class="col-lg-7 mb-5">
-        <div class="card mb-4">
           <div class="card-header">
             <h3 class="h6 text-uppercase mb-0">Allgemeine Einstellungen</h3>
           </div>
           <div class="card-body">
-            {% with messages = get_flashed_messages() %}
-            {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-{{alert}} alert-dismissible" role="alert">
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-              {{message}}
-            </div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
-            <p>Im folgenden Abschnitt hast du die Möglichkeit deine allgemeinen Profilinformationen zu ändern:</p>
+            <p>Im folgenden Abschnitt haben Sie die Möglichkeit Ihre allgemeinen Profilinformationen zu ändern:</p>
             <form id="editGenerals" action="updateUser" method="POST">
               <div class="form-group">
                 <div class="custom-control custom-radio custom-control-inline">
@@ -178,12 +151,16 @@
             </form>
           </div>
         </div>
-        <div class="card">
+
+      </div>
+      <div class="col-lg-6 mb-5">
+        <!-- Change user password -->
+        <div class="card mb-4">
           <div class="card-header">
             <h3 class="h6 text-uppercase mb-0">Passwort ändern</h3>
           </div>
           <div class="card-body">
-            <p>Hier kannst du dein Passwort ändern. Das Passwort ermöglicht dir den Zugang zu deinem Konto:</p>
+            <p>Hier können Sie Ihr Passwort ändern. Das Passwort ermöglicht Ihnen den Zugang zu Ihrem Konto:</p>
             <form id="changePassword" action="changePassword" method="POST">
               <div class="row">
                 <div class="col-lg-6 mb-3">
@@ -213,6 +190,38 @@
             </form>
           </div>
         </div>
+
+        <!-- Delete user account -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="h6 text-uppercase mb-0 text-red">Account löschen</h3>
+          </div>
+          <div class="card-body">
+            <p>Wenn Sie Ihren Account löschen, werden sämtliche Benutzerdaten gelöscht. Folgende Informationen sind
+              davon betroffen:</p>
+            <ul>
+              <li>Personenbezogene Daten (<i>Name, Profilbild, Status, etc.</i>)</li>
+              <li>Aufzeichnungen</li>
+              <li>Freunde</li>
+            </ul>
+            <p>Ihre Daten werden dabei restlos gelöscht und können <b><u>nicht wiederhergestellt</u></b> werden!</p>
+            <form id="deleteAccount">
+              <div class="form-group mb-4">
+                <div class="custom-control custom-checkbox">
+                  <input id="checkTerms" type="checkbox" class="custom-control-input" validate>
+                  <label for="checkTerms" class="custom-control-label">Ich akzeptiere und will meinen Account
+                    <b>unwiderruflich</b> löschen</label>
+                </div>
+              </div>
+              <div class="col align-self-end text-center">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirmDeleteAccount"
+                  disabled>Account
+                  unwideruflich löschen</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -221,71 +230,15 @@
 
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
+<script src="{{ url_for('static', filename='js/crop.js')}}"></script>
 <script>
+  /* Initialize crop function */
+  initCrop("newProfileImg", "newProfileImagePreview", "resultNewProfileImg", [200, 200], [0, 0, 220, 220]);
+
+  /*  */
   var fileDialog = $('#newProfileImg');
   $('#profileImg').click(function () { fileDialog.trigger('click'); });
   $('#profileImgIcon').click(function () { fileDialog.trigger('click'); });
-
-  var jcrop_api, boundx, boundy;
-
-  function updatePreview(c) { // croping image preview
-    if (parseInt(c.w) > 0) {
-      var rx = 220 / c.w, ry = 220 / c.h;
-    }
-  }
-
-  function showCoords(c) { // show all coords
-    $('#x').val(c.x);
-    $('#y').val(c.y);
-    $('#x2').val(c.x2);
-    $('#y2').val(c.y2);
-    $('#w').val(c.w);
-    $('#h').val(c.h);
-  }
-
-  $("#saveNewProfileImg").on("click", function () {
-    console.log("RESIZE IN PROGRESS...");
-    var canvas = $("#resultNewProfileImg")[0];
-    var context = canvas.getContext("2d");
-    var img = $("#newProfileImagePreview")[0],
-      $img = $(img),
-      imgW = img.width,
-      imgH = img.height;
-
-    console.log($img.width());
-    console.log($img.height());
-
-    var ratioY = imgH / $img.height(),
-      ratioX = imgW / $img.width();
-
-    var getX = $('#x').val() * ratioX,
-      getY = $('#y').val() * ratioY,
-      getWidth = $('#w').val() * ratioX,
-      getHeight = $('#h').val() * ratioY;
-
-    context.drawImage(img, getX, getY, getWidth, getHeight, 0, 0, 320, 320);
-  });
-
-  fileDialog.change(function () {
-    var file = this.files[0];
-    if (file.size > 0) {
-      var reader = new FileReader();
-      reader.onload = function () {
-        $('#newProfileImagePreview')[0].src = reader.result;
-        $('#newProfileImagePreview').Jcrop({
-          onChange: updatePreview,
-          onSelect: showCoords,
-          bgColor: 'black',
-          bgOpacity: .2,
-          minSize: [200, 200],
-          setSelect: [0, 0, 220, 220],
-          aspectRatio: 1
-        });
-      };
-      reader.readAsDataURL(file);
-      $('#imageResizer').modal('toggle');
-    }
-  });
 
   /* Edit general profile data */
   initializeValidation("editGenerals");

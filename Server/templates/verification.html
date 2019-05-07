@@ -1,0 +1,50 @@
+{% extends "model/base.html" %}
+
+{% block title %}- Verifizierung {% if state == 1 %}abgeschlossen{% elif state == 0 %}fehlgeschlagen{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-holder d-flex align-items-center">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="h6 text-uppercase mb-0 text-center">{% if state == 1 %}<i class="fas fa-check-circle"></i>{% elif state == 0 %}<i class="fas fa-exclamation-triangle"></i>{% endif %}&nbsp;&nbsp;Verifizierung
+              {% if state == 1 %}abgeschlossen{% elif state == 0 %}fehlgeschlagen{% endif %}</h2>
+          </div>
+          <div class="card-body">
+            <div class="row justify-content-center flex-row">
+              <div class="col-md-12 text-center mb-4">
+                <img src="{{ url_for('static', filename='img/logo.png')}}" width="70%" style="max-width: 300px !important;">
+              </div>
+              <div class="col-md-10 text-center">
+                <h2>{% if state == 1 %}Herzlichen Glückwunsch{% elif state == 0 %}Es tut uns leid :({% endif %}</h2>
+                <p>{% if state == 1 %}Ihre E-Mail Adresse wurde <u>erfolgreich</u> verifiziert!<br>Sie hast nun vollen Zugriff auf die Funktionen von Trackcat. Viel Spaß ;){% elif state == 0 %}Beim Verifizieren Ihrer E-Mail Adresse ist ein Fehler aufgetreten! Bitte versuche Sie es später erneut.<br><br>Sollte der Fehler wiederholt auftreten, schreib Sie uns einfach eine Mail an <a href="mailto:info@trackcat.de">info@trackcat.de</a>.{% endif %}</p>
+                {% if state == 1 %}
+                <a href="/login"><button type="button" id="loginBtn" class="btn btn-primary shadow px-5 mt-4">Zur Anmeldung&nbsp;&nbsp;<i class="fas fa-arrow-right"></i></button></a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="mt-5 mb-0 text-gray-400 text-center">&copy Copyright
+      <script>
+        document.write(new Date().getFullYear());
+      </script> — Trackcat App<br>
+      Designed by <a href="https://bootstrapious.com/admin-templates" class="external text-gray-400">Bootstrapious</a>
+      and <a href="trackcat.de" class="external text-gray-400">Trackcat</a>
+      <br>All rights reserved.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block customScripts %}
+<script src="{{ url_for('static', filename='js/validate.js')}}"></script>
+<script>
+  /* Login validation */
+  initializeValidation("loginForm");
+</script>
+{% endblock %}
