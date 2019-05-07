@@ -499,14 +499,14 @@ def login():
         conn.close()
 
         if result[0] != None:
-            flash('Ihre E-Mail Adresse ist noch nicht verifiziert. Bitte gehen Sie Ihr E-Mail Postfach und verifiziere Sie damit Echheit Ihrer E-Mail Adresse.')
+            flash('Ihre E-Mail Adresse ist noch nicht verifiziert. Bitte gehen Sie in Ihr E-Mail Postfach und verifiziere Sie damit die Echtheit Ihrer E-Mail Adresse.')
             return redirect("/login?alert=warning")
         else:
             updateUserLastLogin(request.form['email'])
             login_user(user)
             return redirect("/dashboard")
     else:
-        flash('Die eingegebenen Zugangsdaten sind falsch!')
+        flash('Ihre Anmeldedaten sind nicht korrekt!')
         return redirect("/login?alert=warning")
     
 # Register a user
@@ -517,14 +517,14 @@ def registerUser():
         request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
 
     if success == 0:
-        flash('Ihr Konto wurde erstellt. Bitte überprüfen Sie Ihr E-Mail Postfach und bestätigen Sie Ihre Registrierung, '
+        flash('Ihr Konto wurde erfolgreich erstellt. Bitte überprüfen Sie Ihr E-Mail Postfach und bestätigen Sie Ihre Registrierung, '
               + 'um Zugang zu Ihrem Konto zu erhalten!')
         return redirect("/login?alert=success")
     elif success == 1:
         flash('Unbekannter Fehler beim Erstellen des Kontos!')
         return redirect("/register?alert=danger")
     elif success == 3:
-        flash('Die E-Mail Adresse existiert bereits!')
+        flash('Es tut uns leid, ihre E-Mail Adresse ist leider schon vergeben!')
         return redirect("/register?alert=warning")
 
 # Update user informations
@@ -537,10 +537,10 @@ def updateUser():
                                request.form['firstName'], request.form['lastName'], request.form['genderRadio'], None, None, None, None, None)
 
         if success:
-            flash('Profil wurde erfolgreich editiert!')
+            flash('Profil erflogreich gespeichert.')
             return redirect("/settings?alert=success")
         else:
-            flash('Unbekannter Fehler beim Bearbeiten der Profilinformationen')
+            flash('Unbekannter Fehler beim Bearbeiten der Profilinformationen!')
             return redirect("/settings?alert=danger")
     else:
         return redirect("/login")
@@ -554,10 +554,10 @@ def changeProfileImg():
                                None, None, None, None, None, image, None, None)
 
         if success:
-            flash('Profilbild wurde erfolgreich gesetzt!')
+            flash('Profilbild erfolgreich aktualisiert.')
             return redirect("/settings?alert=success")
         else:
-            flash('Unbekannter Fehler beim Bearbeiten der Profilbildes')
+            flash('Unbekannter Fehler beim Bearbeiten der Profilbildes!')
             return redirect("/settings?alert=danger")
     else:
         return redirect("/login")
@@ -573,7 +573,7 @@ def changePassword():
                 current_user.id, request.form['currentPass'], request.form['newPass'], str(int(time.time())))
 
             if success == 0:
-                flash('Passwort wurde erfolgreich geändert!')
+                flash('Passwort wurde erfolgreich geändert.')
                 return redirect("/settings?alert=success")
             elif success == 1:
                 flash('Authentifizierung fehlgeschlagen!')
@@ -594,7 +594,7 @@ def deleteAccount():
         success = deleteUserById(current_user.idUser)
 
         if success == 0:
-            flash('Ihr Account wurde erfolgreich gelöscht!')
+            flash('Ihr Account wurde erfolgreich gelöscht.')
             logout_user()
             return redirect("/login?alert=success")
         else:
