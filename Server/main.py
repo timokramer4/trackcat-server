@@ -545,6 +545,23 @@ def updateUser():
     else:
         return redirect("/login")
 
+# Update user informations
+@app.route("/changeProfileImg", methods=['POST'])
+def changeProfileImg():
+    if current_user.is_authenticated:
+        image = request.form["base64Img"]
+        success = updateUserDB(current_user.id, None, None,
+                               None, None, None, None, None, image, None, None)
+
+        if success:
+            flash('Profilbild wurde erfolgreich gesetzt!')
+            return redirect("/settings?alert=success")
+        else:
+            flash('Unbekannter Fehler beim Bearbeiten der Profilbildes')
+            return redirect("/settings?alert=danger")
+    else:
+        return redirect("/login")
+
 # Change user password
 @app.route("/changePassword", methods=['POST'])
 def changePassword():
