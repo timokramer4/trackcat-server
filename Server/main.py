@@ -449,7 +449,7 @@ def registerPage():
 @app.route("/dashboard", methods=["GET"])
 def dashboardPage():
     if current_user.is_authenticated:
-        return render_template("dashboard.html", user=current_user)
+        return render_template("dashboard.html", user=current_user, site="dashboard")
     else:
         return redirect("/login")
 
@@ -479,6 +479,14 @@ def agbPage():
 @app.route("/datenschutz", methods=["GET"])
 def dataProtectionPage():
     return render_template("datenschutz.html")
+
+# Show record list
+@app.route("/records", methods=["GET"])
+def recordsPage():
+    if current_user.is_authenticated:
+        return render_template("records.html", user=current_user, site="records")
+    else:
+        return redirect("/login")
 
 ### Web-Handler ###
 @app.route("/login", methods=['POST'])
