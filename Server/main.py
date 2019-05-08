@@ -16,6 +16,7 @@ import base64
 import io
 from passlib.hash import pbkdf2_sha256
 import random
+from threading import Thread
 
 
 ###########################
@@ -852,16 +853,14 @@ def deleteUserAPI():
     jsonSuccess = {}
     jsonSuccess['success'] = deleteUserById(request.json['id'])
 
+
     return json.dumps(jsonSuccess)
 
+def saveTrackThread(jsonTrack):
 
-@app.route("/uploadTrackAPI", methods=['POST'])
-@requires_authorization
-def uploadTrackAPI():
-    jsonSuccess = {}
 
     try:
-        jsonTrack = request.json
+       # jsonTrack = json.loads(jsonString)
 
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -874,7 +873,7 @@ def uploadTrackAPI():
             + app.config['DB_ROUTE_TYPE'] + ','
             + app.config['DB_ROUTE_RIDETIME'] + ','
             + app.config['DB_ROUTE_DISTANCE'] + ','
-           # + app.config['DB_ROUTE_TIMESTAMP'] + ','
+            + app.config['DB_ROUTE_TIMESTAMP'] + ','
             + app.config['DB_ROUTE_USERS_ID']+') VALUES ("'
             + jsonTrack['name'] + '", '
             + str(jsonTrack['time']) + ', '
@@ -882,7 +881,7 @@ def uploadTrackAPI():
             + str(jsonTrack['type']) + ', '
             + str(jsonTrack['rideTime']) + ', '
             + str(jsonTrack['distance']) + ', '
-            #+ jsonTrack['trackTimeStamp'] + ', '
+            + str(jsonTrack['timeStamp']) + ', '
             + str(jsonTrack['userId']) + ');')
 
 
@@ -930,15 +929,28 @@ def uploadTrackAPI():
         cursor.close()
         conn.close()
 
-        jsonSuccess['success'] = 0
-
         pass
     except Exception as identifier:
 
         print(identifier)
 
-        jsonSuccess['success'] = 1
+        pass
 
+
+@app.route("/uploadTrackAPI", methods=['POST'])
+@requires_authorization
+def uploadTrackAPI():
+    jsonSuccess = {}
+
+    try:
+        jsonTrack = request.json
+        thread = Thread(target = saveTrackThread, args = (jsonTrack,))
+        thread.start()
+
+        jsonSuccess['success'] = 0
+        pass
+    except Exception as identifier:
+        jsonSuccess['success'] = 1
         pass
         
     return json.dumps(jsonSuccess)
