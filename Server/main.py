@@ -34,16 +34,15 @@ app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
 app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
 
-
 # "http://192.186.178.52:5000"#
 app.config['BASE_URL'] = "http://safe-harbour.de:4242"
 
-# DB Table Names
+# TABLE-NAMES
 app.config['DB_TABLE_USERS'] = "users"
-app.config['DB_TABLE_ROUTE'] = "route"
-app.config['DB_TABLE_LOCATION'] = "location"
+app.config['DB_TABLE_RECORD'] = "records"
+app.config['DB_TABLE_LOCATION'] = "locations"
 
-# DB colum-names
+# COLUMN-NAMES: User
 app.config['DB_USERS_ID'] = "id"
 app.config['DB_USERS_EMAIL'] = "email"
 app.config['DB_USERS_FIRSTNAME'] = "firstName"
@@ -61,15 +60,17 @@ app.config['DB_USERS_LASTLOGIN'] = "lastLogin"
 app.config['DB_USERS_TIMESTAMP'] = "timeStamp"
 app.config['DB_USERS_VERIFYTOKEN'] = "verifyToken"
 
-app.config['DB_ROUTE_NAME'] = "name"
-app.config['DB_ROUTE_TIME'] = "time"
-app.config['DB_ROUTE_DATE'] = "date"
-app.config['DB_ROUTE_TYPE'] = "type"
-app.config['DB_ROUTE_RIDETIME'] = "rideTime"
-app.config['DB_ROUTE_DISTANCE'] = "distance"
-app.config['DB_ROUTE_TIMESTAMP'] = "timeStamp"
-app.config['DB_ROUTE_USERS_ID'] = "users_id"
+# COLUMN-NAMES: Record
+app.config['DB_RECORD_NAME'] = "name"
+app.config['DB_RECORD_TIME'] = "time"
+app.config['DB_RECORD_DATE'] = "date"
+app.config['DB_RECORD_TYPE'] = "type"
+app.config['DB_RECORD_RIDETIME'] = "rideTime"
+app.config['DB_RECORD_DISTANCE'] = "distance"
+app.config['DB_RECORD_TIMESTAMP'] = "timeStamp"
+app.config['DB_RECORD_USERS_ID'] = "users_id"
 
+# COLUMN-NAMES: Location
 app.config['DB_LOCATION_LATITUDE'] = "latitude"
 app.config['DB_LOCATION_LONGITUDE'] = "longitude"
 app.config['DB_LOCATION_ALTITUDE'] = "altitude"
@@ -873,16 +874,16 @@ def saveTrackThread(jsonTrack):
         conn = mysql.connect()
         cursor = conn.cursor()
 
-        print('INSERT INTO '+app.config['DB_TABLE_ROUTE'] +
+        print('INSERT INTO '+app.config['DB_TABLE_RECORD'] +
             ' ('
-            + app.config['DB_ROUTE_NAME'] + ','
-            + app.config['DB_ROUTE_TIME'] + ','
-            + app.config['DB_ROUTE_DATE'] + ','
-            + app.config['DB_ROUTE_TYPE'] + ','
-            + app.config['DB_ROUTE_RIDETIME'] + ','
-            + app.config['DB_ROUTE_DISTANCE'] + ','
-            + app.config['DB_ROUTE_TIMESTAMP'] + ','
-            + app.config['DB_ROUTE_USERS_ID']+') VALUES ("'
+            + app.config['DB_RECORD_NAME'] + ','
+            + app.config['DB_RECORD_TIME'] + ','
+            + app.config['DB_RECORD_DATE'] + ','
+            + app.config['DB_RECORD_TYPE'] + ','
+            + app.config['DB_RECORD_RIDETIME'] + ','
+            + app.config['DB_RECORD_DISTANCE'] + ','
+            + app.config['DB_RECORD_TIMESTAMP'] + ','
+            + app.config['DB_RECORD_USERS_ID']+') VALUES ("'
             + jsonTrack['name'] + '", '
             + str(jsonTrack['time']) + ', '
             + str(jsonTrack['date']) + ', '
@@ -894,16 +895,16 @@ def saveTrackThread(jsonTrack):
 
 
         cursor.execute(
-            'INSERT INTO '+app.config['DB_TABLE_ROUTE'] +
+            'INSERT INTO '+app.config['DB_TABLE_RECORD'] +
             ' ('
-            + app.config['DB_ROUTE_NAME'] + ','
-            + app.config['DB_ROUTE_TIME'] + ','
-            + app.config['DB_ROUTE_DATE'] + ','
-            + app.config['DB_ROUTE_TYPE'] + ','
-            + app.config['DB_ROUTE_RIDETIME'] + ','
-            + app.config['DB_ROUTE_DISTANCE'] + ','
-            + app.config['DB_ROUTE_TIMESTAMP'] + ','
-            + app.config['DB_ROUTE_USERS_ID']+') VALUES ("'
+            + app.config['DB_RECORD_NAME'] + ','
+            + app.config['DB_RECORD_TIME'] + ','
+            + app.config['DB_RECORD_DATE'] + ','
+            + app.config['DB_RECORD_TYPE'] + ','
+            + app.config['DB_RECORD_RIDETIME'] + ','
+            + app.config['DB_RECORD_DISTANCE'] + ','
+            + app.config['DB_RECORD_TIMESTAMP'] + ','
+            + app.config['DB_RECORD_USERS_ID']+') VALUES ("'
             + jsonTrack['name'] + '", '
             + str(jsonTrack['time']) + ', '
             + str(jsonTrack['date']) + ', '
