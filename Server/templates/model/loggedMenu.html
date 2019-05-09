@@ -9,8 +9,12 @@
     <div class="text-gray-400 text-uppercase px-3 px-lg-4 py-4 font-weight-bold small headings-font-family">MAIN
     </div>
     <ul class="sidebar-menu list-unstyled">
-        <li class="sidebar-list-item"><a href="dashboard" class="sidebar-link text-muted active"><i
-                    class="o-home-1 mr-3 text-gray"></i><span>Home</span></a></li>
+        <li class="sidebar-list-item"><a href="dashboard"
+                class="sidebar-link text-muted {% if site == 'dashboard'%}active{% endif %}"><i
+                    class="o-home-1 mr-3 text-gray"></i><span>Start</span></a></li>
+        <li class="sidebar-list-item"><a href="records"
+                class="sidebar-link text-muted {% if site == 'records'%}active{% endif %}"><i
+                    class="o-survey-1 mr-3 text-gray"></i><span>Records</span></a></li>
     </ul>
 </div>
 {% endblock %}

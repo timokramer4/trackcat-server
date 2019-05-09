@@ -10,12 +10,13 @@ import os
 import json
 from mailSend import sendVmail
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 import base64
 import io
 from passlib.hash import pbkdf2_sha256
 import random
+from threading import Thread
 
 
 ###########################
@@ -33,14 +34,15 @@ app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
 app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
 
-
 # "http://192.186.178.52:5000"#
 app.config['BASE_URL'] = "http://safe-harbour.de:4242"
 
-# DB Table Names
+# TABLE-NAMES
 app.config['DB_TABLE_USERS'] = "users"
+app.config['DB_TABLE_RECORDS'] = "records"
+app.config['DB_TABLE_LOCATIONS'] = "locations"
 
-# DB colum-names
+# COLUMN-NAMES: User
 app.config['DB_USERS_ID'] = "id"
 app.config['DB_USERS_EMAIL'] = "email"
 app.config['DB_USERS_FIRSTNAME'] = "firstName"
@@ -58,6 +60,25 @@ app.config['DB_USERS_LASTLOGIN'] = "lastLogin"
 app.config['DB_USERS_TIMESTAMP'] = "timeStamp"
 app.config['DB_USERS_VERIFYTOKEN'] = "verifyToken"
 
+# COLUMN-NAMES: Record
+app.config['DB_RECORD_ID'] = "id"
+app.config['DB_RECORD_NAME'] = "name"
+app.config['DB_RECORD_TIME'] = "time"
+app.config['DB_RECORD_DATE'] = "date"
+app.config['DB_RECORD_TYPE'] = "type"
+app.config['DB_RECORD_RIDETIME'] = "rideTime"
+app.config['DB_RECORD_DISTANCE'] = "distance"
+app.config['DB_RECORD_TIMESTAMP'] = "timeStamp"
+app.config['DB_RECORD_USERS_ID'] = "users_id"
+
+# COLUMN-NAMES: Location
+app.config['DB_LOCATION_LATITUDE'] = "latitude"
+app.config['DB_LOCATION_LONGITUDE'] = "longitude"
+app.config['DB_LOCATION_ALTITUDE'] = "altitude"
+app.config['DB_LOCATION_TIME'] = "time"
+app.config['DB_LOCATION_SPEED'] = "speed"
+app.config['DB_LOCATION_ROUTE_ID'] = "route_id"
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -71,7 +92,7 @@ login_manager.init_app(app)
 
 class User(UserMixin):
 
-    def __init__(self, id, idUser, firstName, lastName, gender, weight, size,  dateOfBirth, dateOfRegistration, lastLogin):
+    def __init__(self, id, idUser, firstName, lastName, gender, weight, size, dateOfBirth, dateOfRegistration, lastLogin):
         self.id = id
         self.idUser = idUser
         self.firstName = firstName
@@ -92,6 +113,14 @@ class User(UserMixin):
 ###########################
 ###      Functions      ###
 ###########################
+
+@app.template_filter('formatSeconds')
+def formatSeconds(value):
+    return str(timedelta(seconds=value))
+
+@app.template_filter('formatDate')
+def formatDate(value, format='%d.%m.%Y %H:%M:%S'):
+    return datetime.fromtimestamp(value/1000).strftime(format)
 
 # Validate login data
 @login_manager.user_loader
@@ -377,7 +406,7 @@ def changeUserPasswordDB(email, password, newPw, timeStamp):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
-        params = "password"
+        params = app.config['DB_USERS_PASSWORD']
         cursor.execute('SELECT ' + params +
                        ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
         result = cursor.fetchone()
@@ -415,6 +444,42 @@ def deleteUserById(id):
     except Exception as identifier:
         return 1
 
+def getRecordsByID(id, page):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    start = page * 10 - 10
+    end = page * 10
+
+    if page > 0:
+        limitter = ' LIMIT ' + str(start) + ', ' + str(end)
+    else:
+        limitter = ''
+
+    params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP']
+    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(id) + limitter + ';')
+    result = cursor.fetchall()
+   
+    cursor.close()
+    conn.close()
+
+    jsonsRecords = []
+
+    for res in result:
+        jsonRecord = {}
+        jsonRecord['id'] = res[0]
+        jsonRecord['name'] = res[1]
+        jsonRecord['time'] = res[2]
+        jsonRecord['date'] = res[3]
+        jsonRecord['type'] = res[4]
+        jsonRecord['ridetime'] = res[5]
+        jsonRecord['distance'] = res[6]
+        jsonRecord['timestamp'] = res[7]
+
+        jsonsRecords.append(jsonRecord)
+
+    return jsonsRecords
+
 
 ###########################
 ###   WEB API-Handler   ###
@@ -449,7 +514,7 @@ def registerPage():
 @app.route("/dashboard", methods=["GET"])
 def dashboardPage():
     if current_user.is_authenticated:
-        return render_template("dashboard.html", user=current_user)
+        return render_template("dashboard.html", user=current_user, site="dashboard")
     else:
         return redirect("/login")
 
@@ -480,6 +545,15 @@ def agbPage():
 def dataProtectionPage():
     return render_template("datenschutz.html")
 
+# Show record list
+@app.route("/records", methods=["GET"])
+def recordsPage():
+    if current_user.is_authenticated:
+        records = getRecordsByID(current_user.idUser, 1)
+        return render_template("records.html", user=current_user, site="records", records=records)
+    else:
+        return redirect("/login")
+
 ### Web-Handler ###
 @app.route("/login", methods=['POST'])
 def login():
@@ -508,7 +582,7 @@ def login():
     else:
         flash('Ihre Anmeldedaten sind nicht korrekt!')
         return redirect("/login?alert=warning")
-    
+
 # Register a user
 @app.route("/registerUser", methods=['POST'])
 def registerUser():
@@ -650,7 +724,6 @@ def verifyEmail():
         return render_template("verification.html", state=0)
         pass
 
-
 ###########################
 ###  REST API-Handler   ###
 ###########################
@@ -670,6 +743,8 @@ def loginAPI():
 
     jsonObj = {}
     jsonObj['userData'] = getUserWithImageFromDB(result[0])
+    jsonObj['records'] = getRecordsByID(result[0], 0)
+    # TODO: Übertragung aller Locations des Nutzers
     if result[1] == None:
         jsonObj['success'] = 0
     else:
@@ -692,9 +767,13 @@ def registerAPI():
 @app.route("/getUserByIdAPI", methods=['POST'])
 @requires_authorization
 def getUserByIdAPI():
-
     return json.dumps(getUserWithImageFromDB(request.json['id']))
 
+# Get all userdata from user with email
+@app.route("/getRecordsByIdAPI", methods=['POST'])
+@requires_authorization
+def getRecordsById():
+    return json.dumps(getRecordsByID(request.json['id'], int(request.json['page'])))
 
 # Update user data in database
 @app.route("/updateUserAPI", methods=['POST'])
@@ -834,11 +913,111 @@ def deleteUserAPI():
     jsonSuccess = {}
     jsonSuccess['success'] = deleteUserById(request.json['id'])
 
+
     return json.dumps(jsonSuccess)
+
+def saveTrackThread(jsonTrack):
+
+
+    try:
+       # jsonTrack = json.loads(jsonString)
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        print('INSERT INTO '+app.config['DB_TABLE_RECORDS'] +
+            ' ('
+            + app.config['DB_RECORD_NAME'] + ','
+            + app.config['DB_RECORD_TIME'] + ','
+            + app.config['DB_RECORD_DATE'] + ','
+            + app.config['DB_RECORD_TYPE'] + ','
+            + app.config['DB_RECORD_RIDETIME'] + ','
+            + app.config['DB_RECORD_DISTANCE'] + ','
+            + app.config['DB_RECORD_TIMESTAMP'] + ','
+            + app.config['DB_RECORD_USERS_ID']+') VALUES ("'
+            + jsonTrack['name'] + '", '
+            + str(jsonTrack['time']) + ', '
+            + str(jsonTrack['date']) + ', '
+            + str(jsonTrack['type']) + ', '
+            + str(jsonTrack['rideTime']) + ', '
+            + str(jsonTrack['distance']) + ', '
+            + str(jsonTrack['timeStamp']) + ', '
+            + str(jsonTrack['userId']) + ');')
+
+
+        cursor.execute(
+            'INSERT INTO '+app.config['DB_TABLE_RECORDS'] +
+            ' ('
+            + app.config['DB_RECORD_NAME'] + ','
+            + app.config['DB_RECORD_TIME'] + ','
+            + app.config['DB_RECORD_DATE'] + ','
+            + app.config['DB_RECORD_TYPE'] + ','
+            + app.config['DB_RECORD_RIDETIME'] + ','
+            + app.config['DB_RECORD_DISTANCE'] + ','
+            + app.config['DB_RECORD_TIMESTAMP'] + ','
+            + app.config['DB_RECORD_USERS_ID']+') VALUES ("'
+            + jsonTrack['name'] + '", '
+            + str(jsonTrack['time']) + ', '
+            + str(jsonTrack['date']) + ', '
+            + str(jsonTrack['type']) + ', '
+            + str(jsonTrack['rideTime']) + ', '
+            + str(jsonTrack['distance']) + ', '
+            + str(jsonTrack['timeStamp']) + ', '
+            + str(jsonTrack['userId']) + ');')
+
+        routeId = cursor.lastrowid
+
+        for jsonLocation in jsonTrack['locations']:
+            cursor.execute(
+                'INSERT INTO ' + app.config['DB_TABLE_LOCATIONS'] +
+                ' ('
+                + app.config['DB_LOCATION_LATITUDE'] + ','
+                + app.config['DB_LOCATION_LONGITUDE'] + ','
+                + app.config['DB_LOCATION_ALTITUDE'] + ','
+                + app.config['DB_LOCATION_TIME'] + ','
+                + app.config['DB_LOCATION_SPEED'] + ','
+                + app.config['DB_LOCATION_ROUTE_ID'] + ') VALUES ('
+                + str(jsonLocation['latitude']) + ', '
+                + str(jsonLocation['longitude']) + ', '
+                + str(jsonLocation['altitude']) + ', '
+                + str(jsonLocation['time']) + ', '
+                + str(jsonLocation['speed']) + ', '
+                + str(routeId) + ');')
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        pass
+    except Exception as identifier:
+
+        print(identifier)
+
+        pass
+
+
+@app.route("/uploadTrackAPI", methods=['POST'])
+@requires_authorization
+def uploadTrackAPI():
+    jsonSuccess = {}
+
+    try:
+        jsonTrack = request.json
+        thread = Thread(target = saveTrackThread, args = (jsonTrack,))
+        thread.start()
+
+        jsonSuccess['success'] = 0
+        pass
+    except Exception as identifier:
+        jsonSuccess['success'] = 1
+        pass
+        
+    return json.dumps(jsonSuccess)
+
+
 ###########################
 ###     Flask start     ###
 ###########################
-
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
