@@ -77,7 +77,7 @@ app.config['DB_LOCATION_LONGITUDE'] = "longitude"
 app.config['DB_LOCATION_ALTITUDE'] = "altitude"
 app.config['DB_LOCATION_TIME'] = "time"
 app.config['DB_LOCATION_SPEED'] = "speed"
-app.config['DB_LOCATION_ROUTE_ID'] = "route_id"
+app.config['DB_LOCATION_RECORD_ID'] = "record_id"
 
 
 login_manager = LoginManager()
@@ -140,7 +140,7 @@ def user_loader(email):
                 jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
 
-
+# Validate user login
 def validateLogin(email, password):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -156,8 +156,6 @@ def validateLogin(email, password):
 
 
 # Basic Authentificate
-
-
 def authenticate():
     message = {'message': "Authenticate."}
     resp = jsonify(message)
@@ -183,8 +181,6 @@ def requires_authorization(f):
     return decorated
 
 # Create new user in database
-
-
 def registerUserDB(firstName, lastName, email, password):
     # 0 = Valid
     # 1 = Creation error
@@ -220,7 +216,7 @@ def registerUserDB(firstName, lastName, email, password):
         return 1
     pass
 
-
+# Generate verify token
 def generateVerifyToken(firstName, lastName, email):
 
     # if want to use custom iterations instead of default 29000
@@ -237,9 +233,7 @@ def generateVerifyToken(firstName, lastName, email):
 
     return token
 
-# Get selected user from database as JSON
-
-
+# Get selected user data as JSON
 def getUserFromDB(id):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -275,7 +269,7 @@ def getUserFromDB(id):
 
     return jsonUser
 
-
+# Get user profile image
 def getUserWithImageFromDB(id):
     jsonUser = getUserFromDB(id)
 
@@ -292,8 +286,6 @@ def getUserWithImageFromDB(id):
     return jsonUser
 
 # Update last login in database
-
-
 def updateUserLastLogin(email):
     try:
         conn = mysql.connect()
@@ -310,8 +302,6 @@ def updateUserLastLogin(email):
     return
 
 # Update user informations in database
-
-
 def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
                  gender, size, weight, image, hints, darkTheme):
     try:
@@ -399,8 +389,6 @@ def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
         pass
 
 # Change user password in database
-
-
 def changeUserPasswordDB(email, password, newPw, timeStamp):
     result = 0
     try:
@@ -428,7 +416,7 @@ def changeUserPasswordDB(email, password, newPw, timeStamp):
         result = 2
         return result
 
-
+# Delete user account by id
 def deleteUserById(id):
     try:
         conn = mysql.connect()
@@ -444,6 +432,7 @@ def deleteUserById(id):
     except Exception as identifier:
         return 1
 
+# Get all record from user (all or by paging)
 def getRecordsByID(id, page):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -479,6 +468,38 @@ def getRecordsByID(id, page):
         jsonsRecords.append(jsonRecord)
 
     return jsonsRecords
+
+# Get all locations from user (and from specific route)
+def getLocationsByID(userId, recordId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    if recordId is not None:
+        selection = ' AND ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(recordId)
+    else:
+        selection = ''
+
+    params = app.config['DB_LOCATION_LATITUDE'] + ', ' + app.config['DB_LOCATION_LONGITUDE'] + ', ' + app.config['DB_LOCATION_ALTITUDE'] + ', ' + app.config['DB_TABLE_LOCATIONS'] + '.' + app.config['DB_LOCATION_TIME'] + ', ' + app.config['DB_LOCATION_SPEED'] + ', ' + app.config['DB_LOCATION_RECORD_ID']
+    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_LOCATIONS'] + ' INNER JOIN ' + app.config['DB_TABLE_RECORDS'] + ' ON ' + app.config['DB_TABLE_LOCATIONS'] + '.' + app.config['DB_LOCATION_RECORD_ID'] + ' = ' + app.config['DB_TABLE_RECORDS'] + '.' + app.config['DB_RECORD_ID'] + selection + ';')
+    result = cursor.fetchall()
+   
+    cursor.close()
+    conn.close()
+
+    jsonLocations = []
+
+    for res in result:
+        jsonLocation = {}
+        jsonLocation['lat'] = res[0]
+        jsonLocation['lng'] = res[1]
+        jsonLocation['altitude'] = res[2]
+        jsonLocation['time'] = res[3]
+        jsonLocation['speed'] = res[4]
+        jsonLocation['record_id'] = res[5]
+
+        jsonLocations.append(jsonLocation)
+
+    return jsonLocations
 
 
 ###########################
@@ -744,6 +765,7 @@ def loginAPI():
     jsonObj = {}
     jsonObj['userData'] = getUserWithImageFromDB(result[0])
     jsonObj['records'] = getRecordsByID(result[0], 0)
+    jsonObj['locations'] = getLocationsByID(result[0], None)
     # TODO: Übertragung aller Locations des Nutzers
     if result[1] == None:
         jsonObj['success'] = 0
@@ -976,7 +998,7 @@ def saveTrackThread(jsonTrack):
                 + app.config['DB_LOCATION_ALTITUDE'] + ','
                 + app.config['DB_LOCATION_TIME'] + ','
                 + app.config['DB_LOCATION_SPEED'] + ','
-                + app.config['DB_LOCATION_ROUTE_ID'] + ') VALUES ('
+                + app.config['DB_LOCATION_RECORD_ID'] + ') VALUES ('
                 + str(jsonLocation['latitude']) + ', '
                 + str(jsonLocation['longitude']) + ', '
                 + str(jsonLocation['altitude']) + ', '
