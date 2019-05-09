@@ -61,6 +61,7 @@ app.config['DB_USERS_TIMESTAMP'] = "timeStamp"
 app.config['DB_USERS_VERIFYTOKEN'] = "verifyToken"
 
 # COLUMN-NAMES: Record
+app.config['DB_RECORD_ID'] = "id"
 app.config['DB_RECORD_NAME'] = "name"
 app.config['DB_RECORD_TIME'] = "time"
 app.config['DB_RECORD_DATE'] = "date"
@@ -91,7 +92,7 @@ login_manager.init_app(app)
 
 class User(UserMixin):
 
-    def __init__(self, id, idUser, firstName, lastName, gender, weight, size,  dateOfBirth, dateOfRegistration, lastLogin):
+    def __init__(self, id, idUser, firstName, lastName, gender, weight, size, dateOfBirth, dateOfRegistration, lastLogin):
         self.id = id
         self.idUser = idUser
         self.firstName = firstName
@@ -405,7 +406,7 @@ def changeUserPasswordDB(email, password, newPw, timeStamp):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
-        params = "password"
+        params = app.config['DB_USERS_PASSWORD']
         cursor.execute('SELECT ' + params +
                        ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
         result = cursor.fetchone()
@@ -443,27 +444,41 @@ def deleteUserById(id):
     except Exception as identifier:
         return 1
 
-def getRecordsByID(id, min):
+def getRecordsByID(id, page):
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT name, distance, time, date FROM '+app.config['DB_TABLE_RECORDS']+' LIMIT '+str(min)+', '+str(min+10)+';')
+    start = page * 10 - 10
+    end = page * 10
+
+    if page > 0:
+        limitter = ' LIMIT ' + str(start) + ', ' + str(end)
+    else:
+        limitter = ''
+
+    params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP']
+    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(id) + limitter + ';')
     result = cursor.fetchall()
    
     cursor.close()
     conn.close()
 
-    jsonsRoutes = []
+    jsonsRecords = []
 
     for res in result:
-        jsonRoute = {}
-        jsonRoute['name'] = res[0]
-        jsonRoute['distance'] = res[1]
-        jsonRoute['time'] = res[2]
-        jsonRoute['date'] = res[3]
-        jsonsRoutes.append(jsonRoute)
+        jsonRecord = {}
+        jsonRecord['id'] = res[0]
+        jsonRecord['name'] = res[1]
+        jsonRecord['time'] = res[2]
+        jsonRecord['date'] = res[3]
+        jsonRecord['type'] = res[4]
+        jsonRecord['ridetime'] = res[5]
+        jsonRecord['distance'] = res[6]
+        jsonRecord['timestamp'] = res[7]
 
-    return jsonsRoutes
+        jsonsRecords.append(jsonRecord)
+
+    return jsonsRecords
 
 
 ###########################
@@ -534,7 +549,7 @@ def dataProtectionPage():
 @app.route("/records", methods=["GET"])
 def recordsPage():
     if current_user.is_authenticated:
-        records = getRecordsByID(current_user.id, 0)
+        records = getRecordsByID(current_user.idUser, 1)
         return render_template("records.html", user=current_user, site="records", records=records)
     else:
         return redirect("/login")
@@ -728,6 +743,8 @@ def loginAPI():
 
     jsonObj = {}
     jsonObj['userData'] = getUserWithImageFromDB(result[0])
+    jsonObj['records'] = getRecordsByID(result[0], 0)
+    # TODO: Übertragung aller Locations des Nutzers
     if result[1] == None:
         jsonObj['success'] = 0
     else:
@@ -750,9 +767,13 @@ def registerAPI():
 @app.route("/getUserByIdAPI", methods=['POST'])
 @requires_authorization
 def getUserByIdAPI():
-
     return json.dumps(getUserWithImageFromDB(request.json['id']))
 
+# Get all userdata from user with email
+@app.route("/getRecordsByIdAPI", methods=['POST'])
+@requires_authorization
+def getRecordsById():
+    return json.dumps(getRecordsByID(request.json['id'], int(request.json['page'])))
 
 # Update user data in database
 @app.route("/updateUserAPI", methods=['POST'])
