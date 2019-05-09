@@ -1,7 +1,7 @@
 {% extends "model/loggedMenu.html" %}
 
 {% block subcontent %}
-<!--  -->
+<!-- Modal window: Edit record -->
 <div class="modal fade" id="renameRecordModal" tabindex="-1" role="dialog" aria-labelledby="renameRecordModalLabel"
     aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -30,26 +30,27 @@
 
 <div class="container-fluid px-xl-5">
     <section class="py-5">
-
+        
+        {% for record in records %}
         <div class="col-lg-12">
             <div class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style"></a>
                 <div class="row">
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
-                        <strong class="h5 mb-0 m-3">08
-                            <sup class="smaller text-gray font-weight-normal">Mai</sup>
+                        <strong class="h5 mb-0 m-3">{{record.date|formatDate('%d')}}
+                            <sup class="smaller text-gray font-weight-normal">{{record.date|formatDate('%b')}}</sup>
                         </strong>
-                        <h6 class="mb-0">Rec_08.05.2019_15:26:59</h6>
+                        <h6 class="mb-0">{{record.name}}</h6>
                     </div>
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-sm-row justify-content-center justify-content-lg-start">
-                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">14,52 km</div>
-                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">00:56:34</div>
+                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">{% if record.distance / 1000 >= 1 %}{{'%0.2f'| format(record.distance/1000|float)}} km{% else %}{{'%0.2f'| format(record.distance|float)}} m{% endif %}</div>
+                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">{{(record.time)|formatSeconds}}</div>
                     </div>
                     <div
                         class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
                         <div id="editRecord" class="icon text-white bg-blue mr-1"
-                            data-recordName="Rec_08.05.2019_15:26:59" style="cursor: pointer;" data-toggle="modal"
+                            data-recordName="{{record.name}}" style="cursor: pointer;" data-toggle="modal"
                             data-target="#renameRecordModal">
                             <i class="fas fa-pencil-alt"></i></div>
                         <div id="removeRecord" class="icon text-white bg-red mr-1"><i class="far fa-trash-alt"></i>
@@ -58,34 +59,7 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-12">
-            <div class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style"></a>
-                <div class="row">
-                    <div
-                        class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
-                        <strong class="h5 mb-0 m-3">08
-                            <sup class="smaller text-gray font-weight-normal">Mai</sup>
-                        </strong>
-                        <h6 class="mb-0">Rec_08.05.2019_15:26:59</h6>
-                    </div>
-                    <div
-                        class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-sm-row justify-content-center justify-content-lg-start">
-                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">14,52 km</div>
-                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">00:56:34</div>
-                    </div>
-                    <div
-                        class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
-                        <div id="editRecord" class="icon text-white bg-blue mr-1"
-                            data-recordName="Rec_08.05.2019_15:26:59" style="cursor: pointer;" data-toggle="modal"
-                            data-target="#renameRecordModal">
-                            <i class="fas fa-pencil-alt"></i></div>
-                        <div id="removeRecord" class="icon text-white bg-red mr-1"><i class="far fa-trash-alt"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {% endfor %}
 
     </section>
 </div>

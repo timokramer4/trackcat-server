@@ -10,7 +10,7 @@ import os
 import json
 from mailSend import sendVmail
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 import base64
 import io
@@ -39,8 +39,8 @@ app.config['BASE_URL'] = "http://safe-harbour.de:4242"
 
 # TABLE-NAMES
 app.config['DB_TABLE_USERS'] = "users"
-app.config['DB_TABLE_RECORD'] = "records"
-app.config['DB_TABLE_LOCATION'] = "locations"
+app.config['DB_TABLE_RECORDS'] = "records"
+app.config['DB_TABLE_LOCATIONS'] = "locations"
 
 # COLUMN-NAMES: User
 app.config['DB_USERS_ID'] = "id"
@@ -112,6 +112,14 @@ class User(UserMixin):
 ###########################
 ###      Functions      ###
 ###########################
+
+@app.template_filter('formatSeconds')
+def formatSeconds(value):
+    return str(timedelta(seconds=value))
+
+@app.template_filter('formatDate')
+def formatDate(value, format='%d.%m.%Y %H:%M:%S'):
+    return datetime.fromtimestamp(value/1000).strftime(format)
 
 # Validate login data
 @login_manager.user_loader
@@ -435,6 +443,28 @@ def deleteUserById(id):
     except Exception as identifier:
         return 1
 
+def getRecordsByID(id, min):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT name, distance, time, date FROM '+app.config['DB_TABLE_RECORDS']+' LIMIT '+str(min)+', '+str(min+10)+';')
+    result = cursor.fetchall()
+   
+    cursor.close()
+    conn.close()
+
+    jsonsRoutes = []
+
+    for res in result:
+        jsonRoute = {}
+        jsonRoute['name'] = res[0]
+        jsonRoute['distance'] = res[1]
+        jsonRoute['time'] = res[2]
+        jsonRoute['date'] = res[3]
+        jsonsRoutes.append(jsonRoute)
+
+    return jsonsRoutes
+
 
 ###########################
 ###   WEB API-Handler   ###
@@ -504,7 +534,8 @@ def dataProtectionPage():
 @app.route("/records", methods=["GET"])
 def recordsPage():
     if current_user.is_authenticated:
-        return render_template("records.html", user=current_user, site="records")
+        records = getRecordsByID(current_user.id, 0)
+        return render_template("records.html", user=current_user, site="records", records=records)
     else:
         return redirect("/login")
 
@@ -677,7 +708,6 @@ def verifyEmail():
     except Exception as identifier:
         return render_template("verification.html", state=0)
         pass
-
 
 ###########################
 ###  REST API-Handler   ###
@@ -874,7 +904,7 @@ def saveTrackThread(jsonTrack):
         conn = mysql.connect()
         cursor = conn.cursor()
 
-        print('INSERT INTO '+app.config['DB_TABLE_RECORD'] +
+        print('INSERT INTO '+app.config['DB_TABLE_RECORDS'] +
             ' ('
             + app.config['DB_RECORD_NAME'] + ','
             + app.config['DB_RECORD_TIME'] + ','
@@ -895,7 +925,7 @@ def saveTrackThread(jsonTrack):
 
 
         cursor.execute(
-            'INSERT INTO '+app.config['DB_TABLE_RECORD'] +
+            'INSERT INTO '+app.config['DB_TABLE_RECORDS'] +
             ' ('
             + app.config['DB_RECORD_NAME'] + ','
             + app.config['DB_RECORD_TIME'] + ','
@@ -918,7 +948,7 @@ def saveTrackThread(jsonTrack):
 
         for jsonLocation in jsonTrack['locations']:
             cursor.execute(
-                'INSERT INTO ' + app.config['DB_TABLE_LOCATION'] +
+                'INSERT INTO ' + app.config['DB_TABLE_LOCATIONS'] +
                 ' ('
                 + app.config['DB_LOCATION_LATITUDE'] + ','
                 + app.config['DB_LOCATION_LONGITUDE'] + ','
