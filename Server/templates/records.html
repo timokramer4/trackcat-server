@@ -60,6 +60,9 @@
             </div>
         </div>
         {% endfor %}
+        {% if records|length == 0 %}
+        <h1 class="text-center">Keine Aufzeichnungen vorhanden!</h1>
+        {% endif %}
 
     </section>
 </div>
