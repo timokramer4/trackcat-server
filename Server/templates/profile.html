@@ -47,10 +47,7 @@
                             </div>
                             <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
                                 <h5>
-                                    <script>
-                                        var date = new Date({{ user.dateOfBirth }}* 1000);
-                                        writeDate(date);
-                                    </script>
+                                    {{(user.dateOfBirth*1000)|formatDate('%d.%m.%Y')}}
                                 </h5>
                             </div>
                         </div>
@@ -79,10 +76,7 @@
                             </div>
                             <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
                                 <h5>
-                                    <script>
-                                        var date = new Date({{ user.dateOfRegistration }}* 1000);
-                                        writeDate(date);
-                                    </script>
+                                    {{(user.dateOfRegistration*1000)|formatDate('%d.%m.%Y')}}
                                 </h5>
                             </div>
                         </div>

@@ -141,11 +141,7 @@
               </div>
               <div class="form-group">
                 <label class="form-control-label text-uppercase">Geburtstag</label>
-                <input type="date" id="birthday" name="birthday" class="form-control" validate>
-                <script>
-                  var date = new Date("{{ user.dateOfBirth }}" * 1000);
-                  document.getElementById("birthday").value = getDate(date);
-                </script>
+                <input type="date" id="birthday" name="birthday" class="form-control" value="{{(user.dateOfBirth*1000)|formatDate('%Y-%m-%d')}}" validate>
               </div>
               <button type="submit" id="editGeneralsBtn" class="btn btn-primary shadow px-5" disabled>Speichern</button>
             </form>
