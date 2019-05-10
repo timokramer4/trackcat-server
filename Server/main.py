@@ -433,14 +433,13 @@ def deleteUserById(id):
         return 1
 
 # Update user informations in database
-def updateRecordDB(recordId, newName):
+def updateRecordDB(recordId, newName, timestamp):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
 
         try:
-            cursor.execute('UPDATE ' + app.config['DB_TABLE_RECORDS'] + ' SET ' + app.config['DB_RECORD_NAME'] + ' = "' + newName
-                           + '" WHERE ' + app.config['DB_RECORD_ID']+' = ' + str(recordId) + ';')
+            cursor.execute('UPDATE ' + app.config['DB_TABLE_RECORDS'] + ' SET ' + app.config['DB_RECORD_NAME'] + ' = "' + newName + '", ' + app.config['DB_RECORD_TIMESTAMP'] + ' = "' + str(timestamp) + '" WHERE ' + app.config['DB_RECORD_ID']+' = "' + str(recordId) + '";')
             pass
         except Exception as identifier:
             pass
@@ -499,7 +498,7 @@ def getLocationsByID(userId, recordId):
     if recordId is not None:
         selection = ' AND ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(recordId)
     else:
-        selection = ''
+        selection = app.config['DB_TABLE_RECORDS'] + '.' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId)
 
     params = app.config['DB_LOCATION_LATITUDE'] + ', ' + app.config['DB_LOCATION_LONGITUDE'] + ', ' + app.config['DB_LOCATION_ALTITUDE'] + ', ' + app.config['DB_TABLE_LOCATIONS'] + '.' + app.config['DB_LOCATION_TIME'] + ', ' + app.config['DB_LOCATION_SPEED'] + ', ' + app.config['DB_LOCATION_RECORD_ID']
     cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_LOCATIONS'] + ' INNER JOIN ' + app.config['DB_TABLE_RECORDS'] + ' ON ' + app.config['DB_TABLE_LOCATIONS'] + '.' + app.config['DB_LOCATION_RECORD_ID'] + ' = ' + app.config['DB_TABLE_RECORDS'] + '.' + app.config['DB_RECORD_ID'] + selection + ';')
@@ -721,7 +720,7 @@ def deleteAccount():
     else:
         return redirect("/login")
 
-
+# Get image from user
 @app.route("/image", methods=['GET'])
 def getImage():
     try:
@@ -745,11 +744,11 @@ def getImage():
     except Exception as identifier:
         return send_file("./static/img/defaultUser.jpg", attachment_filename='.jpg')
 
-
+# Edit record name
 @app.route("/editRecord", methods=['POST'])
 def editRecord():
     if current_user.is_authenticated:
-        success = updateRecordDB(request.form['recordId'], request.form['recordName'])
+        success = updateRecordDB(request.form['recordId'], request.form['recordName'], str(int(time.time())))
 
         if success:
             flash('Die Aufzeichnung wurde erfolgreich editiert.')
@@ -760,7 +759,7 @@ def editRecord():
     else:
         return redirect("/login")
 
-
+# Verify email after registration (over link)
 @app.route("/verifyEmail", methods=['GET'])
 def verifyEmail():
     email = request.args.get('email')
@@ -786,6 +785,7 @@ def verifyEmail():
 ###########################
 ###  REST API-Handler   ###
 ###########################
+
 # Check user login
 @app.route("/loginAPI", methods=['POST'])
 @requires_authorization
@@ -834,6 +834,19 @@ def getUserByIdAPI():
 @requires_authorization
 def getRecordsById():
     return json.dumps(getRecordsByID(request.json['id'], int(request.json['page'])))
+
+# Edit record name
+@app.route("/editRecordAPI", methods=['POST'])
+def editRecordAPI():
+    j = request.json
+
+    jsonSuccess = {}
+    if updateRecordDB(j['recordId'], j['recordName'], j['timestamp']):
+        jsonSuccess['success'] = 0
+    else:
+        jsonSuccess['success'] = 1
+
+    return json.dumps(jsonSuccess)
 
 # Update user data in database
 @app.route("/updateUserAPI", methods=['POST'])
