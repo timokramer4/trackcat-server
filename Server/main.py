@@ -432,6 +432,28 @@ def deleteUserById(id):
     except Exception as identifier:
         return 1
 
+# Update user informations in database
+def updateRecordDB(recordId, newName):
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute('UPDATE ' + app.config['DB_TABLE_RECORDS'] + ' SET ' + app.config['DB_RECORD_NAME'] + ' = "' + newName
+                           + '" WHERE ' + app.config['DB_RECORD_ID']+' = ' + str(recordId) + ';')
+            pass
+        except Exception as identifier:
+            pass
+
+        conn.commit()
+        conn.close()
+        pass
+        return True
+    except Exception as identifier:
+        print(identifier)
+        return False
+        pass
+
 # Get all record from user (all or by paging)
 def getRecordsByID(id, page):
     conn = mysql.connect()
@@ -571,7 +593,8 @@ def dataProtectionPage():
 def recordsPage():
     if current_user.is_authenticated:
         records = getRecordsByID(current_user.idUser, 1)
-        return render_template("records.html", user=current_user, site="records", records=records)
+        alertType = request.args.get('alert')
+        return render_template("records.html", user=current_user, site="records", records=records, alert=alertType)
     else:
         return redirect("/login")
 
@@ -721,6 +744,21 @@ def getImage():
 
     except Exception as identifier:
         return send_file("./static/img/defaultUser.jpg", attachment_filename='.jpg')
+
+
+@app.route("/editRecord", methods=['POST'])
+def editRecord():
+    if current_user.is_authenticated:
+        success = updateRecordDB(request.form['recordId'], request.form['recordName'])
+
+        if success:
+            flash('Die Aufzeichnung wurde erfolgreich editiert.')
+            return redirect("/records?alert=success")
+        else:
+            flash('Unbekannter Fehler beim Editieren der Aufzeichnung!')
+            return redirect("/records?alert=danger")
+    else:
+        return redirect("/login")
 
 
 @app.route("/verifyEmail", methods=['GET'])
