@@ -6,31 +6,47 @@
     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="renameRecordModalLabel">Aufzeichnung umbenennen</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form>
+            <form id="editRecord" action="editRecord" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="renameRecordModalLabel">Aufzeichnung umbenennen</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
                     <div class="form-group">
-                        <label for="record-name" class="col-form-label">Name der Aufzeichnung:</label>
-                        <input type="text" class="form-control" id="record-name">
+                        <label for="recordName" class="col-form-label">Name der Aufzeichnung:</label>
+                        <input id="recordId" name="recordId" type="text" style="display: none;">
+                        <input id="recordName" name="recordName" type="text" class="form-control">
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
-                <button type="button" class="btn btn-primary">Speichern</button>
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <div class="container-fluid px-xl-5">
     <section class="py-5">
-        
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="col-lg-12 mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{alert}} alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                {{message}}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
         {% for record in records %}
         <div class="col-lg-12">
             <div class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style"></a>
@@ -44,13 +60,16 @@
                     </div>
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-sm-row justify-content-center justify-content-lg-start">
-                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">{% if record.distance / 1000 >= 1 %}{{'%0.2f'| format(record.distance/1000|float)}} km{% else %}{{'%0.2f'| format(record.distance|float)}} m{% endif %}</div>
-                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">{{(record.time)|formatSeconds}}</div>
+                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
+                            {% if record.distance / 1000 >= 1 %}{{'%0.2f'| format(record.distance/1000|float)}}
+                            km{% else %}{{'%0.2f'| format(record.distance|float)}} m{% endif %}</div>
+                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
+                            {{(record.time)|formatSeconds}}</div>
                     </div>
                     <div
                         class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
-                        <div id="editRecord" class="icon text-white bg-blue mr-1"
-                            data-recordName="{{record.name}}" style="cursor: pointer;" data-toggle="modal"
+                        <div id="editRecord" class="icon text-white bg-blue mr-1" data-recordName="{{record.name}}"
+                            data-recordid="{{record.id}}" style="cursor: pointer;" data-toggle="modal"
                             data-target="#renameRecordModal">
                             <i class="fas fa-pencil-alt"></i></div>
                         <div id="removeRecord" class="icon text-white bg-red mr-1"><i class="far fa-trash-alt"></i>
@@ -76,9 +95,11 @@
         var button = $(event.relatedTarget) // Button that triggered the modal
         console.log(button);
         var recordName = button.data('recordname');
+        var recordId = button.data('recordid');
         console.log(recordName);
         var modal = $(this)
-        modal.find('.modal-body input').val(recordName)
+        modal.find('#recordId').val(recordId)
+        modal.find('#recordName').val(recordName)
     })
 </script>
 {% endblock %}
