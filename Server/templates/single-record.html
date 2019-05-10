@@ -25,65 +25,10 @@
             <div class="col-lg-8 mb-5">
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="h6 text-uppercase mb-0">{{recordData.record.name}}</h2>
+                        <h2 class="h6 text-uppercase mb-0">Aufzeichnung: "<span class="text-red">{{recordData.record.name}}</span>"</h2>
                     </div>
                     <div class="card-body" id="map"
                         style="height:500px; width:100%; border-radius: 0em 0em 1.5em 1.5em"></div>
-                </div>
-            </div>
-            <div class="col-lg-8 mb-5">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="h6 text-uppercase mb-0">Daten zur Aufzeichnung</h2>
-                    </div>
-                    <div class="card-body">
-                        <!-- <div
-                            class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
-                            <div class="left d-flex align-items-center">
-                                <div class="text">
-                                    <h6 class="mb-0 d-flex align-items-center"><span><i
-                                                class="fas fa-birthday-cake"></i>&nbsp;&nbsp;Geburtstag</span></h6>
-                                </div>
-                            </div>
-                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
-                                <h5>
-                                    {{ user.dateOfBirth }}
-                                </h5>
-                            </div>
-                        </div>
-                        <div
-                            class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
-                            <div class="left d-flex align-items-center">
-                                <div class="text">
-                                    <h6 class="mb-0 d-flex align-items-center"><span><i
-                                                class="fas fa-venus-mars"></i>&nbsp;&nbsp;Geschlecht</span></h6>
-                                </div>
-                            </div>
-                            <div
-                                class="right ml-5 ml-sm-0 pl-3 pl-sm-0 {% if user.gender == 0%}text-violet{% else %}text-blue{% endif %}">
-                                <h5>{% if user.gender == 0%}weiblich <i class="fas fa-venus"></i>{% else %}männlich <i
-                                        class="fas fa-mars"></i>{% endif %}</h5>
-                            </div>
-                        </div>
-                        <div
-                            class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
-                            <div class="left d-flex align-items-center">
-                                <div class="text">
-                                    <h6 class="mb-0 d-flex align-items-center"><span><i
-                                                class="far fa-calendar-alt"></i>&nbsp;&nbsp;Registriert seit</span>
-                                    </h6>
-                                </div>
-                            </div>
-                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
-                                <h5>
-                                    <script>
-                                        var date = new Date({{ user.dateOfRegistration }}* 1000);
-                                        writeDate(date);
-                                    </script>
-                                </h5>
-                            </div>
-                        </div>-->
-                    </div>
                 </div>
             </div>
         </div>
@@ -94,21 +39,11 @@
                         <div class="flex-grow-1 d-flex align-items-center">
                             <div class="dot mr-3 bg-red"></div>
                             <div class="text">
-                                <h6 class="mb-0">Trainings</h6><span class="text-gray">27</span>
+                                <h6 class="mb-0">Gesamtzeit</h6><span
+                                    class="text-gray">{{(recordData.record.time)|formatSeconds}}</span>
                             </div>
                         </div>
-                        <div class="icon text-white bg-red"><i class="fas fa-dumbbell"></i></div>
-                    </div>
-                </div>
-                <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
-                    <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
-                        <div class="flex-grow-1 d-flex align-items-center">
-                            <div class="dot mr-3 bg-blue"></div>
-                            <div class="text">
-                                <h6 class="mb-0">Strecke</h6><span class="text-gray">142,37 km</span>
-                            </div>
-                        </div>
-                        <div class="icon text-white bg-blue"><i class="fas fa-fire"></i></div>
+                        <div class="icon text-white bg-red"><i class="fas fa-hourglass-half"></i></div>
                     </div>
                 </div>
                 <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
@@ -116,10 +51,25 @@
                         <div class="flex-grow-1 d-flex align-items-center">
                             <div class="dot mr-3 bg-green"></div>
                             <div class="text">
-                                <h6 class="mb-0">Trainingszeit</h6><span class="text-gray">04:13:59</span>
+                                <h6 class="mb-0">Trainingszeit</h6><span
+                                    class="text-gray">{{(recordData.record.ridetime)|formatSeconds}}</span>
                             </div>
                         </div>
                         <div class="icon text-white bg-green"><i class="fas fa-stopwatch"></i></div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                    <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
+                        <div class="flex-grow-1 d-flex align-items-center">
+                            <div class="dot mr-3 bg-blue"></div>
+                            <div class="text">
+                                <h6 class="mb-0">Strecke</h6><span
+                                    class="text-gray">{% if recordData.record.distance / 1000 >= 1 %}{{'%0.2f'| format(recordData.record.distance/1000|float)}}
+                                    km{% else %}{{'%0.2f'| format(recordData.record.distance|float)}}
+                                    m{% endif %}</span>
+                            </div>
+                        </div>
+                        <div class="icon text-white bg-blue"><i class="fas fa-fire"></i></div>
                     </div>
                 </div>
             </div>
