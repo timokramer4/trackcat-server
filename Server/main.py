@@ -118,6 +118,7 @@ class User(UserMixin):
 def formatSeconds(value):
     return str(timedelta(seconds=value))
 
+
 @app.template_filter('formatDate')
 def formatDate(value, format='%d.%m.%Y %H:%M:%S'):
     return datetime.fromtimestamp(value/1000).strftime(format)
@@ -141,6 +142,8 @@ def user_loader(email):
     return user
 
 # Validate user login
+
+
 def validateLogin(email, password):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -181,6 +184,8 @@ def requires_authorization(f):
     return decorated
 
 # Create new user in database
+
+
 def registerUserDB(firstName, lastName, email, password):
     # 0 = Valid
     # 1 = Creation error
@@ -217,6 +222,8 @@ def registerUserDB(firstName, lastName, email, password):
     pass
 
 # Generate verify token
+
+
 def generateVerifyToken(firstName, lastName, email):
 
     # if want to use custom iterations instead of default 29000
@@ -234,6 +241,8 @@ def generateVerifyToken(firstName, lastName, email):
     return token
 
 # Get selected user data as JSON
+
+
 def getUserFromDB(id):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -270,6 +279,8 @@ def getUserFromDB(id):
     return jsonUser
 
 # Get user profile image
+
+
 def getUserWithImageFromDB(id):
     jsonUser = getUserFromDB(id)
 
@@ -286,6 +297,8 @@ def getUserWithImageFromDB(id):
     return jsonUser
 
 # Update last login in database
+
+
 def updateUserLastLogin(email):
     try:
         conn = mysql.connect()
@@ -302,6 +315,8 @@ def updateUserLastLogin(email):
     return
 
 # Update user informations in database
+
+
 def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
                  gender, size, weight, image, hints, darkTheme):
     try:
@@ -454,7 +469,7 @@ def updateRecordDB(recordId, newName, timestamp):
         pass
 
 # Get all record from user (all or by paging)
-def getRecordsByID(id, page):
+def getRecordsByID(userId, page):
     conn = mysql.connect()
     cursor = conn.cursor()
 
@@ -467,13 +482,13 @@ def getRecordsByID(id, page):
         limitter = ''
 
     params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP']
-    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(id) + limitter + ';')
+    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId) + limitter + ';')
     result = cursor.fetchall()
    
     cursor.close()
     conn.close()
 
-    jsonsRecords = []
+    jsonRecords = []
 
     for res in result:
         jsonRecord = {}
@@ -486,9 +501,39 @@ def getRecordsByID(id, page):
         jsonRecord['distance'] = res[6]
         jsonRecord['timestamp'] = res[7]
 
-        jsonsRecords.append(jsonRecord)
+        jsonRecords.append(jsonRecord)
 
-    return jsonsRecords
+    return jsonRecords
+
+# Get single record
+def getSingleRecordByID(userId, recordId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP']
+    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_ID'] + ' = ' + str(recordId) + ';')
+    result = cursor.fetchall()
+   
+    cursor.close()
+    conn.close()
+
+    res = result[0]
+
+    jsonRecord = {}
+    jsonRecord['id'] = res[0]
+    jsonRecord['name'] = res[1]
+    jsonRecord['time'] = res[2]
+    jsonRecord['date'] = res[3]
+    jsonRecord['type'] = res[4]
+    jsonRecord['ridetime'] = res[5]
+    jsonRecord['distance'] = res[6]
+    jsonRecord['timestamp'] = res[7]
+
+    jsonRecordData = {}
+    jsonRecordData['record'] = jsonRecord
+    jsonRecordData['locations'] = getLocationsByID(userId, recordId)
+
+    return jsonRecordData
 
 # Get all locations from user (and from specific route)
 def getLocationsByID(userId, recordId):
@@ -496,12 +541,12 @@ def getLocationsByID(userId, recordId):
     cursor = conn.cursor()
 
     if recordId is not None:
-        selection = ' AND ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(recordId)
+        selection = app.config['DB_TABLE_RECORDS'] + '.' + app.config['DB_RECORD_ID'] + ' = ' + str(recordId)
     else:
         selection = app.config['DB_TABLE_RECORDS'] + '.' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId)
 
     params = app.config['DB_LOCATION_LATITUDE'] + ', ' + app.config['DB_LOCATION_LONGITUDE'] + ', ' + app.config['DB_LOCATION_ALTITUDE'] + ', ' + app.config['DB_TABLE_LOCATIONS'] + '.' + app.config['DB_LOCATION_TIME'] + ', ' + app.config['DB_LOCATION_SPEED'] + ', ' + app.config['DB_LOCATION_RECORD_ID']
-    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_LOCATIONS'] + ' INNER JOIN ' + app.config['DB_TABLE_RECORDS'] + ' ON ' + app.config['DB_TABLE_LOCATIONS'] + '.' + app.config['DB_LOCATION_RECORD_ID'] + ' = ' + app.config['DB_TABLE_RECORDS'] + '.' + app.config['DB_RECORD_ID'] + selection + ';')
+    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_LOCATIONS'] + ' INNER JOIN ' + app.config['DB_TABLE_RECORDS'] + ' ON ' + app.config['DB_TABLE_LOCATIONS'] + '.' + app.config['DB_LOCATION_RECORD_ID'] + ' = ' + app.config['DB_TABLE_RECORDS'] + '.' + app.config['DB_RECORD_ID'] + ' AND ' + selection + ';')
     result = cursor.fetchall()
    
     cursor.close()
@@ -564,7 +609,7 @@ def dashboardPage():
 @app.route("/profile", methods=["GET"])
 def profilePage():
     if current_user.is_authenticated:
-        return render_template("profile.html", user=current_user)
+        return render_template("profile.html", user=current_user, back="/dashboard")
     else:
         return redirect("/login")
 
@@ -573,7 +618,7 @@ def profilePage():
 def settingsPage():
     if current_user.is_authenticated:
         alertType = request.args.get('alert')
-        return render_template("settings.html", user=current_user, alert=alertType)
+        return render_template("settings.html", user=current_user, alert=alertType, back="/dashboard")
     else:
         return redirect("/login")
 
@@ -594,6 +639,17 @@ def recordsPage():
         records = getRecordsByID(current_user.idUser, 1)
         alertType = request.args.get('alert')
         return render_template("records.html", user=current_user, site="records", records=records, alert=alertType)
+    else:
+        return redirect("/login")
+
+# Show record list
+@app.route("/record", methods=["GET"])
+def singleRecordPage():
+    if current_user.is_authenticated:
+        recordId = request.args.get('id')
+        recordData = getSingleRecordByID(current_user.idUser, recordId)
+        alertType = request.args.get('alert')
+        return render_template("single-record.html", user=current_user, recordData=recordData, alert=alertType, back="/records")
     else:
         return redirect("/login")
 
@@ -832,7 +888,7 @@ def getUserByIdAPI():
 # Get all userdata from user with email
 @app.route("/getRecordsByIdAPI", methods=['POST'])
 @requires_authorization
-def getRecordsById():
+def getRecordsByIdAPI():
     return json.dumps(getRecordsByID(request.json['id'], int(request.json['page'])))
 
 # Edit record name
