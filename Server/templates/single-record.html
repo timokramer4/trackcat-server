@@ -1,0 +1,177 @@
+{% extends "model/logged.html" %}
+
+{% block title %}- Aufzeichnung: {{recordData.name}}{% endblock %}
+
+{% block subcontent %}
+<div class="container-fluid px-xl-5">
+    <section class="py-5">
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="col-lg-12 mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{alert}} alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                {{message}}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="row justify-content-md-center">
+            <div class="col-lg-8 mb-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="h6 text-uppercase mb-0">{{recordData.record.name}}</h2>
+                    </div>
+                    <div class="card-body" id="map"
+                        style="height:500px; width:100%; border-radius: 0em 0em 1.5em 1.5em"></div>
+                </div>
+            </div>
+            <div class="col-lg-8 mb-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="h6 text-uppercase mb-0">Daten zur Aufzeichnung</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- <div
+                            class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
+                            <div class="left d-flex align-items-center">
+                                <div class="text">
+                                    <h6 class="mb-0 d-flex align-items-center"><span><i
+                                                class="fas fa-birthday-cake"></i>&nbsp;&nbsp;Geburtstag</span></h6>
+                                </div>
+                            </div>
+                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
+                                <h5>
+                                    {{ user.dateOfBirth }}
+                                </h5>
+                            </div>
+                        </div>
+                        <div
+                            class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
+                            <div class="left d-flex align-items-center">
+                                <div class="text">
+                                    <h6 class="mb-0 d-flex align-items-center"><span><i
+                                                class="fas fa-venus-mars"></i>&nbsp;&nbsp;Geschlecht</span></h6>
+                                </div>
+                            </div>
+                            <div
+                                class="right ml-5 ml-sm-0 pl-3 pl-sm-0 {% if user.gender == 0%}text-violet{% else %}text-blue{% endif %}">
+                                <h5>{% if user.gender == 0%}weiblich <i class="fas fa-venus"></i>{% else %}männlich <i
+                                        class="fas fa-mars"></i>{% endif %}</h5>
+                            </div>
+                        </div>
+                        <div
+                            class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
+                            <div class="left d-flex align-items-center">
+                                <div class="text">
+                                    <h6 class="mb-0 d-flex align-items-center"><span><i
+                                                class="far fa-calendar-alt"></i>&nbsp;&nbsp;Registriert seit</span>
+                                    </h6>
+                                </div>
+                            </div>
+                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
+                                <h5>
+                                    <script>
+                                        var date = new Date({{ user.dateOfRegistration }}* 1000);
+                                        writeDate(date);
+                                    </script>
+                                </h5>
+                            </div>
+                        </div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="row col-lg-8 mb-5 p-0">
+                <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                    <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
+                        <div class="flex-grow-1 d-flex align-items-center">
+                            <div class="dot mr-3 bg-red"></div>
+                            <div class="text">
+                                <h6 class="mb-0">Trainings</h6><span class="text-gray">27</span>
+                            </div>
+                        </div>
+                        <div class="icon text-white bg-red"><i class="fas fa-dumbbell"></i></div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                    <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
+                        <div class="flex-grow-1 d-flex align-items-center">
+                            <div class="dot mr-3 bg-blue"></div>
+                            <div class="text">
+                                <h6 class="mb-0">Strecke</h6><span class="text-gray">142,37 km</span>
+                            </div>
+                        </div>
+                        <div class="icon text-white bg-blue"><i class="fas fa-fire"></i></div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                    <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
+                        <div class="flex-grow-1 d-flex align-items-center">
+                            <div class="dot mr-3 bg-green"></div>
+                            <div class="text">
+                                <h6 class="mb-0">Trainingszeit</h6><span class="text-gray">04:13:59</span>
+                            </div>
+                        </div>
+                        <div class="icon text-white bg-green"><i class="fas fa-stopwatch"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+</div>
+{% endblock %}
+
+{% block customScripts %}
+<script src="{{ url_for('static', filename='js/validate.js')}}"></script>
+<script>
+    /* Initialize the map on the "map" div with a given center and default zoom */
+    var map = L.map('map');
+
+    /* Add OSM tile leayer to the Leaflet map */
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    /* Define custom marker */
+    var trackcat = L.icon({
+        iconUrl: "{{ url_for('static', filename='img/favicon.png')}}",
+
+        iconSize: [40, 40], // size of the icon
+        iconAnchor: [20, 40], // point of the icon which will correspond to marker's location
+        popupAnchor: [0, -42] // point from which the popup should open relative to the iconAnchor
+    });
+
+    /* Create a red polyline from an array of LatLng points */
+    var locations = JSON.parse('{{recordData.locations|tojson|safe}}');
+    var latlngs = [];
+    for (var i = 0; i < locations.length; i++) {
+        if (i == 0) {
+            L.marker([locations[i].lat, locations[i].lng], { icon: trackcat })
+                .addTo(map)
+                .bindPopup('<center><h4>Start</h4>Hier hat die Aufzeichnung begonnen</center>')
+                .openPopup();
+        }
+
+        var arr = [locations[i].lat, locations[i].lng]
+        latlngs.push(arr);
+
+        if (i == locations.length - 1) {
+            L.marker([locations[i].lat, locations[i].lng], { icon: trackcat })
+                .addTo(map)
+                .bindPopup('<center><h4>Ende</h4>Hier wurde die Aufzeichnung beendet</center>')
+                .openPopup();
+        }
+    }
+
+    var polyline = L.polyline(latlngs, { color: 'red' }).addTo(map);
+    map.fitBounds(polyline.getBounds());
+</script>
+{% endblock %}
