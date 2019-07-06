@@ -609,7 +609,13 @@ def dashboardPage():
 @app.route("/profile", methods=["GET"])
 def profilePage():
     if current_user.is_authenticated:
-        return render_template("profile.html", user=current_user, back="/dashboard")
+        userId = request.args.get('id')
+        
+        if userId:
+            userData = getUserFromDB(userId)
+            return render_template("profile.html", user=userData, back="/friends")
+        else:
+            return render_template("profile.html", user=current_user, back="/dashboard")
     else:
         return redirect("/login")
 
@@ -650,6 +656,16 @@ def singleRecordPage():
         recordData = getSingleRecordByID(current_user.idUser, recordId)
         alertType = request.args.get('alert')
         return render_template("single-record.html", user=current_user, recordData=recordData, alert=alertType, back="/records")
+    else:
+        return redirect("/login")
+
+# Show record list
+@app.route("/friends", methods=["GET"])
+def friendsPage():
+    if current_user.is_authenticated:
+        friends = getRecordsByID(current_user.idUser, 1)
+        alertType = request.args.get('alert')
+        return render_template("friends.html", user=current_user, site="friends", friends=friends, alert=alertType)
     else:
         return redirect("/login")
 

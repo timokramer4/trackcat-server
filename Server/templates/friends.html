@@ -1,0 +1,109 @@
+{% extends "model/loggedMenu.html" %}
+
+{% block subcontent %}
+<!-- Modal window: Edit friend -->
+<div class="modal fade" id="renameRecordModal" tabindex="-1" role="dialog" aria-labelledby="renameRecordModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="editRecord" action="editRecord" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="renameRecordModalLabel">Aufzeichnung umbenennen</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="recordName" class="col-form-label">Name der Aufzeichnung:</label>
+                        <input id="recordId" name="recordId" type="text" style="display: none;">
+                        <input id="recordName" name="recordName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-xl-5">
+    <section class="py-5">
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="col-lg-12 mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{alert}} alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                {{message}}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% for friend in friends %}
+        <div class="col-lg-12">
+            <a href="/profile?id={{friend.id}}" id="friend"
+                class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
+                <div class="row">
+                    <div
+                        class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
+                        <strong class="h5 mb-0 m-3">{{friend.date|formatDate('%d')}}
+                            <sup class="smaller text-gray font-weight-normal">{{friend.date|formatDate('%b')}}</sup>
+                        </strong>
+                        <h6 class="mb-0">{{friend.name}}</h6>
+                    </div>
+                    <div
+                        class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-sm-row justify-content-center justify-content-lg-start">
+                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
+                            {% if friend.distance / 1000 >= 1 %}{{'%0.2f'| format(friend.distance/1000|float)}}
+                            km{% else %}{{'%0.2f'| format(friend.distance|float)}} m{% endif %}</div>
+                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
+                            {{(friend.time)|formatSeconds}}</div>
+                    </div>
+                    <div
+                        class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
+                        <div id="editRecord" class="icon text-white bg-blue mr-1" data-recordName="{{friend.name}}"
+                            data-recordid="{{friend.id}}" style="cursor: pointer;" data-toggle="modal"
+                            data-target="#renameRecordModal">
+                            <i class="fas fa-pencil-alt"></i></div>
+                        <div id="removeRecord" class="icon text-white bg-red mr-1"><i class="far fa-trash-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+        {% if friends|length == 0 %}
+        <h1 class="text-center">Keine Aufzeichnungen vorhanden!</h1>
+        {% endif %}
+
+    </section>
+</div>
+{% endblock %}
+
+{% block customScripts %}
+<script src="{{ url_for('static', filename='js/validate.js')}}"></script>
+<script>
+    /* Get current friend name for modal */
+    $('#renameRecordModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        var recordName = button.data('recordname');
+        var recordId = button.data('recordid');
+        var modal = $(this)
+        modal.find('#recordId').val(recordId)
+        modal.find('#recordName').val(recordName)
+    });
+
+    // $('.icon').click(function (event) {
+    //     event.stopPropagation();
+    //     console.log("lol");
+    // });
+</script>
+{% endblock %}
