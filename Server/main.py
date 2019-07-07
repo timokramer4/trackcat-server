@@ -92,9 +92,9 @@ login_manager.init_app(app)
 
 class User(UserMixin):
 
-    def __init__(self, id, idUser, firstName, lastName, gender, weight, size, dateOfBirth, dateOfRegistration, lastLogin):
+    def __init__(self, id, email, firstName, lastName, gender, weight, size, dateOfBirth, dateOfRegistration, lastLogin):
         self.id = id
-        self.idUser = idUser
+        self.email = email
         self.firstName = firstName
         self.lastName = lastName
         self.gender = gender
@@ -125,6 +125,23 @@ def formatDate(value, format='%d.%m.%Y %H:%M:%S'):
 
 # Validate login data
 @login_manager.user_loader
+def user_loaderlmgr(id):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute('SELECT ' + app.config['DB_USERS_ID'] +
+                   ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = "' + id + '";')
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    jsonUser = getUserFromDB(result[0])
+    user = User(jsonUser['id'], jsonUser['email'],
+                jsonUser['firstName'], jsonUser['lastName'],
+                jsonUser['gender'], jsonUser['weight'], jsonUser['size'], jsonUser['dateOfBirth'],
+                jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
+    return user
+
+
 def user_loader(email):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -135,7 +152,7 @@ def user_loader(email):
     conn.close()
 
     jsonUser = getUserFromDB(result[0])
-    user = User(jsonUser['email'], jsonUser['id'],
+    user = User(jsonUser['id'], jsonUser['email'],
                 jsonUser['firstName'], jsonUser['lastName'],
                 jsonUser['gender'], jsonUser['weight'], jsonUser['size'], jsonUser['dateOfBirth'],
                 jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
@@ -252,7 +269,7 @@ def getUserFromDB(id):
         app.config['DB_USERS_LASTLOGIN']+', ' + \
         app.config['DB_USERS_TIMESTAMP']+''
     cursor.execute('SELECT ' + params +
-                   ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = "' + str(id) + '";')
+                   ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = ' + str(id) + ';')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -636,7 +653,7 @@ def dataProtectionPage():
 @app.route("/records", methods=["GET"])
 def recordsPage():
     if current_user.is_authenticated:
-        records = getRecordsByID(current_user.idUser, 1)
+        records = getRecordsByID(current_user.id, 1)
         alertType = request.args.get('alert')
         return render_template("records.html", user=current_user, site="records", records=records, alert=alertType)
     else:
@@ -647,7 +664,7 @@ def recordsPage():
 def singleRecordPage():
     if current_user.is_authenticated:
         recordId = request.args.get('id')
-        recordData = getSingleRecordByID(current_user.idUser, recordId)
+        recordData = getSingleRecordByID(current_user.id, recordId)
         alertType = request.args.get('alert')
         return render_template("single-record.html", user=current_user, recordData=recordData, alert=alertType, back="/records")
     else:
@@ -666,7 +683,7 @@ def login():
         cursor.execute('SELECT ' + app.config['DB_USERS_VERIFYTOKEN'] +
                        ' FROM '+app.config['DB_TABLE_USERS'] +
                        ' WHERE ' + app.config['DB_USERS_ID']
-                       + ' = "' + str(user.idUser) + '";')
+                       + ' = ' + str(user.id) + ';')
         result = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -764,7 +781,7 @@ def changePassword():
 @app.route("/deleteAccount", methods=['POST'])
 def deleteAccount():
     if current_user.is_authenticated:
-        success = deleteUserById(current_user.idUser)
+        success = deleteUserById(current_user.id)
 
         if success == 0:
             flash('Ihr Account wurde erfolgreich gelöscht.')
@@ -780,12 +797,12 @@ def deleteAccount():
 @app.route("/image", methods=['GET'])
 def getImage():
     try:
-        email = request.args.get('userEmail')
+        userID = request.args.get('userID')
 
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.execute(
-            'SELECT '+app.config['DB_USERS_IMAGE']+' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
+            'SELECT '+app.config['DB_USERS_IMAGE']+' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = "' + userID + '";')
         result = cursor.fetchone()
         cursor.close()
         conn.close()
