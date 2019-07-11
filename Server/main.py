@@ -40,6 +40,7 @@ app.config['BASE_URL'] = "http://safe-harbour.de:4242"
 # TABLE-NAMES
 app.config['DB_TABLE_USERS'] = "users"
 app.config['DB_TABLE_RECORDS'] = "records"
+app.config['DB_TABLE_LIVE_RECORDS'] = "liveRecords"
 app.config['DB_TABLE_LOCATIONS'] = "locations"
 
 # COLUMN-NAMES: User
@@ -70,6 +71,7 @@ app.config['DB_RECORD_RIDETIME'] = "rideTime"
 app.config['DB_RECORD_DISTANCE'] = "distance"
 app.config['DB_RECORD_TIMESTAMP'] = "timeStamp"
 app.config['DB_RECORD_USERS_ID'] = "users_id"
+app.config['DB_RECORD_LOCATION_DATA'] = "locations"
 
 # COLUMN-NAMES: Location
 app.config['DB_LOCATION_LATITUDE'] = "latitude"
@@ -498,7 +500,7 @@ def getRecordsByID(userId, page):
     else:
         limitter = ''
 
-    params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP']
+    params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP'] + ', ' + app.config['DB_RECORD_LOCATION_DATA']
     cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId) + limitter + ';')
     result = cursor.fetchall()
    
@@ -517,6 +519,7 @@ def getRecordsByID(userId, page):
         jsonRecord['ridetime'] = res[5]
         jsonRecord['distance'] = res[6]
         jsonRecord['timestamp'] = res[7]
+        jsonRecord['locations'] = res[8]
 
         jsonRecords.append(jsonRecord)
 
@@ -527,7 +530,7 @@ def getSingleRecordByID(userId, recordId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP']
+    params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP'] + ', ' + app.config['DB_RECORD_LOCATION_DATA']
     cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_ID'] + ' = ' + str(recordId) + ';')
     result = cursor.fetchall()
    
@@ -548,7 +551,7 @@ def getSingleRecordByID(userId, recordId):
 
     jsonRecordData = {}
     jsonRecordData['record'] = jsonRecord
-    jsonRecordData['locations'] = getLocationsByID(userId, recordId)
+    jsonRecordData['locations'] = json.loads(res[8]) #getLocationsByID(userId, recordId) switch from locations to json in db
 
     return jsonRecordData
 
@@ -892,7 +895,7 @@ def loginAPI():
     jsonObj = {}
     jsonObj['userData'] = getUserWithImageFromDB(result[0])
     jsonObj['records'] = getRecordsByID(result[0], 0)
-    jsonObj['locations'] = getLocationsByID(result[0], None)
+  #  jsonObj['locations'] = getLocationsByID(result[0], None)
     # TODO: Übertragung aller Locations des Nutzers
     if result[1] == None:
         jsonObj['success'] = 0
