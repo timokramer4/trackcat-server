@@ -103,7 +103,6 @@ function validate(allInputs) {
                         } else {
                             markField(item, true);
                             setHint(item, false);
-                            result = true;
                         }
                     } else {
                         markField(item, false);
@@ -123,7 +122,7 @@ function validate(allInputs) {
 
                     /* Check all radio boxes */
                     var checkedRadio = false;
-                    for (var j = 0; j < radios.length; j++) {
+                    for (var j = 0; j < radios.length && !checkedRadio; j++) {
                         var radio = radios[j];
 
                         if (radio.checked == true) {
@@ -148,9 +147,9 @@ function validate(allInputs) {
                 setHint(item, false);
                 result = false;
             }
-
         }
     }
+    console.log(result);
     return result;
 }
 
