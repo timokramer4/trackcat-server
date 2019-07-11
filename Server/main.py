@@ -739,8 +739,8 @@ def updateUser():
     if current_user.is_authenticated:
         birthday = int(datetime.strptime(
             request.form['birthday'], "%Y-%m-%d").timestamp())
-        success = updateUserDB(current_user.id, None, str(birthday),
-                               request.form['firstName'], request.form['lastName'], request.form['genderRadio'], None, None, None, None, None)
+        success = updateUserDB(current_user.email, None, str(birthday),
+                               request.form['firstName'], request.form['lastName'], request.form['genderRadio'], request.form['size'], request.form['weight'], None, None, None)
 
         if success:
             flash('Profil erflogreich gespeichert.')
