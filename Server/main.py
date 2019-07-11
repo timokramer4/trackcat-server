@@ -629,7 +629,12 @@ def profilePage():
         userId = request.args.get('id')
         
         if userId:
-            userData = getUserFromDB(userId)
+            try:
+                userData = getUserFromDB(userId)
+                pass
+            except Exception as identifier:
+                userData = None
+                pass
             return render_template("profile.html", user=userData, back="/friends")
         else:
             return render_template("profile.html", user=current_user, back="/dashboard")
@@ -680,7 +685,7 @@ def singleRecordPage():
 @app.route("/friends", methods=["GET"])
 def friendsPage():
     if current_user.is_authenticated:
-        friends = getRecordsByID(current_user.idUser, 1)
+        friends = getRecordsByID(current_user.id, 1)
         alertType = request.args.get('alert')
         return render_template("friends.html", user=current_user, site="friends", friends=friends, alert=alertType)
     else:

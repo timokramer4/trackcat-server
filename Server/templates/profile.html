@@ -5,6 +5,7 @@
 {% block subcontent %}
 <div class="container-fluid px-xl-5">
     <section class="py-5">
+        {% if user %}
         <div class="row justify-content-md-center">
             <div class="col-lg-8 mb-5">
                 <div class="card">
@@ -113,6 +114,7 @@
             </div>
         </div>
         <div class="row justify-content-center">
+            {% if user.id == current_user.id%}
             <div class="row col-lg-8 mb-5 p-0">
                 <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
                     <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
@@ -148,11 +150,38 @@
                     </div>
                 </div>
             </div>
+            {% else %}
+            <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                <div class="text-center">
+                    <p>Der Bereich ist <u>nur für Freunde</u> sichtbar.<br>Du bist noch nicht mit <a
+                            href="/profile?id={{user.id}}">{{user.firstName}}</a> befreundet!</p>
+                    <button type="button" id="addFriend" class="btn btn-primary shadow px-5"
+                        disabled>Freundschaftsanfrage senden</button>
+                </div>
+            </div>
+            {% endif %}
         </div>
+        {% else %}
+        <div class="row justify-content-md-center">
+            <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                <div class="text-center">
+                    <h1>Nichts gefunden :(</h1>
+                    <p>Der gesuchte Nutzer existiert nicht!</p>
+                    <br>
+                    <button type="button" id="backBtn" class="btn btn-primary shadow px-5">Zurück</button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </section>
 </div>
 {% endblock %}
 
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/bmi.js')}}"></script>
+<script>
+    document.getElementById("backBtn").addEventListener("click", function () {
+        history.go(-1);
+    });
+</script>
 {% endblock %}
