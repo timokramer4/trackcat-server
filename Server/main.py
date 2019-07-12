@@ -298,8 +298,6 @@ def getUserFromDB(id):
     return jsonUser
 
 # Get user profile image
-
-
 def getUserWithImageFromDB(id):
     jsonUser = getUserFromDB(id)
 
@@ -1172,7 +1170,63 @@ def uploadTrackAPI():
         thread = Thread(target = saveTrackThread, args = (jsonTrack,))
         thread.start()
 
+    
+        # jsonTrack = json.loads(jsonString)
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        print('INSERT INTO '+app.config['DB_TABLE_RECORDS'] +
+            ' ('
+            + app.config['DB_RECORD_NAME'] + ','
+            + app.config['DB_RECORD_TIME'] + ','
+            + app.config['DB_RECORD_DATE'] + ','
+            + app.config['DB_RECORD_TYPE'] + ','
+            + app.config['DB_RECORD_RIDETIME'] + ','
+            + app.config['DB_RECORD_DISTANCE'] + ','
+            + app.config['DB_RECORD_TIMESTAMP'] + ','
+            + app.config['DB_RECORD_USERS_ID']+') VALUES ("'
+            + jsonTrack['name'] + '", '
+            + str(jsonTrack['time']) + ', '
+            + str(jsonTrack['date']) + ', '
+            + str(jsonTrack['type']) + ', '
+            + str(jsonTrack['rideTime']) + ', '
+            + str(jsonTrack['distance']) + ', '
+            + str(jsonTrack['timeStamp']) + ', '
+            + str(jsonTrack['userId']) + ');')
+
+
+        sql = ('INSERT INTO ' + app.config['DB_TABLE_RECORDS'] + ' (' 
+            + app.config['DB_RECORD_NAME'] + ','
+            + app.config['DB_RECORD_TIME'] + ','
+            + app.config['DB_RECORD_DATE'] + ','
+            + app.config['DB_RECORD_TYPE'] + ','
+            + app.config['DB_RECORD_RIDETIME'] + ','
+            + app.config['DB_RECORD_DISTANCE'] + ','
+            + app.config['DB_RECORD_TIMESTAMP'] + ','
+            + app.config['DB_RECORD_USERS_ID'] + ','
+            + app.config['DB_RECORD_LOCATION_DATA'] + ') VALUES ("'
+            + jsonTrack['name'] + '", '
+            + str(jsonTrack['time']) + ', '
+            + str(jsonTrack['date']) + ', '
+            + str(jsonTrack['type']) + ', '
+            + str(jsonTrack['rideTime']) + ', '
+            + str(jsonTrack['distance']) + ', '
+            + str(jsonTrack['timeStamp']) + ', '
+            + str(jsonTrack['userId']) + ', %s);')
+
+      
+
+        cursor.execute(sql, (str(json.dumps(jsonTrack['locations'])),)) 
+
+        conn.commit()
+
+        conn.close()
+
+       
         jsonSuccess['success'] = 0
+        jsonSuccess['record'] = getSingleRecordByID(jsonTrack['userId'], cursor.lastrowid)
+        cursor.close()
         pass
     except Exception as identifier:
         jsonSuccess['success'] = 1
