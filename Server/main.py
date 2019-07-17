@@ -273,8 +273,7 @@ def getUserFromDB(id):
     cursor.execute('SELECT ' + params +
                    ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = ' + str(id) + ';')
     result = cursor.fetchone()
-    cursor.close()
-    conn.close()
+    
 
     jsonUser = {}
     jsonUser['id'] = result[0]
@@ -294,6 +293,24 @@ def getUserFromDB(id):
     jsonUser['dateOfRegistration'] = result[11]
     jsonUser['lastLogin'] = result[12]
     jsonUser['timeStamp'] = result[13]
+
+    # not saved statistics total ridetime amout of records and total distance
+    cursor.execute("SELECT distance, rideTime FROM records WHERE users_id = " + str(result[0]) + ";")
+
+    result = cursor.fetchall()
+
+    totDist = 0
+    totTime = 0
+    for record in result:
+        totDist += record[0]
+        totTime += record[1]
+
+    jsonUser['totalDistance'] = totDist
+    jsonUser['totalTime'] = totTime
+    jsonUser['amountRecords'] = len(result)
+
+    cursor.close()
+    conn.close()
 
     return jsonUser
 
@@ -548,10 +565,10 @@ def getSingleRecordByID(userId, recordId):
     jsonRecord['timestamp'] = res[7]
 
     jsonRecordData = {}
-    jsonRecordData['record'] = jsonRecord
-    jsonRecordData['locations'] = json.loads(res[8]) #getLocationsByID(userId, recordId) switch from locations to json in db
+    jsonRecordData['record'] = jsonRecord #TODO remove
+    jsonRecord['locations'] = json.loads(res[8]) #getLocationsByID(userId, recordId) switch from locations to json in db
 
-    return jsonRecordData
+    return jsonRecord
 
 # Get all locations from user (and from specific route)
 def getLocationsByID(userId, recordId):
