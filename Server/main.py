@@ -112,6 +112,9 @@ class User(UserMixin):
 ###########################
 
 
+
+
+
 ###########################
 ###      Functions      ###
 ###########################
@@ -295,7 +298,7 @@ def getUserFromDB(id):
     jsonUser['timeStamp'] = result[13]
 
     # not saved statistics total ridetime amout of records and total distance
-    cursor.execute("SELECT distance, rideTime FROM records WHERE users_id = " + str(result[0]) + ";")
+    cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + ", " + app.config['DB_RECORD_RIDETIME'] + " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(result[0]) + ";")
 
     result = cursor.fetchall()
 
@@ -481,7 +484,7 @@ def deleteUserById(id):
     except Exception as identifier:
         return 1
 
-# Update user informations in database
+# Update record informations in database
 def updateRecordDB(recordId, newName, timestamp):
     try:
         conn = mysql.connect()
@@ -541,7 +544,7 @@ def getRecordsByID(userId, page):
     return jsonRecords
 
 # Get single record
-def getSingleRecordByID(userId, recordId):
+def getSingleRecordByID(recordId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
@@ -564,8 +567,8 @@ def getSingleRecordByID(userId, recordId):
     jsonRecord['distance'] = res[6]
     jsonRecord['timestamp'] = res[7]
 
-    jsonRecordData = {}
-    jsonRecordData['record'] = jsonRecord #TODO remove
+    #jsonRecordData = {}
+    #jsonRecordData['record'] = jsonRecord #TODO remove
     jsonRecord['locations'] = json.loads(res[8]) #getLocationsByID(userId, recordId) switch from locations to json in db
 
     return jsonRecord
@@ -688,7 +691,7 @@ def recordsPage():
 def singleRecordPage():
     if current_user.is_authenticated:
         recordId = request.args.get('id')
-        recordData = getSingleRecordByID(current_user.id, recordId)
+        recordData = getSingleRecordByID(recordId)
         alertType = request.args.get('alert')
         return render_template("single-record.html", user=current_user, recordData=recordData, alert=alertType, back="/records")
     else:
@@ -930,13 +933,13 @@ def registerAPI():
 
     return json.dumps(jsonObj)
 
-# Get all userdata from user with email
+# Get all userdata with image by id
 @app.route("/getUserByIdAPI", methods=['POST'])
 @requires_authorization
 def getUserByIdAPI():
     return json.dumps(getUserWithImageFromDB(request.json['id']))
 
-# Get all userdata from user with email
+# Get all Records by userId and Page
 @app.route("/getRecordsByIdAPI", methods=['POST'])
 @requires_authorization
 def getRecordsByIdAPI():
@@ -1190,31 +1193,8 @@ def uploadTrackAPI():
         thread = Thread(target = saveTrackThread, args = (jsonTrack,))
         thread.start()
 
-    
-        # jsonTrack = json.loads(jsonString)
-
         conn = mysql.connect()
         cursor = conn.cursor()
-
-        print('INSERT INTO '+app.config['DB_TABLE_RECORDS'] +
-            ' ('
-            + app.config['DB_RECORD_NAME'] + ','
-            + app.config['DB_RECORD_TIME'] + ','
-            + app.config['DB_RECORD_DATE'] + ','
-            + app.config['DB_RECORD_TYPE'] + ','
-            + app.config['DB_RECORD_RIDETIME'] + ','
-            + app.config['DB_RECORD_DISTANCE'] + ','
-            + app.config['DB_RECORD_TIMESTAMP'] + ','
-            + app.config['DB_RECORD_USERS_ID']+') VALUES ("'
-            + jsonTrack['name'] + '", '
-            + str(jsonTrack['time']) + ', '
-            + str(jsonTrack['date']) + ', '
-            + str(jsonTrack['type']) + ', '
-            + str(jsonTrack['rideTime']) + ', '
-            + str(jsonTrack['distance']) + ', '
-            + str(jsonTrack['timeStamp']) + ', '
-            + str(jsonTrack['userId']) + ');')
-
 
         sql = ('INSERT INTO ' + app.config['DB_TABLE_RECORDS'] + ' (' 
             + app.config['DB_RECORD_NAME'] + ','
@@ -1235,8 +1215,6 @@ def uploadTrackAPI():
             + str(jsonTrack['timeStamp']) + ', '
             + str(jsonTrack['userId']) + ', %s);')
 
-      
-
         cursor.execute(sql, (str(json.dumps(jsonTrack['locations'])),)) 
 
         conn.commit()
@@ -1245,7 +1223,7 @@ def uploadTrackAPI():
 
        
         jsonSuccess['success'] = 0
-        jsonSuccess['record'] = getSingleRecordByID(jsonTrack['userId'], cursor.lastrowid)
+        jsonSuccess['record'] = getSingleRecordByID(cursor.lastrowid)
         cursor.close()
         pass
     except Exception as identifier:
@@ -1253,6 +1231,80 @@ def uploadTrackAPI():
         pass
         
     return json.dumps(jsonSuccess)
+
+
+@app.route("/synchronizeRecordsAPI", methods=['POST'])
+@requires_authorization
+def synchronizeRecordsAPI():
+
+    jarr = request.json
+
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    ids = []
+
+    janswer = {}
+    janswer['missingId'] = []
+    janswer['onServer'] = []
+    janswer['newerOnServer'] = []
+
+    for jsn in jarr:
+        ids.append(jsn['id'])
+
+        cursor.execute('SELECT ' + app.config['DB_RECORD_TIMESTAMP'] + ", " + app.config['DB_RECORD_NAME'] +
+                   ' FROM '+app.config['DB_TABLE_RECORDS'] + ' WHERE '+app.config['DB_RECORD_ID']+' = "' + jsn['id'] + '";')
+        result = cursor.fetchone()
+
+        timeStamp = int(jsn['timeStamp'])
+
+        if result == None:
+            # record not in Server DB
+            janswer['missingId'].append(jsn['id'])
+        elif result[0] < timeStamp:
+            # update Recordname
+            sql = 'UPDATE ' + app.config['DB_TABLE_RECORDS'] + ' SET  ' + app.config['DB_RECORD_NAME'] + " = %s;"
+            cursor.execute(sql, (jsn['name'],))
+            conn.commit()
+        elif result[0] > timeStamp:
+            jnewName = {}
+            jnewName['id'] = jsn['id']
+            jnewName['timeStamp'] = result[0]
+            jnewName['name'] = result[1]
+
+            janswer['newerOnServer'].append(jnewName)
+            pass
+
+    try:
+        result = None
+        if len(ids) > 0:
+            placeholders = ', '.join(['%s']*len(ids))  # "%s, %s, %s, ... %s"
+
+            sql = "SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE " + app.config['DB_RECORD_ID'] + " NOT IN ({});".format(placeholders)
+
+            cursor.execute(sql, tuple(ids))
+
+            result = cursor.fetchall()
+
+        else:
+            sql = "SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + ";"
+
+            cursor.execute(sql)
+
+            result = cursor.fetchall()
+
+        if result != None:
+            for idres in result:
+                janswer['onServer'].append(getSingleRecordByID(idres[0]))
+            # append records to array
+        pass
+    except Exception as identifier:
+        print(identifier)
+        pass
+
+
+    return json.dumps(janswer)
 
 
 ###########################
