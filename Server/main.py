@@ -963,8 +963,11 @@ def updateUserAPI():
 
     jsonSuccess = {}
 
+    auth = request.authorization
+
+    # try email from json, if not possible get from auth
     try:
-        email = j['email']
+        email = auth.username        
         pass
     except Exception as identifier:
         email = None
