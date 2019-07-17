@@ -440,6 +440,20 @@ def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
         return False
         pass
 
+
+def getUserId(email):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    sql = 'SELECT ' + app.config['DB_USERS_ID'] + " FROM " + app.config['DB_TABLE_USERS'] + " WHERE " + app.config['DB_USERS_EMAIL'] + " = " + email + ";"
+
+    cursor.execute(sql)
+    
+    result = cursor.fetchone()
+
+    return result[0]
+
+
 # Change user password in database
 def changeUserPasswordDB(email, password, newPw, timeStamp):
     result = 0
@@ -1303,8 +1317,37 @@ def synchronizeRecordsAPI():
         print(identifier)
         pass
 
+    cursor.close()
+    conn.close()
 
     return json.dumps(janswer)
+
+
+
+@app.route("/deleteRecordAPI", methods=['POST'])
+@requires_authorization
+def deleteRecordAPI():
+    jrequest = request.json
+
+    jsonAnswer = {}
+    try:
+        auth = request.authorization
+        id = getUserId(auth.username)
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        sql = 'DELETE FROM ' + app.config['DB_TABLE_RECORDS'] + " WHERE " + app.config['DB_RECORD_ID'] + " = " + jrequest['recordId'] + " AND " + app.config['DB_RECORD_USERS_ID'] +" = " + id + ";"
+
+        cursor.execute(sql)
+        conn.commit()
+        jsonAnswer['success'] = 0
+        pass
+    except Exception as identifier:
+        jsonAnswer['success'] = 1        
+        pass
+
+    return json.dumps(jsonAnswer)
 
 
 ###########################
