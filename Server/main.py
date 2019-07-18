@@ -83,6 +83,9 @@ app.config['DB_LOCATION_SPEED'] = "speed"
 app.config['DB_LOCATION_RECORD_ID'] = "record_id"
 
 
+# Android
+app.config['ANDROID_LOCATION_RECORD_ID'] = "recordId"
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -1239,6 +1242,9 @@ def uploadTrackAPI():
             + str(jsonTrack['distance']) + ', '
             + str(jsonTrack['timeStamp']) + ', '
             + str(jsonTrack['userId']) + ', %s);')
+
+        for loc in jsonTrack['locations']:
+            del loc[app.config['ANDROID_LOCATION_RECORD_ID']]
 
         cursor.execute(sql, (str(json.dumps(jsonTrack['locations'])),)) 
 
