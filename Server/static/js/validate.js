@@ -20,7 +20,7 @@ function initializeValidation(formName) {
 function validate(allInputs) {
     var emailPattern = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     var passwordPattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/;
-    var namePattern = /^[A-Z](((\-|\s)[A-ZÄÖÜ])?[a-zäöüß]*)*$/;
+    var namePattern = /^[A-Z](((\-|\s)([A-ZÄÖÜ]|[a-zäöü]))?[a-zäöüß]*)*$/;
     var datePattern = /^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/;
 
     var result = true;
