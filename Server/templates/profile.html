@@ -5,6 +5,7 @@
 {% block subcontent %}
 <div class="container-fluid px-xl-5">
     <section class="py-5">
+        {% if user %}
         <div class="row justify-content-md-center">
             <div class="col-lg-8 mb-5">
                 <div class="card">
@@ -14,13 +15,15 @@
                     <div class="card-body">
                         <div class="row align-items-center flex-row">
                             <div class="col-lg-4 text-center mb-4">
-                                <img src="/image?userID={{user.id}}"
-                                    width="150px" height="150px !important" class="img-fluid rounded-circle shadow">
+                                <img src="/image?userID={{user.id}}" width="150px" height="150px !important"
+                                    class="img-fluid rounded-circle shadow">
                             </div>
                             <div class="col-lg-8">
                                 <h2 class="mb-0 d-flex align-items-center">
                                     <span>{{user.firstName}} {{user.lastName}}</span>
                                 </h2>
+                                <small class="text-muted" id="settings_account_email">{{user.email}}</small>
+                                <hr>
                                 <span class="text-muted text-uppercase small"><span
                                         class="dot bg-green d-inline-block mr-2"></span> Online</span>
                             </div>
@@ -65,6 +68,50 @@
                                         class="fas fa-mars"></i>{% endif %}</h5>
                             </div>
                         </div>
+                        {% if user.id == current_user.id%}
+                        <div
+                            class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
+                            <div class="left d-flex align-items-center">
+                                <div class="text">
+                                    <h6 class="mb-0 d-flex align-items-center"><span><i
+                                                class="fas fa-long-arrow-alt-up"></i>&nbsp;&nbsp;Größe</span></h6>
+                                </div>
+                            </div>
+                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
+                                <h5><span id="usr_size">{{user.size}}</span> cm</h5>
+                            </div>
+                        </div>
+                        <div
+                            class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
+                            <div class="left d-flex align-items-center">
+                                <div class="text">
+                                    <h6 class="mb-0 d-flex align-items-center"><span><i
+                                                class="fas fa-weight"></i>&nbsp;&nbsp;Gewicht</span></h6>
+                                </div>
+                            </div>
+                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
+                                <h5><span id="usr_weight">{{user.weight}}</span> kg</h5>
+                            </div>
+                        </div>
+                        <div
+                            class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
+                            <div class="left d-flex align-items-center">
+                                <div class="text">
+                                    <h6 class="mb-0 d-flex align-items-center"><span><i
+                                                class="fas fa-weight"></i>&nbsp;&nbsp;BMI</span></h6>
+                                </div>
+                            </div>
+                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
+                                <h5>
+                                    <script>
+                                        var size = parseFloat(document.getElementById("usr_size").innerText);
+                                        var weight = parseFloat(document.getElementById("usr_weight").innerText);
+                                        document.write(Math.round(calculateBmi(size, weight) * 100) / 100);
+                                    </script>
+                                </h5>
+                            </div>
+                        </div>
+                        {% endif %}
                         <div
                             class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
                             <div class="left d-flex align-items-center">
@@ -85,6 +132,7 @@
             </div>
         </div>
         <div class="row justify-content-center">
+            {% if user.id == current_user.id%}
             <div class="row col-lg-8 mb-5 p-0">
                 <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
                     <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
@@ -120,7 +168,39 @@
                     </div>
                 </div>
             </div>
+            {% else %}
+            <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                <div class="text-center">
+                    <p>Der Bereich ist <u>nur für Freunde</u> sichtbar.<br>Du bist noch nicht mit <a
+                            href="/profile?id={{user.id}}">{{user.firstName}}</a> befreundet!</p>
+                    <button type="button" id="addFriend" class="btn btn-primary shadow px-5"
+                        disabled>Freundschaftsanfrage senden</button>
+                </div>
+            </div>
+            {% endif %}
         </div>
+        {% else %}
+        <div class="row justify-content-md-center">
+            <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                <div class="text-center">
+                    <h1>Nichts gefunden :(</h1>
+                    <p>Der gesuchte Nutzer existiert nicht!</p>
+                    <br>
+                    <button type="button" id="backBtn" class="btn btn-primary shadow px-5">Zurück</button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </section>
 </div>
+{% endblock %}
+
+{% block customScripts %}
+<script>
+    if (document.getElementById("backBtn")) {
+        document.getElementById("backBtn").addEventListener("click", function () {
+            history.go(-1);
+        });
+    }
+</script>
 {% endblock %}

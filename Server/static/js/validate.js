@@ -83,6 +83,15 @@ function validate(allInputs) {
                         setHint(item, true, "Der eingegebene Name entspricht keinem gültigen Format!");
                         result = false;
                     }
+                } else if (item.type.toLocaleLowerCase() == "number") {
+                    if (parseFloat(item.value) >= item.min && parseFloat(item.value) <= parseFloat(item.max)) {
+                        markField(item, true);
+                        setHint(item, false);
+                    } else {
+                        markField(item, false);
+                        setHint(item, true, "Der eingegebene Wert ist nicht zulässig!");
+                        result = false;
+                    }
                 } else if (item.type.toLocaleLowerCase() == "date") {
                     var unixToday = new Date().getTime() / 1000;
                     var unixSelected = new Date(item.value).getTime() / 1000;
@@ -94,7 +103,6 @@ function validate(allInputs) {
                         } else {
                             markField(item, true);
                             setHint(item, false);
-                            result = true;
                         }
                     } else {
                         markField(item, false);
@@ -114,7 +122,7 @@ function validate(allInputs) {
 
                     /* Check all radio boxes */
                     var checkedRadio = false;
-                    for (var j = 0; j < radios.length; j++) {
+                    for (var j = 0; j < radios.length && !checkedRadio; j++) {
                         var radio = radios[j];
 
                         if (radio.checked == true) {
@@ -139,9 +147,9 @@ function validate(allInputs) {
                 setHint(item, false);
                 result = false;
             }
-
         }
     }
+    console.log(result);
     return result;
 }
 
@@ -168,15 +176,18 @@ function markField(field, value) {
 }
 
 /* Set hint message if invalid input */
-function setHint(inputField, show, msg) {
-    var hintName = "hint_" + inputField.id;
+function setHint(field, show, msg) {
+    var hintName = "hint_" + field.id;
+    if (field.parentNode.childElementCount > 1) {
+        field = field.parentNode;
+    }
     if (show) {
         var hint = document.createElement("small");
         hint.id = hintName;
         hint.className = "form-text text-muted ml-3 hint";
         hint.innerText = msg;
-        if (document.getElementById(hintName) == null) {
-            inputField.parentNode.appendChild(hint);
+        if (document.getElementById(hint.id) == null) {
+            field.parentNode.appendChild(hint);
         }
     } else {
         if (document.getElementById(hintName) != null) {
