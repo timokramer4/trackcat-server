@@ -72,6 +72,7 @@ app.config['DB_RECORD_DISTANCE'] = "distance"
 app.config['DB_RECORD_TIMESTAMP'] = "timeStamp"
 app.config['DB_RECORD_USERS_ID'] = "users_id"
 app.config['DB_RECORD_LOCATION_DATA'] = "locations"
+app.config['DB_RECORD_IS_DELETED'] = "isDeleted"
 
 # COLUMN-NAMES: Location
 app.config['DB_LOCATION_LATITUDE'] = "latitude"
@@ -445,12 +446,14 @@ def getUserId(email):
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    sql = 'SELECT ' + app.config['DB_USERS_ID'] + " FROM " + app.config['DB_TABLE_USERS'] + " WHERE " + app.config['DB_USERS_EMAIL'] + " = " + email + ";"
+    sql = 'SELECT ' + app.config['DB_USERS_ID'] + " FROM " + app.config['DB_TABLE_USERS'] + " WHERE " + app.config['DB_USERS_EMAIL'] + " = %s;"
 
-    cursor.execute(sql)
+    cursor.execute(sql, (email,))
     
     result = cursor.fetchone()
 
+    cursor.close()
+    conn.close()
     return result[0]
 
 
@@ -533,7 +536,7 @@ def getRecordsByID(userId, page):
         limitter = ''
 
     params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP'] + ', ' + app.config['DB_RECORD_LOCATION_DATA']
-    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId) + limitter + ';')
+    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId) + limitter + " AND " + app.config['DB_RECORD_IS_DELETED'] + "= 0;")
     result = cursor.fetchall()
    
     cursor.close()
@@ -563,7 +566,7 @@ def getSingleRecordByID(recordId):
     cursor = conn.cursor()
 
     params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP'] + ', ' + app.config['DB_RECORD_LOCATION_DATA']
-    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_ID'] + ' = ' + str(recordId) + ';')
+    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_ID'] + ' = ' + str(recordId) + ' WHERE ' + app.config['DB_RECORD_IS_DELETED'] + ' = 0;')
     result = cursor.fetchall()
    
     cursor.close()
@@ -1263,6 +1266,7 @@ def synchronizeRecordsAPI():
     janswer['missingId'] = []
     janswer['onServer'] = []
     janswer['newerOnServer'] = []
+    janswer['deletedOnServer'] = []
 
     for jsn in jarr:
         ids.append(jsn['id'])
@@ -1295,14 +1299,14 @@ def synchronizeRecordsAPI():
         if len(ids) > 0:
             placeholders = ', '.join(['%s']*len(ids))  # "%s, %s, %s, ... %s"
 
-            sql = "SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE " + app.config['DB_RECORD_ID'] + " NOT IN ({});".format(placeholders)
+            sql = "SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE " + app.config['DB_RECORD_ID'] + " NOT IN ({}) AND " + app.config['DB_RECORD_IS_DELETED']+ " = 0;".format(placeholders)
 
             cursor.execute(sql, tuple(ids))
 
             result = cursor.fetchall()
 
         else:
-            sql = "SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + ";"
+            sql = "SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE " + app.config['DB_RECORD_IS_DELETED'] + " = 0;"
 
             cursor.execute(sql)
 
@@ -1317,6 +1321,27 @@ def synchronizeRecordsAPI():
         print(identifier)
         pass
 
+
+    try:
+        if len(ids) > 0:
+            placeholders = ', '.join(['%s']*len(ids))  # "%s, %s, %s, ... %s"
+            sql = "SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE " + app.config['DB_RECORD_IS_DELETED'] + " = 1 AND " + app.config['DB_RECORD_ID'] + " IN ({});".format(placeholders)
+
+            cursor.execute(sql, tuple(ids))
+
+            result = cursor.fetchall()
+
+            for res in result:
+                jid={}
+                jid['id'] = res[0]
+                janswer['deletedOnServer'].append(jid)
+
+        pass
+    except Exception as identifier:
+        print(identifier)
+        pass
+        
+
     cursor.close()
     conn.close()
 
@@ -1330,14 +1355,13 @@ def deleteRecordAPI():
     jrequest = request.json
 
     jsonAnswer = {}
+    conn = mysql.connect()
+    cursor = conn.cursor()
     try:
         auth = request.authorization
-        id = getUserId(auth.username)
+        usrid = getUserId(auth.username)
 
-        conn = mysql.connect()
-        cursor = conn.cursor()
-
-        sql = 'DELETE FROM ' + app.config['DB_TABLE_RECORDS'] + " WHERE " + app.config['DB_RECORD_ID'] + " = " + jrequest['recordId'] + " AND " + app.config['DB_RECORD_USERS_ID'] +" = " + id + ";"
+        sql = 'UPDATE ' + app.config['DB_TABLE_RECORDS'] + " SET " + app.config['DB_RECORD_IS_DELETED'] + " = 1, " + app.config['DB_RECORD_LOCATION_DATA'] + " = NULL " + " WHERE " + app.config['DB_RECORD_ID'] + " = " + jrequest['recordId'] + " AND " + app.config['DB_RECORD_USERS_ID'] +" = " + str(usrid) + ";"
 
         cursor.execute(sql)
         conn.commit()
@@ -1347,6 +1371,8 @@ def deleteRecordAPI():
         jsonAnswer['success'] = 1        
         pass
 
+    cursor.close()
+    conn.close()
     return json.dumps(jsonAnswer)
 
 
