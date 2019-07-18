@@ -25,7 +25,8 @@
             <div class="col-lg-8 mb-5">
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="h6 text-uppercase mb-0">Aufzeichnung: "<span class="text-red">{{recordData.record.name}}</span>"</h2>
+                        <h2 class="h6 text-uppercase mb-0">Aufzeichnung: "<span
+                                class="text-red">{{recordData.name}}</span>"</h2>
                     </div>
                     <div class="card-body" id="map"
                         style="height:500px; width:100%; border-radius: 0em 0em 1.5em 1.5em"></div>
@@ -40,7 +41,7 @@
                             <div class="dot mr-3 bg-red"></div>
                             <div class="text">
                                 <h6 class="mb-0">Gesamtzeit</h6><span
-                                    class="text-gray">{{(recordData.record.time)|formatSeconds}}</span>
+                                    class="text-gray">{{(recordData.time)|formatSeconds}}</span>
                             </div>
                         </div>
                         <div class="icon text-white bg-red"><i class="fas fa-hourglass-half"></i></div>
@@ -52,7 +53,7 @@
                             <div class="dot mr-3 bg-green"></div>
                             <div class="text">
                                 <h6 class="mb-0">Trainingszeit</h6><span
-                                    class="text-gray">{{(recordData.record.ridetime)|formatSeconds}}</span>
+                                    class="text-gray">{{(recordData.ridetime)|formatSeconds}}</span>
                             </div>
                         </div>
                         <div class="icon text-white bg-green"><i class="fas fa-stopwatch"></i></div>
@@ -64,12 +65,48 @@
                             <div class="dot mr-3 bg-blue"></div>
                             <div class="text">
                                 <h6 class="mb-0">Strecke</h6><span
-                                    class="text-gray">{% if recordData.record.distance / 1000 >= 1 %}{{'%0.2f'| format(recordData.record.distance/1000|float)}}
-                                    km{% else %}{{'%0.2f'| format(recordData.record.distance|float)}}
+                                    class="text-gray">{% if recordData.distance / 1000 >= 1 %}{{'%0.2f'| format(recordData.distance/1000|float)}}
+                                    km{% else %}{{'%0.2f'| format(recordData.distance|float)}}
                                     m{% endif %}</span>
                             </div>
                         </div>
                         <div class="icon text-white bg-blue"><i class="fas fa-fire"></i></div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                    <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
+                        <div class="flex-grow-1 d-flex align-items-center">
+                            <div class="dot mr-3 bg-red"></div>
+                            <div class="text">
+                                <h6 class="mb-0">Höhenmeter</h6>
+                                <span class="text-gray"><i class="fas fa-arrow-up"></i>&nbsp;&nbsp;<span id="altPos"></span> m&nbsp;&nbsp;|&nbsp;&nbsp;<i class="fas fa-arrow-down"></i>&nbsp;&nbsp;<span id="altNeg"></span> m</span>
+                            </div>
+                        </div>
+                        <div class="icon text-white bg-red"><i class="fas fa-hiking"></i></div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                    <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
+                        <div class="flex-grow-1 d-flex align-items-center">
+                            <div class="dot mr-3 bg-green"></div>
+                            <div class="text">
+                                <h6 class="mb-0">Maximalgeschw.</h6>
+                                <span class="text-gray"><span id="maxSpeed"></span> km/h</span>
+                            </div>
+                        </div>
+                        <div class="icon text-white bg-green"><i class="fas fa-tachometer-alt"></i></div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                    <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
+                        <div class="flex-grow-1 d-flex align-items-center">
+                            <div class="dot mr-3 bg-blue"></div>
+                            <div class="text">
+                                <h6 class="mb-0">Ø-Geschw.</h6>
+                                <span class="text-gray">{{((recordData.distance/1000.0)/(recordData.ridetime/3600.0))|round(2)}} km/h</span>
+                            </div>
+                        </div>
+                        <div class="icon text-white bg-blue"><i class="fas fa-chart-area"></i></div>
                     </div>
                 </div>
             </div>
@@ -102,24 +139,44 @@
     /* Create a red polyline from an array of LatLng points */
     var locations = JSON.parse('{{recordData.locations|tojson|safe}}');
     var latlngs = [];
+    var altPos = 0, altNeg = 0, maxSpeed = 0, avgSpeed = 0;
+
     for (var i = 0; i < locations.length; i++) {
+        var loc = locations[i];
         if (i == 0) {
-            L.marker([locations[i].lat, locations[i].lng], { icon: trackcat })
+            L.marker([loc.latitude, loc.longitude], { icon: trackcat })
                 .addTo(map)
-                .bindPopup('<center><h4>Start</h4>Hier hat die Aufzeichnung begonnen</center>')
+                .bindPopup('<center><h4>Start</h4>Hier hat die Aufzeichnung begonnen<br>{{recordData.date|formatDate}}</center>')
                 .openPopup();
+            maxSpeed = loc.speed;
         }
 
-        var arr = [locations[i].lat, locations[i].lng]
+        var arr = [loc.latitude, loc.longitude]
         latlngs.push(arr);
 
+        if (i > 0) {
+            if (loc.altitude > locations[i-1].altitude) {
+                altPos += loc.altitude;
+            } else {
+                altNeg += loc.altitude;
+            }
+
+            if(Math.floor(loc.speed*3.6*100)/100 > maxSpeed){
+                maxSpeed = Math.floor(loc.speed*3.6*100)/100;
+            }
+        }
+
         if (i == locations.length - 1) {
-            L.marker([locations[i].lat, locations[i].lng], { icon: trackcat })
+            L.marker([loc.latitude, loc.longitude], { icon: trackcat })
                 .addTo(map)
-                .bindPopup('<center><h4>Ende</h4>Hier wurde die Aufzeichnung beendet</center>')
+                .bindPopup('<center><h4>Ende</h4>Hier wurde die Aufzeichnung beendet<br>{{(recordData.date+recordData.time*1000)|formatDate}}</center>')
                 .openPopup();
         }
     }
+
+    document.getElementById("altPos").textContent = altPos;
+    document.getElementById("altNeg").textContent = altNeg;
+    document.getElementById("maxSpeed").textContent = maxSpeed;
 
     var polyline = L.polyline(latlngs, { color: 'red' }).addTo(map);
     map.fitBounds(polyline.getBounds());
