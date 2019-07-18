@@ -209,11 +209,15 @@ def requires_authorization(f):
 # Create new user in database
 
 
-def registerUserDB(firstName, lastName, email, password, birthday, gender, size, weight):
+def registerUserDB(firstName, lastName, email, password, birthday, gender):
     # 0 = Valid
     # 1 = Creation error
     # 3 = Email already exists
 
+    success = 1
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
     try:
 
         baseUrl = app.config['BASE_URL']+"/verifyEmail?email="+email+"&token="
@@ -221,27 +225,27 @@ def registerUserDB(firstName, lastName, email, password, birthday, gender, size,
         token = generateVerifyToken(
             firstName, lastName, email)
 
-        conn = mysql.connect()
-        cursor = conn.cursor()
 
-        cursor.execute('INSERT INTO '+app.config['DB_TABLE_USERS'] + ' ('+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_PASSWORD']+', '+ app.config['DB_USERS_BIRTHDAY']+', '+ app.config['DB_USERS_GENDER']+', '+ app.config['DB_USERS_SIZE']+', '+ app.config['DB_USERS_WEIGHT']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_TIMESTAMP']+', '+app.config['DB_USERS_VERIFYTOKEN']+') VALUES ("' +
-                       firstName + '", "' + lastName + '", "' + email + '", "' + password + '", "' + birthday + '", "' + gender + '", "' + size + '", "' + weight + '", ' + str(int(time.time())) + ', ' + str(int(time.time())) + ', 0, 1, '+str(int(time.time())) + ',"' + token + '");')
+        cursor.execute('INSERT INTO '+app.config['DB_TABLE_USERS'] + ' ('+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_PASSWORD']+', '+ app.config['DB_USERS_DATEOFBIRTH']+', '+ app.config['DB_USERS_GENDER']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_TIMESTAMP']+', '+app.config['DB_USERS_VERIFYTOKEN']+') VALUES ("' +
+                       firstName + '", "' + lastName + '", "' + email + '", "' + password + '", "' + birthday + '", "' + gender + '", ' + str(int(time.time())) + ', ' + str(int(time.time())) + ', 0, 1, '+str(int(time.time())) + ',"' + token + '");')
 
         conn.commit()
-        cursor.close()
-        conn.close()
 
         sendVmail(email, firstName,  baseUrl + token)
-        return 0
+        success = 0
 
     except Exception as identifier:
         print(identifier)
 
         if(identifier.args[0] == 1062):
             if('eMail_UNIQUE' in identifier.args[1]):
-                return 3
-        return 1
+                success = 3
+        success = 1
     pass
+    cursor.close()
+    conn.close()
+
+    return success
 
 # Generate verify token
 
@@ -298,7 +302,7 @@ def getUserFromDB(id):
     jsonUser['timeStamp'] = result[13]
 
     # not saved statistics total ridetime amout of records and total distance
-    cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + ", " + app.config['DB_RECORD_RIDETIME'] + " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(result[0]) + ";")
+    cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + ", " + app.config['DB_RECORD_RIDETIME'] + " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(result[0]) + " AND " + app.config['DB_RECORD_IS_DELETED'] + " = 0;")
 
     result = cursor.fetchall()
 
@@ -950,7 +954,7 @@ def registerAPI():
 
     jsonObj = {}
     jsonObj['success'] = registerUserDB(
-        jsonRequest['firstName'], jsonRequest['lastName'], jsonRequest['email'], jsonRequest['password'])
+        jsonRequest['firstName'], jsonRequest['lastName'], jsonRequest['email'], jsonRequest['password'],  jsonRequest['dateOfBirth'],  jsonRequest['gender'])
 
     return json.dumps(jsonObj)
 
@@ -1379,6 +1383,77 @@ def deleteRecordAPI():
     conn.close()
     return json.dumps(jsonAnswer)
 
+
+@app.route("/searchFriendsAPI", methods=['POST'])
+@requires_authorization
+def searchFriendsAPI():
+    jrequest = request.json
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    page = int(jrequest['page'])
+    search = jrequest['search']
+
+    jsonArr = []
+
+    try:
+
+        start = page * 10 - 10
+        end = page * 10
+
+        if page > 0:
+            limitter = ' LIMIT ' + str(start) + ', ' + str(end)
+        else:
+            limitter = ''
+
+        auth = request.authorization
+
+        sql = ('SELECT ' + app.config['DB_USERS_ID']
+        + ", " + app.config['DB_USERS_FIRSTNAME'] 
+        + ", " + app.config['DB_USERS_LASTNAME']
+        + ", " + app.config['DB_USERS_IMAGE']
+        + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
+        + " FROM " + app.config['DB_TABLE_USERS'] 
+        + " WHERE UPPER(" + app.config['DB_USERS_FIRSTNAME'] + ") LIKE UPPER('" + search + "%') "
+        + " OR UPPER(" + app.config['DB_USERS_LASTNAME'] + ") LIKE UPPER('" + search + "%') "
+        + " OR UPPER(" + app.config['DB_USERS_EMAIL'] + ") LIKE UPPER('" + search + "%') "
+        + " AND UPPER(" + app.config['DB_USERS_EMAIL'] + ") != UPPER('" + auth.username + "') "
+        + limitter
+         )
+
+        cursor.execute(sql)
+
+        result = cursor.fetchall()
+
+        for res in result:
+            jres = {}
+            jres['firstName'] = res[1]
+            jres['lastName'] = res[2]
+            jres['image'] = res[3]
+            jres['dateOfRegistration'] = res[4]
+
+            cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + " AND " + app.config['DB_RECORD_IS_DELETED'] + " = 0;")
+
+            resultDist = cursor.fetchall()
+
+            totDist = 0
+            for record in resultDist:
+                totDist += record[0]
+
+            jres['totalDistance'] = totDist
+
+            jsonArr.append(jres)
+            
+        pass
+    except Exception as identifier:
+               
+        pass
+
+    cursor.close()
+    conn.close()
+
+    return json.dumps(jsonArr)
 
 ###########################
 ###     Flask start     ###
