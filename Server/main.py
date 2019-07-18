@@ -565,7 +565,7 @@ def getSingleRecordByID(recordId):
     cursor = conn.cursor()
 
     params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP'] + ', ' + app.config['DB_RECORD_LOCATION_DATA']
-    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_ID'] + ' = ' + str(recordId) + ' WHERE ' + app.config['DB_RECORD_IS_DELETED'] + ' = 0;')
+    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_ID'] + ' = ' + str(recordId) + ' AND ' + app.config['DB_RECORD_IS_DELETED'] + ' = 0;')
     result = cursor.fetchall()
    
     cursor.close()
@@ -1303,7 +1303,7 @@ def synchronizeRecordsAPI():
         if len(ids) > 0:
             placeholders = ', '.join(['%s']*len(ids))  # "%s, %s, %s, ... %s"
 
-            sql = "SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE " + app.config['DB_RECORD_ID'] + " NOT IN ({}) AND " + app.config['DB_RECORD_IS_DELETED']+ " = 0;".format(placeholders)
+            sql = "SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE " + app.config['DB_RECORD_IS_DELETED'] + " = 0 AND " + app.config['DB_RECORD_ID'] + " NOT IN ({});".format(placeholders)
 
             cursor.execute(sql, tuple(ids))
 
