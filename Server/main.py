@@ -571,7 +571,7 @@ def getSingleRecordByID(recordId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP'] + ', ' + app.config['DB_RECORD_LOCATION_DATA']
+    params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP'] + ', ' + app.config['DB_RECORD_USERS_ID'] + ', ' + app.config['DB_RECORD_LOCATION_DATA']
     cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_ID'] + ' = ' + str(recordId) + ';')
     result = cursor.fetchall()
    
@@ -589,10 +589,11 @@ def getSingleRecordByID(recordId):
     jsonRecord['ridetime'] = res[5]
     jsonRecord['distance'] = res[6]
     jsonRecord['timestamp'] = res[7]
+    jsonRecord['owner'] = res[8]
 
     #jsonRecordData = {}
     #jsonRecordData['record'] = jsonRecord #TODO remove
-    jsonRecord['locations'] = json.loads(res[8]) #getLocationsByID(userId, recordId) switch from locations to json in db
+    jsonRecord['locations'] = json.loads(res[9]) #getLocationsByID(userId, recordId) switch from locations to json in db
 
     return jsonRecord
 
@@ -719,7 +720,16 @@ def recordsPage():
 def singleRecordPage():
     if current_user.is_authenticated:
         recordId = request.args.get('id')
-        recordData = getSingleRecordByID(recordId)
+
+        try:
+            recordData = getSingleRecordByID(recordId)
+            if recordData['owner'] != current_user.id:
+                recordData = None
+            pass
+        except Exception as identifier:
+            recordData = None
+            pass
+
         alertType = request.args.get('alert')
         return render_template("single-record.html", user=current_user, recordData=recordData, alert=alertType, back="/records")
     else:

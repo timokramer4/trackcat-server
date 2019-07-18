@@ -65,6 +65,13 @@
     <script src="{{ url_for('static', filename='vendor/chart.js/Chart.min.js')}}"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
     <script src="{{ url_for('static', filename='js/front.js')}}"></script>
+    <script>
+        if (document.getElementById("backBtn")) {
+            document.getElementById("backBtn").addEventListener("click", function () {
+                history.go(-1);
+            });
+        }
+    </script>
     {% block customScripts %}
     {% endblock %}
 </body>

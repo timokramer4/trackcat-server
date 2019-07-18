@@ -194,13 +194,3 @@
     </section>
 </div>
 {% endblock %}
-
-{% block customScripts %}
-<script>
-    if (document.getElementById("backBtn")) {
-        document.getElementById("backBtn").addEventListener("click", function () {
-            history.go(-1);
-        });
-    }
-</script>
-{% endblock %}
