@@ -1251,10 +1251,10 @@ def uploadTrackAPI():
         conn.commit()
 
         conn.close()
-
-       
+    
         jsonSuccess['success'] = 0
         jsonSuccess['record'] = getSingleRecordByID(cursor.lastrowid)
+        jsonSuccess['oldId'] = jsonTrack['id']
         cursor.close()
         pass
     except Exception as identifier:
