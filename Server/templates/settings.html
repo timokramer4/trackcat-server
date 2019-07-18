@@ -48,7 +48,8 @@
           </button>
         </div>
         <div class="modal-body">
-          Beim Löschen Ihres Accounts verlieren Sie den Zugriff auf samtliche damit verbundene Funktionen. <br></br><b>Sind Sie sich sicher, dass Sie Ihren Account löschen wollen?</b>
+          Beim Löschen Ihres Accounts verlieren Sie den Zugriff auf samtliche damit verbundene Funktionen.
+          <br></br><b>Sind Sie sich sicher, dass Sie Ihren Account löschen wollen?</b>
         </div>
         <div class="modal-footer">
           <form action="deleteAccount" method="POST">
@@ -91,7 +92,7 @@
             <div class="row align-items-center flex-row">
               <div class="col-lg-4 text-center mb-4" id="changeProfileImg">
                 <input type="file" id="newProfileImg" accept="image/*" style="display:none" />
-                <img id="profileImg" src="/image?userEmail={{user.id}}" class="img-fluid rounded-circle shadow">
+                <img id="profileImg" src="/image?userID={{user.id}}" class="img-fluid rounded-circle shadow">
                 <div class="middle">
                   <img id="profileImgIcon" src="https://img.icons8.com/ios/50/000000/unsplash-filled.png" />
                 </div>
@@ -100,10 +101,10 @@
                 <h2 class="mb-0 d-flex align-items-center">
                   <span id="settings_account_name">{{user.firstName}} {{user.lastName}}</span>
                 </h2>
-                <span class="text-muted text-uppercase small"><span id="online_state"
+                <small class="text-muted" id="settings_account_email">{{user.email}}</small>
+                <hr><span class="text-muted text-uppercase small"><span id="online_state"
                     class="dot bg-green d-inline-block mr-2"></span>
                   Online</span>
-                <hr><small class="text-muted" id="settings_account_email">{{user.id}}</small>
               </div>
             </div>
           </div>
@@ -141,7 +142,28 @@
               </div>
               <div class="form-group">
                 <label class="form-control-label text-uppercase">Geburtstag</label>
-                <input type="date" id="birthday" name="birthday" class="form-control" value="{{(user.dateOfBirth*1000)|formatDate('%Y-%m-%d')}}" validate>
+                <input type="date" id="birthday" name="birthday" class="form-control"
+                  value="{{(user.dateOfBirth*1000)|formatDate('%Y-%m-%d')}}" validate>
+              </div>
+              <div class="form-group">
+                <label class="form-control-label text-uppercase">Größe</label>
+                <div class="input-group mb-2">
+                  <input type="number" min="30" max="250" step="0.5" id="size" name="size" class="form-control"
+                    value="{{user.size}}" validate>
+                  <div class="input-group-append">
+                    <div class="input-group-text">cm</div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-control-label text-uppercase">Gewicht</label>
+                <div class="input-group mb-2">
+                  <input type="number" min="30" max="500" step="0.1" id="weight" name="weight" class="form-control"
+                    value="{{user.weight}}" validate>
+                  <div class="input-group-append">
+                    <div class="input-group-text">kg</div>
+                  </div>
+                </div>
               </div>
               <button type="submit" id="editGeneralsBtn" class="btn btn-primary shadow px-5" disabled>Speichern</button>
             </form>

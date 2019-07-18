@@ -209,7 +209,7 @@ def requires_authorization(f):
 # Create new user in database
 
 
-def registerUserDB(firstName, lastName, email, password):
+def registerUserDB(firstName, lastName, email, password, birthday, gender, size, weight):
     # 0 = Valid
     # 1 = Creation error
     # 3 = Email already exists
@@ -224,9 +224,8 @@ def registerUserDB(firstName, lastName, email, password):
         conn = mysql.connect()
         cursor = conn.cursor()
 
-        cursor.execute('INSERT INTO '+app.config['DB_TABLE_USERS'] + ' ('+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_PASSWORD']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_TIMESTAMP']+', '+app.config['DB_USERS_VERIFYTOKEN']+') VALUES ("' +
-                       firstName + '", "' + lastName + '", "' + email + '", "' + password + '", ' + str(int(time.time())) + ', ' +
-                       str(int(time.time())) + ', 0, 1, '+str(int(time.time())) + ',"' + token + '");')
+        cursor.execute('INSERT INTO '+app.config['DB_TABLE_USERS'] + ' ('+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_PASSWORD']+', '+ app.config['DB_USERS_BIRTHDAY']+', '+ app.config['DB_USERS_GENDER']+', '+ app.config['DB_USERS_SIZE']+', '+ app.config['DB_USERS_WEIGHT']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_TIMESTAMP']+', '+app.config['DB_USERS_VERIFYTOKEN']+') VALUES ("' +
+                       firstName + '", "' + lastName + '", "' + email + '", "' + password + '", "' + birthday + '", "' + gender + '", "' + size + '", "' + weight + '", ' + str(int(time.time())) + ', ' + str(int(time.time())) + ', 0, 1, '+str(int(time.time())) + ',"' + token + '");')
 
         conn.commit()
         cursor.close()
@@ -667,7 +666,12 @@ def profilePage():
         userId = request.args.get('id')
         
         if userId:
-            userData = getUserFromDB(userId)
+            try:
+                userData = getUserFromDB(userId)
+                pass
+            except Exception as identifier:
+                userData = None
+                pass
             return render_template("profile.html", user=userData, back="/friends")
         else:
             return render_template("profile.html", user=current_user, back="/dashboard")
@@ -718,7 +722,7 @@ def singleRecordPage():
 @app.route("/friends", methods=["GET"])
 def friendsPage():
     if current_user.is_authenticated:
-        friends = getRecordsByID(current_user.idUser, 1)
+        friends = getRecordsByID(current_user.id, 1)
         alertType = request.args.get('alert')
         return render_template("friends.html", user=current_user, site="friends", friends=friends, alert=alertType)
     else:
@@ -758,7 +762,7 @@ def login():
 def registerUser():
     # Add validation
     success = registerUserDB(
-        request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'])
+        request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'], request.form['birthday'], request.form['genderRadio'], request.form['size'], request.form['weight'])
 
     if success == 0:
         flash('Ihr Konto wurde erfolgreich erstellt. Bitte überprüfen Sie Ihr E-Mail Postfach und bestätigen Sie Ihre Registrierung, '
@@ -777,8 +781,8 @@ def updateUser():
     if current_user.is_authenticated:
         birthday = int(datetime.strptime(
             request.form['birthday'], "%Y-%m-%d").timestamp())
-        success = updateUserDB(current_user.id, None, str(birthday),
-                               request.form['firstName'], request.form['lastName'], request.form['genderRadio'], None, None, None, None, None)
+        success = updateUserDB(current_user.email, None, str(birthday),
+                               request.form['firstName'], request.form['lastName'], request.form['genderRadio'], request.form['size'], request.form['weight'], None, None, None)
 
         if success:
             flash('Profil erflogreich gespeichert.')
