@@ -528,6 +528,22 @@ def updateRecordDB(recordId, newName, timestamp):
         return False
         pass
 
+# Delete user account by id
+def deleteRecordById(id):
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        cursor.execute('DELETE FROM ' + app.config['DB_TABLE_RECORDS'] +
+                       ' WHERE '+app.config['DB_RECORD_ID']+' = "' + str(id) + '";')
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return 0
+    except Exception as identifier:
+        return 1
+
 # Get all record from user (all or by paging)
 def getRecordsByID(userId, page):
     conn = mysql.connect()
@@ -865,6 +881,21 @@ def deleteAccount():
         else:
             flash('Unbekannter Fehler beim Löschen des Accounts!')
             return redirect("/settings?alert=danger")
+    else:
+        return redirect("/login")
+
+# Delete single record
+@app.route("/deleteRecord", methods=['POST'])
+def deleteRecord():
+    if current_user.is_authenticated:
+        success = deleteRecordById(request.form['recordId'])
+
+        if success == 0:
+            flash('Aufzeichnung erfolgreich gelöscht.')
+            return redirect("/records?alert=success")
+        else:
+            flash('Unbekannter Fehler beim Löschen der Aufzeichnung!')
+            return redirect("/records?alert=danger")
     else:
         return redirect("/login")
 
