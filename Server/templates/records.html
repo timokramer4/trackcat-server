@@ -29,6 +29,33 @@
     </div>
 </div>
 
+<!-- Modal window: Confirm delete record -->
+<div id="deleteRecordModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="deleteRecordModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteRecordModalLabel">Aufzeichnung löschen?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Beim Löschen dieser Aufzeichnung gehen sämtliche damit verbundene Daten verloren. Dies bezieht sich auch
+                auf die daraus resultierende Statistik.
+                <br></br><b>Sind Sie sich sicher, dass Sie die Aufzeichnung löschen wollen?</b>
+            </div>
+            <div class="modal-footer">
+                <form action="deleteRecord" method="POST">
+                    <input id="recordId" name="recordId" type="text" style="display: none;">
+                    <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
+                    <button type="submit" class="btn btn-danger">Löschen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container-fluid px-xl-5">
     <section class="py-5">
 
@@ -49,8 +76,7 @@
 
         {% for record in records %}
         <div class="col-lg-12">
-            <a href="/record?id={{record.id}}" id="record"
-                class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
+            <div id="record" class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
                 <div class="row">
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
@@ -69,15 +95,20 @@
                     </div>
                     <div
                         class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
+                        <div id="openRecord" class="icon text-white bg-green mr-1" data-recordId="{{record.id}}"
+                            style="cursor: pointer;"><i class="far fa-eye"></i>
+                        </div>
                         <div id="editRecord" class="icon text-white bg-blue mr-1" data-recordName="{{record.name}}"
-                            data-recordid="{{record.id}}" style="cursor: pointer;" data-toggle="modal"
+                            data-recordId="{{record.id}}" style="cursor: pointer;" data-toggle="modal"
                             data-target="#renameRecordModal">
                             <i class="fas fa-pencil-alt"></i></div>
-                        <div id="removeRecord" class="icon text-white bg-red mr-1"><i class="far fa-trash-alt"></i>
+                        <div id="removeRecord" class="icon text-white bg-red mr-1" data-recordId="{{record.id}}"
+                            style="cursor: pointer;" data-toggle="modal" data-target="#deleteRecordModal"><i
+                                class="far fa-trash-alt"></i>
                         </div>
                     </div>
                 </div>
-            </a>
+            </div>
         </div>
         {% endfor %}
         {% if records|length == 0 %}
@@ -101,9 +132,16 @@
         modal.find('#recordName').val(recordName)
     });
 
-    // $('.icon').click(function (event) {
-    //     event.stopPropagation();
-    //     console.log("lol");
-    // });
+    /* Get current record name for modal */
+    $('#deleteRecordModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        var recordId = button.data('recordid');
+        var modal = $(this)
+        modal.find('#recordId').val(recordId)
+    });
+
+    $('[id=openRecord]').on('click', function(){
+        document.location.href = "/record?id=" + $(this).data('recordid');
+    })
 </script>
 {% endblock %}

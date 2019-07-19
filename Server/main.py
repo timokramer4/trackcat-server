@@ -785,7 +785,7 @@ def singleRecordPage():
         return redirect("/login")
 
 # Show record list
-@app.route("/friends", methods=["GET"])
+@app.route("/community/friends", methods=["GET"])
 def friendsPage():
     if current_user.is_authenticated:
         friends = getRecordsByID(current_user.id, 1)
