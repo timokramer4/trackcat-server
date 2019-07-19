@@ -1551,7 +1551,7 @@ def searchFriend(page, search, usrId):
                     "." + app.config['DB_USERS_ID']
                     + " = " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + " ")
 
-            whereID = " AND " + app.config['DB_USERS_ID'] + " = " + str(usrId) + " "
+            whereID = app.config['DB_USERS_ID'] + " != " + str(usrId) + " AND "
 
         sql = ('SELECT ' + app.config['DB_USERS_ID']
                + ", " + app.config['DB_USERS_FIRSTNAME']
@@ -1560,15 +1560,16 @@ def searchFriend(page, search, usrId):
                + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
                + " FROM " + app.config['DB_TABLE_USERS']
                + join
-               + " WHERE UPPER(" + app.config['DB_USERS_FIRSTNAME'] +
+               + " WHERE " 
+               + whereID
+               + "(UPPER(" + app.config['DB_USERS_FIRSTNAME'] +
                ") LIKE UPPER('" + search + "%') "
                + " OR UPPER(" + app.config['DB_USERS_LASTNAME'] +
                ") LIKE UPPER('" + search + "%') "
                + " OR UPPER(" + app.config['DB_USERS_EMAIL'] +
                ") LIKE UPPER('" + search + "%') "
                + " AND UPPER(" + app.config['DB_USERS_EMAIL'] +
-               ") != UPPER('" + auth.username + "') "
-               + whereID
+               ") != UPPER('" + auth.username + "')) " 
                + limitter
                )
 
