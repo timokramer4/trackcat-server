@@ -15,9 +15,15 @@
         <li class="sidebar-list-item"><a href="records"
                 class="sidebar-link text-muted {% if site == 'records'%}active{% endif %}"><i
                     class="o-survey-1 mr-3 text-gray"></i><span>Records</span></a></li>
-        <li class="sidebar-list-item"><a href="friends"
-                class="sidebar-link text-muted {% if site == 'friends'%}active{% endif %}"><i
-                    class="fas fa-user-friends mr-3 text-gray"></i><span>Freunde</span></a></li>
+        <a href="#" data-toggle="collapse" data-target="#community" aria-expanded="{% if site == 'search' or site == 'friends' or site == 'live' %}true{% else %}false{% endif %}" aria-controls="pages"
+            class="sidebar-link text-muted"><i class="o-wireframe-1 mr-3 text-gray"></i><span>Community</span></a>
+        <div id="community" class="collapse {% if site == 'search' or site == 'friends' or site == 'live' %}show{% endif %}" style="">
+            <ul class="sidebar-menu list-unstyled border-left border-primary border-thick">
+                <li class="sidebar-list-item"><a href="#" class="sidebar-link text-muted pl-lg-5">Suche</a></li>
+                <li class="sidebar-list-item"><a href="friends" class="sidebar-link text-muted pl-lg-5 {% if site == 'friends'%}active{% endif %}">Freunde</a></li>
+                <li class="sidebar-list-item"><a href="#" class="sidebar-link text-muted pl-lg-5">Live</a></li>
+            </ul>
+        </div>
     </ul>
 </div>
 {% endblock %}
