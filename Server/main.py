@@ -1495,11 +1495,18 @@ def deleteRecordAPI():
 def searchFriendsAPI():
     jrequest = request.json
 
-    conn = mysql.connect()
-    cursor = conn.cursor()
 
     page = int(jrequest['page'])
     search = jrequest['search']
+    
+    jsonArr = searchFriend(page, search)
+
+    return json.dumps(jsonArr)
+
+
+def searchFriend(page, search):
+    conn = mysql.connect()
+    cursor = conn.cursor()
 
     jsonArr = []
 
@@ -1565,8 +1572,7 @@ def searchFriendsAPI():
     cursor.close()
     conn.close()
 
-    return json.dumps(jsonArr)
-
+    return jsonArr
 
 @app.route("/requestFriendAPI", methods=['POST'])
 @requires_authorization
@@ -1661,7 +1667,7 @@ def showFriendRequestAPI():
             janswerArr.append(getFriendById(res[0]))
     except Exception as identifier:
         pass
-        
+
     cursor.close()
     conn.close()
 
@@ -1764,6 +1770,55 @@ def showStrangerProfileAPI():
 
     return json.dumps(jres)
 
+
+@app.route("/showFriendProfileAPI", methods=['POST'])
+@requires_authorization
+def showFriendProfileAPI():
+    jrequest = request.json
+
+    auth = request.authorization
+    usrid = getUserId(auth.username)
+
+    friendId = int(jrequest['friendId'])
+    
+    friend = showFriendProfile(friendId, usrid)
+    
+    return json.dumps(friend)
+
+    
+
+def showFriendProfile(friendID, userId):
+    janswer = {}
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    try:
+
+        sql = ("SELECT " + app.config['DB_USERS_HAS_USERS_AF'] + " FROM "
+        + app.config['DB_TABLE_HAS_USERS'] + " WHERE " 
+        + app.config['DB_USERS_HAS_USERS_ASKER'] + " IN (" + str(friendID) + ", " + str(userId) + ")"
+        + " AND " + app.config['DB_USERS_HAS_USERS_ASKED'] + " IN (" 
+        + str(friendID) + ", " + str(userId) + ");")
+
+        cursor.execute(sql)
+
+        result = cursor.fetchone()
+
+        if result != None:
+            janswer = getUserWithImageFromDB(friendID)
+
+            del janswer['password']
+            del janswer['weight']
+            del janswer['size']
+            del janswer['hints']
+            del janswer['darkTheme']
+            del janswer['timeStamp']
+
+        pass
+    except Exception as identifier:
+        pass
+    return janswer
 
 ###########################
 ###     Flask start     ###
