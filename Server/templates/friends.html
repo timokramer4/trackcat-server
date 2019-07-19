@@ -1,30 +1,29 @@
 {% extends "model/loggedMenu.html" %}
 
 {% block subcontent %}
-<!-- Modal window: Edit friend -->
-<div class="modal fade" id="renameRecordModal" tabindex="-1" role="dialog" aria-labelledby="renameRecordModalLabel"
+<!-- Modal window: Remove friend -->
+<div id="removeFriendModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="removeFriendModalLabel"
     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form id="editRecord" action="editRecord" method="POST">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="renameRecordModalLabel">Aufzeichnung umbenennen</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="recordName" class="col-form-label">Name der Aufzeichnung:</label>
-                        <input id="recordId" name="recordId" type="text" style="display: none;">
-                        <input id="recordName" name="recordName" type="text" class="form-control">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
-                    <button type="submit" class="btn btn-primary">Speichern</button>
-                </div>
-            </form>
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeFriendModalLabel">Freund entfernen?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Sie sind dabei Ihren Freund <span id="friendName"></span> zu entfernen. Dabei verlieren Sie auch den
+                Zugriff auf deren Statistiken.
+                <br></br><b>Sind Sie sich sicher, dass Sie den Freund entfernen wollen?</b>
+            </div>
+            <div class="modal-footer">
+                <form action="removeFriend" method="POST">
+                    <input id="friendId" name="friendId" type="text" style="display: none;">
+                    <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
+                    <button type="submit" class="btn btn-danger">Freund entfernen</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -49,8 +48,7 @@
 
         {% for friend in friends %}
         <div class="col-lg-12">
-            <a href="/profile?id={{friend.id}}" id="friend"
-                class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
+            <div id="friend" class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
                 <div class="row">
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
@@ -69,19 +67,32 @@
                     </div>
                     <div
                         class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
-                        <div id="editRecord" class="icon text-white bg-blue mr-1" data-recordName="{{friend.name}}"
-                            data-recordid="{{friend.id}}" style="cursor: pointer;" data-toggle="modal"
-                            data-target="#renameRecordModal">
-                            <i class="fas fa-pencil-alt"></i></div>
-                        <div id="removeRecord" class="icon text-white bg-red mr-1"><i class="far fa-trash-alt"></i>
+                        <div id="openProfile" class="icon text-white bg-green mr-1" style="cursor: pointer;"
+                            data-friendid="{{friend.id}}"><i class="far fa-eye"></i>
+                        </div>
+                        <div id="openLivefeed" class="icon text-white bg-blue mr-1" data-friendid="{{friend.id}}"
+                            style="cursor: pointer;"><i class="fas fa-location-arrow"></i></div>
+                        <div id="removeFriend" class="icon text-white bg-red mr-1" style="cursor: pointer;"
+                            data-friendFirstName="{{friend.firstName}}" data-friendLastName="{{friend.lastName}}"
+                            data-friendId="{{friend.id}}" data-toggle="modal" data-target="#removeFriendModal"><i
+                                class="fas fa-user-minus"></i>
                         </div>
                     </div>
                 </div>
-            </a>
+            </div>
         </div>
         {% endfor %}
         {% if friends|length == 0 %}
-        <h1 class="text-center">Keine Aufzeichnungen vorhanden!</h1>
+        <div class="row justify-content-md-center">
+            <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                <div class="text-center">
+                    <h1>Keine Freunde gefunden!</h1>
+                    <p>Sie sind zur Zeit mit niemandem befreundet</p>
+                    <br>
+                    <a href="/community/search"><button type="button" class="btn btn-primary shadow px-5">Freunde suchen</button></a>
+                </div>
+            </div>
+        </div>
         {% endif %}
 
     </section>
@@ -92,18 +103,18 @@
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
 <script>
     /* Get current friend name for modal */
-    $('#renameRecordModal').on('show.bs.modal', function (event) {
+    $('#removeFriendModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget) // Button that triggered the modal
-        var recordName = button.data('recordname');
-        var recordId = button.data('recordid');
+        var friendFirstName = button.data('friendFirstName');
+        var friendLastName = button.data('friendLastName');
+        var friendId = button.data('friendid');
         var modal = $(this)
-        modal.find('#recordId').val(recordId)
-        modal.find('#recordName').val(recordName)
+        modal.find('#friendId').val(friendId)
+        modal.find('#friendName').text(friendFirstName + " " + friendLastName);
     });
 
-    // $('.icon').click(function (event) {
-    //     event.stopPropagation();
-    //     console.log("lol");
-    // });
+    $('[id=openProfile]').on('click', function () {
+        window.location.href = `/profile?id=${$(this).data('friendid')}`;
+    })
 </script>
 {% endblock %}

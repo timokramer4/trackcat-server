@@ -731,9 +731,9 @@ def profilePage():
             except Exception as identifier:
                 userData = None
                 pass
-            return render_template("profile.html", user=userData, back="/friends")
+            return render_template("profile.html", site="profile", user=userData)
         else:
-            return render_template("profile.html", user=current_user, back="/dashboard")
+            return render_template("profile.html", site="profile", user=current_user)
     else:
         return redirect("/login")
 
@@ -742,7 +742,7 @@ def profilePage():
 def settingsPage():
     if current_user.is_authenticated:
         alertType = request.args.get('alert')
-        return render_template("settings.html", user=current_user, alert=alertType, back="/dashboard")
+        return render_template("settings.html", site="settings", user=current_user, alert=alertType)
     else:
         return redirect("/login")
 
@@ -782,7 +782,7 @@ def singleRecordPage():
             pass
 
         alertType = request.args.get('alert')
-        return render_template("single-record.html", user=current_user, recordData=recordData, alert=alertType, back="/records")
+        return render_template("single-record.html", site="record", user=current_user, recordData=recordData, alert=alertType)
     else:
         return redirect("/login")
 
@@ -790,7 +790,7 @@ def singleRecordPage():
 @app.route("/community/friends", methods=["GET"])
 def friendsPage():
     if current_user.is_authenticated:
-        friends = getRecordsByID(current_user.id, 1)
+        friends = searchFriend(0, "", current_user.id)
         alertType = request.args.get('alert')
         return render_template("friends.html", user=current_user, site="friends", friends=friends, alert=alertType)
     else:

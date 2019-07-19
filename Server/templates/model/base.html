@@ -68,7 +68,8 @@
     <script>
         if (document.getElementById("backBtn")) {
             document.getElementById("backBtn").addEventListener("click", function () {
-                history.go(-1);
+                // history.go(-1);
+                window.location.href = document.referrer;
             });
         }
     </script>

@@ -4,7 +4,7 @@
 <header class="header">
     <nav class="navbar navbar-expand-lg px-4 py-2 bg-white shadow">
         {% block topNav %}
-        <a href="{{back}}" class="sidebar-toggler text-gray-500 mr-4 mr-lg-5 lead"><i
+        <a {% if site != "profile" and site != "settings" %}id="backBtn"{% else %}href="/dashboard"{% endif %} style="cursor: pointer;" class="sidebar-toggler text-gray-500 mr-4 mr-lg-5 lead"><i
                 class="fas fa-chevron-circle-left"></i></a>
         {% endblock %}
 
@@ -45,12 +45,12 @@
                         src="/image?userID={{user.id}}" alt="{{user.firstName}} {{user.lastName}}"
                         style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow"></a>
                 <div aria-labelledby="userInfo" class="dropdown-menu">
-                    <a href="profile" class="dropdown-item">
+                    <a href="/profile" class="dropdown-item">
                         <strong id="account_name" class="d-block text-uppercase headings-font-family">{{user.firstName}}
                             {{user.lastName}}</strong>
                         <small id="account_email">{{user.email}}</small></a>
                     <div class="dropdown-divider"></div>
-                    <a href="settings" class="dropdown-item">Einstellungen</a>
+                    <a href="/settings" class="dropdown-item">Einstellungen</a>
                     <div class="dropdown-divider"></div><a href="logout" class="dropdown-item">Abmelden</a>
                 </div>
             </li>

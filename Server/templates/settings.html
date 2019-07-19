@@ -149,7 +149,7 @@
                 <label class="form-control-label text-uppercase">Größe</label>
                 <div class="input-group mb-2">
                   <input type="number" min="30" max="250" step="0.5" id="size" name="size" class="form-control"
-                    value="{{user.size}}" validate>
+                    value="{% if user.size != None %}{{user.size}}{% endif %}" validate>
                   <div class="input-group-append">
                     <div class="input-group-text">cm</div>
                   </div>
@@ -159,7 +159,7 @@
                 <label class="form-control-label text-uppercase">Gewicht</label>
                 <div class="input-group mb-2">
                   <input type="number" min="30" max="500" step="0.1" id="weight" name="weight" class="form-control"
-                    value="{{user.weight}}" validate>
+                    value="{% if user.weight != None %}{{user.weight}}{% endif %}" validate>
                   <div class="input-group-append">
                     <div class="input-group-text">kg</div>
                   </div>
