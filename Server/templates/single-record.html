@@ -170,9 +170,9 @@
 
         if (i > 0) {
             if (loc.altitude > locations[i-1].altitude) {
-                altPos += loc.altitude;
+                altPos += loc.altitude-locations[i-1].altitude;
             } else {
-                altNeg += loc.altitude;
+                altNeg += locations[i-1].altitude-loc.altitude;
             }
 
             if(Math.floor(loc.speed*3.6*100)/100 > maxSpeed){
