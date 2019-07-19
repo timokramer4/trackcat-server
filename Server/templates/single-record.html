@@ -80,7 +80,9 @@
                             <div class="dot mr-3 bg-red"></div>
                             <div class="text">
                                 <h6 class="mb-0">Höhenmeter</h6>
-                                <span class="text-gray"><i class="fas fa-arrow-up"></i>&nbsp;&nbsp;<span id="altPos"></span> m&nbsp;&nbsp;|&nbsp;&nbsp;<i class="fas fa-arrow-down"></i>&nbsp;&nbsp;<span id="altNeg"></span> m</span>
+                                <span class="text-gray"><i class="fas fa-arrow-up"></i>&nbsp;&nbsp;<span
+                                        id="altPos"></span> m&nbsp;&nbsp;|&nbsp;&nbsp;<i
+                                        class="fas fa-arrow-down"></i>&nbsp;&nbsp;<span id="altNeg"></span> m</span>
                             </div>
                         </div>
                         <div class="icon text-white bg-red"><i class="fas fa-hiking"></i></div>
@@ -104,7 +106,9 @@
                             <div class="dot mr-3 bg-blue"></div>
                             <div class="text">
                                 <h6 class="mb-0">Ø-Geschw.</h6>
-                                <span class="text-gray">{% if recordData.ridetime != 0 %}{{((recordData.distance/1000.0)/(recordData.ridetime/3600.0))|round(2)}}{% else %}0{% endif %} km/h</span>
+                                <span
+                                    class="text-gray">{% if recordData.ridetime != 0 %}{{((recordData.distance/1000.0)/(recordData.ridetime/3600.0))|round(2)}}{% else %}0{% endif %}
+                                    km/h</span>
                             </div>
                         </div>
                         <div class="icon text-white bg-blue"><i class="fas fa-chart-area"></i></div>
@@ -117,7 +121,9 @@
             <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
                 <div class="text-center">
                     <h1>Nichts gefunden :(</h1>
-                    <p>Die gesuchte Route mit der ID <strong><script>document.write(new URLSearchParams(window.location.search).get('id'));</script></strong> wurde nicht gefunden oder konnte nicht Ihrem Profil zugeordnet werden!</p>
+                    <p>Die gesuchte Route mit der ID <strong>
+                            <script>document.write(new URLSearchParams(window.location.search).get('id'));</script>
+                            </strong> wurde nicht gefunden oder konnte nicht Ihrem Profil zugeordnet werden!</p>
                     <br>
                     <button type="button" id="backBtn" class="btn btn-primary shadow px-5">Zurück</button>
                 </div>
@@ -169,14 +175,14 @@
         latlngs.push(arr);
 
         if (i > 0) {
-            if (loc.altitude > locations[i-1].altitude) {
-                altPos += loc.altitude-locations[i-1].altitude;
+            if (loc.altitude > locations[i - 1].altitude) {
+                altPos += loc.altitude - locations[i - 1].altitude;
             } else {
-                altNeg += locations[i-1].altitude-loc.altitude;
+                altNeg += locations[i - 1].altitude - loc.altitude;
             }
 
-            if(Math.floor(loc.speed*3.6*100)/100 > maxSpeed){
-                maxSpeed = Math.floor(loc.speed*3.6*100)/100;
+            if (Math.floor(loc.speed * 3.6 * 100) / 100 > maxSpeed) {
+                maxSpeed = Math.floor(loc.speed * 3.6 * 100) / 100;
             }
         }
 
