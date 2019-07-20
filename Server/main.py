@@ -682,7 +682,7 @@ def getLocationsByID(userId, recordId):
 
 
 ###########################
-###   WEB API-Handler   ###
+###    WEB API-Pages    ###
 ###########################
 
 # Start and login page
@@ -731,7 +731,7 @@ def profilePage():
             except Exception as identifier:
                 userData = None
                 pass
-            return render_template("profile.html", site="profile", user=userData)
+            return render_template("profile.html", site="other_profile", user=userData)
         else:
             return render_template("profile.html", site="profile", user=current_user)
     else:
@@ -790,28 +790,17 @@ def singleRecordPage():
 @app.route("/community/friends", methods=["GET"])
 def friendsPage():
     if current_user.is_authenticated:
-        friends = searchFriend(0, "", current_user.id, current_user.email)
+        friends = searchFriends(0, "", current_user.id, current_user.email)
         alertType = request.args.get('alert')
         return render_template("friends.html", user=current_user, site="friends", friends=friends, alert=alertType)
     else:
         return redirect("/login")
 
+#####################################
+###   WEB API-Handler Functions   ###
+#####################################
 
-@app.route("/removeFriend", methods=['POST'])
-def removeFriend():
-    if current_user.is_authenticated:
-        success = deleteFriend(request.form['friendId'], current_user.id)
-
-        if success == 0:
-            flash('Freund/in "' + request.form['friendName'] + '" wurde erfolgreich entfernt.')
-            return redirect("/community/friends?alert=success")
-        else:
-            flash('Unbekannter Fehler beim Entfernen des/der Freundes/Freundin!')
-            return redirect("/community/friends?alert=danger")
-    else:
-        return redirect("/login")
-
-### Web-Handler ###
+# Handle login
 @app.route("/login", methods=['POST'])
 def login():
     # get user from db instantiate user
@@ -946,6 +935,21 @@ def deleteRecord():
         else:
             flash('Unbekannter Fehler beim Löschen der Aufzeichnung!')
             return redirect("/records?alert=danger")
+    else:
+        return redirect("/login")
+
+# Remove friend from friendlist
+@app.route("/removeFriend", methods=['POST'])
+def removeFriend():
+    if current_user.is_authenticated:
+        success = deleteFriend(request.form['friendId'], current_user.id)
+
+        if success == 0:
+            flash('Freund/in "' + request.form['friendName'] + '" wurde erfolgreich entfernt.')
+            return redirect("/community/friends?alert=success")
+        else:
+            flash('Unbekannter Fehler beim Entfernen des/der Freundes/Freundin!')
+            return redirect("/community/friends?alert=danger")
     else:
         return redirect("/login")
 
@@ -1517,7 +1521,7 @@ def searchFriendsAPI():
     page = int(jrequest['page'])
     search = jrequest['search']
 
-    jsonArr = searchFriend(page, search, None, auth.username)
+    jsonArr = searchFriends(page, search, None, auth.username)
 
     return json.dumps(jsonArr)
 
@@ -1533,12 +1537,12 @@ def searchMyFriendsAPI():
     page = int(jrequest['page'])
     search = jrequest['search']
 
-    jsonArr = searchFriend(page, search, usrid, auth.username)
+    jsonArr = searchFriends(page, search, usrid, auth.username)
 
     return json.dumps(jsonArr)
 
 
-def searchFriend(page, search, usrId, usrEmail):
+def searchFriends(page, search, usrId, usrEmail):
     conn = mysql.connect()
     cursor = conn.cursor()
 
@@ -1718,9 +1722,9 @@ def requestFriendAPI():
     return json.dumps(janswer)
 
 
-@app.route("/showFriendRequestAPI", methods=['POST'])
+@app.route("/showFriendRequestsAPI", methods=['POST'])
 @requires_authorization
-def showFriendRequestAPI():
+def showFriendRequestsAPI():
 
     auth = request.authorization
     usrid = getUserId(auth.username)

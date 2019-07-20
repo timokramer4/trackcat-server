@@ -53,12 +53,15 @@
                 <div class="row">
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
+                        <span class="mr-3">
+                            <img src="/image?userID={{friend.id}}" alt="{{friend.firstName}} {{friend.lastName}}" style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow">
+                        </span>
                         <h6 class="mb-0">{{friend.firstName}} {{friend.lastName}}</h6>
                     </div>
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-sm-row justify-content-center justify-content-lg-start">
                         <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
-                            (friend.time)|formatDate</div>
+                            {{friend.email}}</div>
                     </div>
                     <div
                         class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
