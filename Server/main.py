@@ -802,6 +802,7 @@ def getFriendById(firendId):
     try:
         sql = ('SELECT ' + app.config['DB_USERS_FIRSTNAME']
                + ", " + app.config['DB_USERS_LASTNAME']
+               + ", " + app.config['DB_USERS_EMAIL']
                + ", " + app.config['DB_USERS_IMAGE']
                + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
                + " FROM " + app.config['DB_TABLE_USERS']
@@ -817,8 +818,9 @@ def getFriendById(firendId):
         jres['id'] = firendId
         jres['firstName'] = res[0]
         jres['lastName'] = res[1]
-        jres['image'] = res[2]
-        jres['dateOfRegistration'] = res[3]
+        jres['email'] = res[2]
+        jres['image'] = res[3]
+        jres['dateOfRegistration'] = res[4]
         jres['totalDistance'] = getUserTotalDistance(firendId)
         pass
     except Exception as identifier:
@@ -953,7 +955,7 @@ def searchFriends(page, search, usrId, usrEmail):
 
 
 
-def showFriendRequests(userId):
+def getFriendRequests(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
@@ -964,7 +966,7 @@ def showFriendRequests(userId):
                + " FROM " + app.config['DB_TABLE_HAS_USERS']
                + " WHERE "
                + app.config['DB_USERS_HAS_USERS_ASKED']
-               + " = " + str(usrid) + " AND "
+               + " = " + str(userId) + " AND "
                + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;")
 
         cursor.execute(sql)
@@ -1086,13 +1088,23 @@ def singleRecordPage():
     else:
         return redirect("/login")
 
-# Show record list
+# Show friend list
 @app.route("/community/friends", methods=["GET"])
 def friendsPage():
     if current_user.is_authenticated:
         friends = searchFriends(0, "", current_user.id, current_user.email)
         alertType = request.args.get('alert')
         return render_template("friends.html", user=current_user, site="friends", friends=friends, alert=alertType)
+    else:
+        return redirect("/login")
+
+# Show friend requests
+@app.route("/community/friendrequests", methods=["GET"])
+def friendRequestsPage():
+    if current_user.is_authenticated:
+        friendrequests = getFriendRequests(current_user.id)
+        alertType = request.args.get('alert')
+        return render_template("friendrequests.html", user=current_user, site="friendrequests", friendrequests=friendrequests, alert=alertType)
     else:
         return redirect("/login")
 
@@ -1835,7 +1847,7 @@ def showFriendRequestsAPI():
     auth = request.authorization
     usrid = getUserId(auth.username)
 
-    return json.dumps(showFriendRequests(usrid))
+    return json.dumps(getFriendRequests(usrid))
 
 
 @app.route("/showStrangerProfileAPI", methods=['POST'])
