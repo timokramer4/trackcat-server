@@ -1543,7 +1543,7 @@ def searchFriend(page, search, usrId, usrEmail):
         whereID = ""
         email = ""
         if usrId != None:
-            join = (" INNER JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON "
+            join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON "
                     + app.config['DB_TABLE_USERS'] +
                     "." + app.config['DB_USERS_ID']
                     + " = " + app.config['DB_TABLE_HAS_USERS'] +
@@ -1562,16 +1562,24 @@ def searchFriend(page, search, usrId, usrEmail):
                        + " = " + str(usrId) + ") AND")
             email = ", " + app.config['DB_USERS_EMAIL']
         else:
-           # whereID = app.config['DB_USERS_HAS_USERS_AF'] + " != 1 AND "
+            whereID = ("(" + app.config['DB_TABLE_HAS_USERS'] + "." 
+                       + app.config['DB_USERS_HAS_USERS_ASKER']
+                       + " IS NULL OR "
+                       + app.config['DB_TABLE_HAS_USERS'] + "." 
+                       + app.config['DB_USERS_HAS_USERS_ASKED']
+                       + " IS NULL) AND " 
+            )
+            
+            # app.config['DB_USERS_HAS_USERS_AF'] + " != 1 AND "
 
-            join = (" INNER JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON "
+            join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON ("
                     + app.config['DB_TABLE_USERS'] +
                     "." + app.config['DB_USERS_ID']
-                    + " != " + app.config['DB_TABLE_HAS_USERS'] +
+                    + " = " + app.config['DB_TABLE_HAS_USERS'] +
                     "." + app.config['DB_USERS_HAS_USERS_ASKER']
-                        + " AND " + app.config['DB_TABLE_USERS'] +
+                        + " OR " + app.config['DB_TABLE_USERS'] +
                     "." + app.config['DB_USERS_ID']
-                        + " != " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + " ")
+                        + " = " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + ") ")
 
         sql = ('SELECT ' + app.config['DB_USERS_ID']
                + ", " + app.config['DB_USERS_FIRSTNAME']
@@ -1588,9 +1596,9 @@ def searchFriend(page, search, usrId, usrEmail):
                + " OR UPPER(" + app.config['DB_USERS_LASTNAME'] +
                ") LIKE UPPER('" + search + "%') "
                + " OR UPPER(" + app.config['DB_USERS_EMAIL'] +
-               ") LIKE UPPER('" + search + "%') "
+               ") LIKE UPPER('" + search + "%')) "
                + " AND UPPER(" + app.config['DB_USERS_EMAIL'] +
-               ") != UPPER('" + usrEmail + "')) "
+               ") != UPPER('" + usrEmail + "') "
                + limitter
                )
 
