@@ -1,7 +1,7 @@
 {% extends "model/loggedMenu.html" %}
 
 {% block subcontent %}
-<!-- Modal window: Remove friend -->
+<!-- Modal window: Remove request -->
 <div id="removeFriendModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="removeFriendModalLabel"
     aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -47,58 +47,43 @@
         {% endif %}
         {% endwith %}
 
-        <div class="col-lg-12 mb-4">
-            <div class="btn-group" role="group" aria-label="Basic example">
-                <button type="button" class="btn btn-secondary">Freunde</button>
-                <button type="button" class="btn btn-secondary">Gesendete Anfragen</button>
-                <button type="button" class="btn btn-secondary">Austehende Anfragen</button>
-            </div>
-        </div>
-
-        {% for friend in friends %}
+        {% for request in friendrequests %}
         <div class="col-lg-12">
-            <div id="friend" class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
+            <div id="request" class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
                 <div class="row">
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
                         <span class="mr-3">
-                            <img src="/image?userID={{friend.id}}" alt="{{friend.firstName}} {{friend.lastName}}"
+                            <img src="/image?userID={{request.id}}" alt="{{request.firstName}} {{request.lastName}}"
                                 style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow">
                         </span>
-                        <h6 class="mb-0">{{friend.firstName}} {{friend.lastName}}</h6>
+                        <h6 class="mb-0">{{request.firstName}} {{request.lastName}}</h6>
                     </div>
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-sm-row justify-content-center justify-content-lg-start">
                         <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
-                            {{friend.email}}</div>
+                            {{request.email}}</div>
                     </div>
                     <div
                         class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
-                        <div id="openProfile" title="Profil anzeigen" class="icon text-white bg-green mr-1"
-                            style="cursor: pointer;" data-friendid="{{friend.id}}"><i class="far fa-eye"></i>
-                        </div>
-                        <div id="openLivefeed" title="Liveansicht öffnen" class="icon text-white bg-blue mr-1"
-                            data-friendid="{{friend.id}}" style="cursor: pointer;"><i class="fas fa-location-arrow"></i>
-                        </div>
-                        <div id="removeFriend" title="Freund entfernen" class="icon text-white bg-red mr-1"
-                            style="cursor: pointer;" data-friendFirstName="{{friend.firstName}}"
-                            data-friendLastName="{{friend.lastName}}" data-friendId="{{friend.id}}" data-toggle="modal"
-                            data-target="#removeFriendModal"><i class="fas fa-user-minus"></i>
+                        <div id="openProfile" title="Freundschaftsanfrage annehmen"
+                            class="icon text-white bg-green mr-1" style="cursor: pointer;"
+                            data-friendid="{{request.id}}"><i class="fas fa-check"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         {% endfor %}
-        {% if friends|length == 0 %}
+        {% if friendrequests|length == 0 %}
         <div class="row justify-content-md-center">
             <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
                 <div class="text-center">
-                    <h1>Keine Freunde gefunden!</h1>
-                    <p>Sie sind zur Zeit mit niemandem befreundet</p>
+                    <h1>Kein offene Anfragen!</h1>
+                    <p>Zur Zeit haben Sie keine offenen Freundschaftsanfragen.</p>
                     <br>
-                    <a href="/community/search"><button type="button" class="btn btn-primary shadow px-5">Freunde
-                            suchen</button></a>
+                    <a href="/community/friends"><button type="button" class="btn btn-primary shadow px-5">Freunde
+                            anzeigen</button></a>
                 </div>
             </div>
         </div>
@@ -111,7 +96,7 @@
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
 <script>
-    /* Get current friend name for modal */
+    /* Get current request name for modal */
     $('#removeFriendModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget) // Button that triggered the modal
         var friendName = button.data('friendfirstname') + " " + button.data('friendlastname');
