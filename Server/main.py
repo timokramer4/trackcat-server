@@ -1497,10 +1497,12 @@ def deleteRecordAPI():
 def searchFriendsAPI():
     jrequest = request.json
 
+    auth = request.authorization
+
     page = int(jrequest['page'])
     search = jrequest['search']
 
-    jsonArr = searchFriend(page, search, None)
+    jsonArr = searchFriend(page, search, None, auth.username)
 
     return json.dumps(jsonArr)
 
@@ -1515,8 +1517,6 @@ def searchMyFriendsAPI():
 
     page = int(jrequest['page'])
     search = jrequest['search']
-
-    auth = request.authorization
 
     jsonArr = searchFriend(page, search, usrid, auth.username)
 
@@ -1554,11 +1554,24 @@ def searchFriend(page, search, usrId, usrEmail):
 
             whereID = (app.config['DB_USERS_ID'] + " != " + str(usrId) + " AND "
                        + app.config['DB_USERS_HAS_USERS_AF'] + " = 1 AND ("
-                       + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKER']
+                       + app.config['DB_TABLE_HAS_USERS'] + "." +
+                       app.config['DB_USERS_HAS_USERS_ASKER']
                        + " = " + str(usrId) + " OR "
-                       + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED']
+                       + app.config['DB_TABLE_HAS_USERS'] + "." +
+                       app.config['DB_USERS_HAS_USERS_ASKED']
                        + " = " + str(usrId) + ") AND")
             email = ", " + app.config['DB_USERS_EMAIL']
+        else:
+           # whereID = app.config['DB_USERS_HAS_USERS_AF'] + " != 1 AND "
+
+            join = (" INNER JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON "
+                    + app.config['DB_TABLE_USERS'] +
+                    "." + app.config['DB_USERS_ID']
+                    + " != " + app.config['DB_TABLE_HAS_USERS'] +
+                    "." + app.config['DB_USERS_HAS_USERS_ASKER']
+                        + " AND " + app.config['DB_TABLE_USERS'] +
+                    "." + app.config['DB_USERS_ID']
+                        + " != " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + " ")
 
         sql = ('SELECT ' + app.config['DB_USERS_ID']
                + ", " + app.config['DB_USERS_FIRSTNAME']
@@ -1844,8 +1857,7 @@ def showFriendProfile(friendID, userId):
     cursor = conn.cursor()
 
     try:
-
-        sql = ("SELECT " + app.config['DB_USERS_HAS_USERS_AF'] + " FROM "
+        sql = ("SELECT " + app.config['DB_USERS_HAS_USERS_DOF'] + " FROM "
                + app.config['DB_TABLE_HAS_USERS'] + " WHERE "
                + app.config['DB_USERS_HAS_USERS_ASKER'] +
                " IN (" + str(friendID) + ", " + str(userId) + ")"
@@ -1865,6 +1877,7 @@ def showFriendProfile(friendID, userId):
             del janswer['hints']
             del janswer['darkTheme']
             del janswer['timeStamp']
+            janswer['dateOfFriendship'] = result[0]
 
         pass
     except Exception as identifier:
