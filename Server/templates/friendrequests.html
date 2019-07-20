@@ -74,13 +74,16 @@
                     </div>
                     <div
                         class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
+                        <div id="openProfile" title="Profil anzeigen" class="icon text-white bg-green mr-1"
+                            style="cursor: pointer;" data-friendid="{{request.id}}"><i class="far fa-eye"></i>
+                        </div>
                         <form action="/addFriend" method="POST">
                             <input id="requestId" name="requestName" type="text" style="display:none;"
                                 value="{{request.firstName}} {{request.lastName}}">
                             <input id="requestId" name="requestId" type="text" style="display:none;"
                                 value="{{request.id}}">
                             <button type="submit" id="acceptRequest" title="Freundschaftsanfrage annehmen"
-                                class="icon text-white bg-green mr-1" style="cursor: pointer; border: none;"><i
+                                class="icon text-white bg-blue mr-1" style="cursor: pointer; border: none;"><i
                                     class="fas fa-check"></i>
                             </button>
                         </form>
@@ -109,4 +112,9 @@
 
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
+<script>
+    $('[id=openProfile]').on('click', function () {
+        window.location.href = `/profile?id=${$(this).data('friendid')}`;
+    })
+</script>
 {% endblock %}
