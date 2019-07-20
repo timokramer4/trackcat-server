@@ -1883,6 +1883,7 @@ def showFriendProfile(friendID, userId):
             del janswer['darkTheme']
             del janswer['timeStamp']
             janswer['dateOfFriendship'] = result[0]
+            janswer['areFriends'] = True
         
         else:
             janswer = getFriendById(friendID)
@@ -1899,6 +1900,8 @@ def showFriendProfile(friendID, userId):
 
             janswer['gender'] = result[0]
             janswer['dateOfBirth'] = result[1]
+            janswer['areFriends'] = False
+
 
         pass
     except Exception as identifier:
