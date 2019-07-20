@@ -47,13 +47,21 @@
         {% endif %}
         {% endwith %}
 
+        <div class="col-lg-12 mb-4 text-center">
+            <div class="btn-group" role="group" aria-label="Basic example">
+                <button type="button" class="btn btn-secondary">Gesendete</button>
+                <button type="button" class="btn btn-secondary active">Empfangene <span
+                        class="badge badge-light">{{friendrequests|length}}</span></button>
+            </div>
+        </div>
+
         {% for request in friendrequests %}
         <div class="col-lg-12">
             <div id="request" class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
                 <div class="row">
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
-                        <span class="mr-3">
+                        <span class="mb-2 mr-lg-3 mb-lg-0">
                             <img src="/image?userID={{request.id}}" alt="{{request.firstName}} {{request.lastName}}"
                                 style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow">
                         </span>
@@ -66,10 +74,16 @@
                     </div>
                     <div
                         class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
-                        <div id="openProfile" title="Freundschaftsanfrage annehmen"
-                            class="icon text-white bg-green mr-1" style="cursor: pointer;"
-                            data-friendid="{{request.id}}"><i class="fas fa-check"></i>
-                        </div>
+                        <form action="/addFriend" method="POST">
+                            <input id="requestId" name="requestName" type="text" style="display:none;"
+                                value="{{request.firstName}} {{request.lastName}}">
+                            <input id="requestId" name="requestId" type="text" style="display:none;"
+                                value="{{request.id}}">
+                            <button type="submit" id="acceptRequest" title="Freundschaftsanfrage annehmen"
+                                class="icon text-white bg-green mr-1" style="cursor: pointer; border: none;"><i
+                                    class="fas fa-check"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -95,20 +109,4 @@
 
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
-<script>
-    /* Get current request name for modal */
-    $('#removeFriendModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget) // Button that triggered the modal
-        var friendName = button.data('friendfirstname') + " " + button.data('friendlastname');
-        var friendId = button.data('friendid');
-        var modal = $(this);
-        modal.find('#friendId').val(friendId);
-        modal.find('#friendName').val(friendName);
-        modal.find('#friendNameTxt').text(friendName);
-    });
-
-    $('[id=openProfile]').on('click', function () {
-        window.location.href = `/profile?id=${$(this).data('friendid')}`;
-    })
-</script>
 {% endblock %}

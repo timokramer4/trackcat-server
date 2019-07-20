@@ -1343,6 +1343,26 @@ def deleteRecord():
     else:
         return redirect("/login")
 
+# Add friend to friendlist
+@app.route("/addFriend", methods=['POST'])
+def addFriend():
+    if current_user.is_authenticated:
+        success = requestFriend(request.form['requestId'], current_user.id)
+
+        if success == 2:
+            flash('Sie sind jetzt mit "' +
+                  request.form['requestName'] + '" befreundet.')
+            return redirect("/community/friends?alert=success")
+        if success == 0:
+            flash('Eine Freundschaftsanfrage an "' +
+                  request.form['requestName'] + '" wurde versendet.')
+            return redirect("/community/friends?alert=success")
+        else:
+            flash('Unbekannter Fehler beim Senden der Freundschaftsanfrage!')
+            return redirect("/community/friends?alert=danger")
+    else:
+        return redirect("/login")
+
 # Remove friend from friendlist
 @app.route("/removeFriend", methods=['POST'])
 def removeFriend():
