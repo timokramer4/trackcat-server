@@ -1831,32 +1831,10 @@ def showStrangerProfileAPI():
 
     strangerId = int(jrequest['strangerId'])
 
-    conn = mysql.connect()
-    cursor = conn.cursor()
+    auth = request.authorization
+    usrid = getUserId(auth.username)
 
-    jres = {}
-
-    try:
-        jres = getFriendById(strangerId)
-
-        sql = ("SELECT " + app.config['DB_USERS_GENDER'] + ", "
-               + app.config['DB_USERS_DATEOFBIRTH'] + " FROM "
-               + app.config['DB_TABLE_USERS'] + " WHERE "
-               + app.config['DB_USERS_ID'] + " = "
-               + str(strangerId) + ";")
-
-        cursor.execute(sql)
-
-        result = cursor.fetchone()
-
-        jres['gender'] = result[0]
-        jres['dateOfBirth'] = result[1]
-        pass
-    except Exception as identifier:
-        pass
-
-    cursor.close()
-    conn.close()
+    jres = showFriendProfile(strangerId, usrid)
 
     return json.dumps(jres)
 
@@ -1905,6 +1883,22 @@ def showFriendProfile(friendID, userId):
             del janswer['darkTheme']
             del janswer['timeStamp']
             janswer['dateOfFriendship'] = result[0]
+        
+        else:
+            janswer = getFriendById(friendID)
+
+            sql = ("SELECT " + app.config['DB_USERS_GENDER'] + ", "
+                    + app.config['DB_USERS_DATEOFBIRTH'] + " FROM "
+                    + app.config['DB_TABLE_USERS'] + " WHERE "
+                    + app.config['DB_USERS_ID'] + " = "
+                    + str(friendID) + ";")
+
+            cursor.execute(sql)
+
+            result = cursor.fetchone()
+
+            janswer['gender'] = result[0]
+            janswer['dateOfBirth'] = result[1]
 
         pass
     except Exception as identifier:
