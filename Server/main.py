@@ -952,6 +952,35 @@ def searchFriends(page, search, usrId, usrEmail):
     return jsonArr
 
 
+
+def showFriendRequests(userId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    janswerArr = []
+
+    try:
+        sql = ("SELECT " + app.config['DB_USERS_HAS_USERS_ASKER']
+               + " FROM " + app.config['DB_TABLE_HAS_USERS']
+               + " WHERE "
+               + app.config['DB_USERS_HAS_USERS_ASKED']
+               + " = " + str(usrid) + " AND "
+               + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;")
+
+        cursor.execute(sql)
+
+        result = cursor.fetchall()
+
+        for res in result:
+            janswerArr.append(getFriendById(res[0]))
+    except Exception as identifier:
+        pass
+
+    cursor.close()
+    conn.close()
+
+    return janswerArr
+
 ###########################
 ###    WEB API-Pages    ###
 ###########################
@@ -1806,32 +1835,7 @@ def showFriendRequestsAPI():
     auth = request.authorization
     usrid = getUserId(auth.username)
 
-    janswerArr = []
-
-    conn = mysql.connect()
-    cursor = conn.cursor()
-
-    try:
-        sql = ("SELECT " + app.config['DB_USERS_HAS_USERS_ASKER']
-               + " FROM " + app.config['DB_TABLE_HAS_USERS']
-               + " WHERE "
-               + app.config['DB_USERS_HAS_USERS_ASKED']
-               + " = " + str(usrid) + " AND "
-               + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;")
-
-        cursor.execute(sql)
-
-        result = cursor.fetchall()
-
-        for res in result:
-            janswerArr.append(getFriendById(res[0]))
-    except Exception as identifier:
-        pass
-
-    cursor.close()
-    conn.close()
-
-    return json.dumps(janswerArr)
+    return json.dumps(showFriendRequests(usrid))
 
 
 @app.route("/showStrangerProfileAPI", methods=['POST'])
