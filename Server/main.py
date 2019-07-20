@@ -633,7 +633,7 @@ def getSingleRecordByID(recordId):
     jsonRecord['timestamp'] = res[7]
     jsonRecord['owner'] = res[8]
 
-    #jsonRecordData = {}
+    # jsonRecordData = {}
     # jsonRecordData['record'] = jsonRecord #TODO remove
     # getLocationsByID(userId, recordId) switch from locations to json in db
     jsonRecord['locations'] = json.loads(res[9])
@@ -1560,7 +1560,7 @@ def searchFriend(page, search, usrId):
                + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
                + " FROM " + app.config['DB_TABLE_USERS']
                + join
-               + " WHERE " 
+               + " WHERE "
                + whereID
                + "(UPPER(" + app.config['DB_USERS_FIRSTNAME'] +
                ") LIKE UPPER('" + search + "%') "
@@ -1569,7 +1569,7 @@ def searchFriend(page, search, usrId):
                + " OR UPPER(" + app.config['DB_USERS_EMAIL'] +
                ") LIKE UPPER('" + search + "%') "
                + " AND UPPER(" + app.config['DB_USERS_EMAIL'] +
-               ") != UPPER('" + auth.username + "')) " 
+               ") != UPPER('" + auth.username + "')) "
                + limitter
                )
 
@@ -1853,6 +1853,53 @@ def showFriendProfile(friendID, userId):
         pass
     except Exception as identifier:
         pass
+
+    cursor.close()
+    conn.close()
+    return janswer
+
+
+@app.route("/deleteFriendAPI", methods=['POST'])
+@requires_authorization
+def deleteFriendAPI():
+    jrequest = request.json
+
+    auth = request.authorization
+    usrid = getUserId(auth.username)
+
+    friendId = int(jrequest['friendId'])
+
+    return json.dumps(deleteFriend(friendId, usrid))
+
+
+def deleteFriend(friendId, usrId):
+    janswer = {}
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    try:
+
+        sql = ("DELETE FROM " + app.config['DB_TABLE_HAS_USERS']
+               + " WHERE "
+               + app.config['DB_USERS_HAS_USERS_ASKER'] +
+               " IN (" + str(friendId) + ", " + str(usrId) + ")"
+               + " AND " + app.config['DB_USERS_HAS_USERS_ASKED'] + " IN ("
+               + str(friendId) + ", " + str(usrId) + ");")
+
+        cursor.execute(sql)
+        conn.commit()
+
+        janswer['success'] = 0
+
+        pass
+    except Exception as identifier:
+        janswer['success'] = 1
+        pass
+
+    cursor.close()
+    conn.close()
+
     return janswer
 
 
