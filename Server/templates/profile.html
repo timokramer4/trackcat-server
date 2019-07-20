@@ -23,7 +23,10 @@
                                 <h2 class="mb-0 d-flex align-items-center">
                                     <span>{{user.firstName}} {{user.lastName}}</span>
                                 </h2>
-                                <small class="text-muted" id="settings_account_email">{% if user.id == current_user.id or user.areFriends == 1 %}{{user.email}}{% else %}<script>document.write(cryptEmail($('#email-data').data('email')))</script>{% endif %}</small>
+                                <small class="text-muted"
+                                    id="settings_account_email">{% if user.id == current_user.id or user.areFriends == 1 %}{{user.email}}{% else %}
+                                    <script>document.write(cryptEmail($('#email-data').data('email')))</script>
+                                    {% endif %}</small>
                                 <hr>
                                 <span class="text-muted text-uppercase small"><span
                                         class="dot bg-green d-inline-block mr-2"></span> Online</span>
@@ -79,7 +82,8 @@
                                 </div>
                             </div>
                             <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
-                                <h5><span id="usr_size">{% if user.size != None %}{{user.size}} cm{% else %}NaN{% endif %}</span></h5>
+                                <h5><span id="usr_size">{% if user.size != None %}{{user.size}}
+                                        cm{% else %}NaN{% endif %}</span></h5>
                             </div>
                         </div>
                         <div
@@ -91,7 +95,8 @@
                                 </div>
                             </div>
                             <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
-                                <h5><span id="usr_weight">{% if user.weight != None %}{{user.weight}} kg{% else %}NaN{% endif %}</span></h5>
+                                <h5><span id="usr_weight">{% if user.weight != None %}{{user.weight}}
+                                        kg{% else %}NaN{% endif %}</span></h5>
                             </div>
                         </div>
                         <div
@@ -174,8 +179,14 @@
                 <div class="text-center">
                     <p>Der Bereich ist <u>nur für Freunde</u> sichtbar.<br>Du bist noch nicht mit <a
                             href="/profile?id={{user.id}}">{{user.firstName}}</a> befreundet!</p>
-                    <button type="button" id="addFriend" class="btn btn-primary shadow px-5"
-                        disabled>Freundschaftsanfrage senden</button>
+
+                    <form action="/addFriend" method="POST">
+                        <input id="profileName" name="profileName" type="text" style="display:none;"
+                            value="{{user.firstName}} {{user.lastName}}">
+                        <input id="profileId" name="profileId" type="text" style="display:none;" value="{{user.id}}">
+                        <button type="submit" id="addFriend" class="btn btn-primary shadow px-5">Freundschaftsanfrage senden</button>
+                    </form>
+                    
                 </div>
             </div>
             {% endif %}
