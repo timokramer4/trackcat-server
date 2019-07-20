@@ -1551,7 +1551,7 @@ def searchFriend(page, search, usrId):
                     "." + app.config['DB_USERS_ID']
                     + " = " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + " ")
 
-            whereID = app.config['DB_USERS_ID'] + " != " + str(usrId) + " AND "
+            whereID = app.config['DB_USERS_ID'] + " != " + str(usrId) + " AND " + app.config['DB_USERS_HAS_USERS_AF'] + " = 1 AND "
 
         sql = ('SELECT ' + app.config['DB_USERS_ID']
                + ", " + app.config['DB_USERS_FIRSTNAME']
