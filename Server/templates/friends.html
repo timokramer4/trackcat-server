@@ -13,13 +13,14 @@
                 </button>
             </div>
             <div class="modal-body">
-                Sie sind dabei Ihren Freund <span id="friendName"></span> zu entfernen. Dabei verlieren Sie auch den
+                Sie sind dabei Ihre(n) Freund/in <b id="friendNameTxt"></b> zu entfernen. Dabei verlieren Sie auch den
                 Zugriff auf deren Statistiken.
                 <br></br><b>Sind Sie sich sicher, dass Sie den Freund entfernen wollen?</b>
             </div>
             <div class="modal-footer">
-                <form action="removeFriend" method="POST">
+                <form action="/removeFriend" method="POST">
                     <input id="friendId" name="friendId" type="text" style="display: none;">
+                    <input id="friendName" name="friendName" type="text" style="display: none;">
                     <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
                     <button type="submit" class="btn btn-danger">Freund entfernen</button>
                 </form>
@@ -52,18 +53,12 @@
                 <div class="row">
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
-                        <strong class="h5 mb-0 m-3">{{friend.date|formatDate('%d')}}
-                            <sup class="smaller text-gray font-weight-normal">{{friend.date|formatDate('%b')}}</sup>
-                        </strong>
-                        <h6 class="mb-0">{{friend.name}}</h6>
+                        <h6 class="mb-0">{{friend.firstName}} {{friend.lastName}}</h6>
                     </div>
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-sm-row justify-content-center justify-content-lg-start">
                         <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
-                            {% if friend.distance / 1000 >= 1 %}{{'%0.2f'| format(friend.distance/1000|float)}}
-                            km{% else %}{{'%0.2f'| format(friend.distance|float)}} m{% endif %}</div>
-                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
-                            {{(friend.time)|formatSeconds}}</div>
+                            (friend.time)|formatDate</div>
                     </div>
                     <div
                         class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
@@ -105,12 +100,12 @@
     /* Get current friend name for modal */
     $('#removeFriendModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget) // Button that triggered the modal
-        var friendFirstName = button.data('friendFirstName');
-        var friendLastName = button.data('friendLastName');
+        var friendName = button.data('friendfirstname') + " " + button.data('friendlastname');
         var friendId = button.data('friendid');
-        var modal = $(this)
-        modal.find('#friendId').val(friendId)
-        modal.find('#friendName').text(friendFirstName + " " + friendLastName);
+        var modal = $(this);
+        modal.find('#friendId').val(friendId);
+        modal.find('#friendName').val(friendName);
+        modal.find('#friendNameTxt').text(friendName);
     });
 
     $('[id=openProfile]').on('click', function () {

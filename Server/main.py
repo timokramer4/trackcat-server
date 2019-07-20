@@ -796,6 +796,21 @@ def friendsPage():
     else:
         return redirect("/login")
 
+
+@app.route("/removeFriend", methods=['POST'])
+def removeFriend():
+    if current_user.is_authenticated:
+        success = deleteFriend(request.form['friendId'], current_user.id)
+
+        if success == 0:
+            flash('Freund/in "' + request.form['friendName'] + '" wurde erfolgreich entfernt.')
+            return redirect("/community/friends?alert=success")
+        else:
+            flash('Unbekannter Fehler beim Entfernen des/der Freundes/Freundin!')
+            return redirect("/community/friends?alert=danger")
+    else:
+        return redirect("/login")
+
 ### Web-Handler ###
 @app.route("/login", methods=['POST'])
 def login():
