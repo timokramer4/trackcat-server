@@ -726,7 +726,7 @@ def profilePage():
 
         if userId:
             try:
-                userData = getUserFromDB(userId)
+                userData = showFriendProfile(userId, current_user.id)
                 pass
             except Exception as identifier:
                 userData = None
