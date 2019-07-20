@@ -681,6 +681,276 @@ def getLocationsByID(userId, recordId):
     return jsonLocations
 
 
+def deleteFriend(friendId, usrId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    try:
+
+        sql = ("DELETE FROM " + app.config['DB_TABLE_HAS_USERS']
+               + " WHERE "
+               + app.config['DB_USERS_HAS_USERS_ASKER'] +
+               " IN (" + str(friendId) + ", " + str(usrId) + ")"
+               + " AND " + app.config['DB_USERS_HAS_USERS_ASKED'] + " IN ("
+               + str(friendId) + ", " + str(usrId) + ");")
+
+        cursor.execute(sql)
+        conn.commit()
+
+        success = 0
+
+        pass
+    except Exception as identifier:
+        success = 1
+        pass
+
+    cursor.close()
+    conn.close()
+
+    return success
+
+def showFriendProfile(friendID, userId):
+    janswer = {}
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    try:
+        sql = ("SELECT " + app.config['DB_USERS_HAS_USERS_DOF'] + " FROM "
+               + app.config['DB_TABLE_HAS_USERS'] + " WHERE "
+               + app.config['DB_USERS_HAS_USERS_ASKER'] +
+               " IN (" + str(friendID) + ", " + str(userId) + ")"
+               + " AND " + app.config['DB_USERS_HAS_USERS_ASKED'] + " IN ("
+               + str(friendID) + ", " + str(userId) + ") AND " 
+               + app.config['DB_USERS_HAS_USERS_AF'] + " = 1;")
+
+        cursor.execute(sql)
+
+        result = cursor.fetchone()
+
+        if result != None:
+            janswer = getUserWithImageFromDB(friendID)
+
+            del janswer['password']
+            del janswer['weight']
+            del janswer['size']
+            del janswer['hints']
+            del janswer['darkTheme']
+            del janswer['timeStamp']
+            janswer['dateOfFriendship'] = result[0]
+            janswer['areFriends'] = True
+        
+        else:
+            janswer = getFriendById(friendID)
+
+            sql = ("SELECT " + app.config['DB_USERS_GENDER'] + ", "
+                    + app.config['DB_USERS_DATEOFBIRTH'] + ", "
+                    + app.config['DB_USERS_EMAIL']
+                    + " FROM "
+                    + app.config['DB_TABLE_USERS'] + " WHERE "
+                    + app.config['DB_USERS_ID'] + " = "
+                    + str(friendID) + ";")
+
+            cursor.execute(sql)
+
+            result = cursor.fetchone()
+
+            janswer['gender'] = result[0]
+            janswer['dateOfBirth'] = result[1]
+            janswer['email'] = result[2]
+            janswer['areFriends'] = False
+        pass
+    except Exception as identifier:
+        pass
+
+    cursor.close()
+    conn.close()
+    return janswer
+
+
+def getUserTotalDistance(usrId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    totDist = 0
+    try:
+
+        cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
+                       app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(usrId) + ";")
+
+        resultDist = cursor.fetchall()
+
+        for record in resultDist:
+            totDist += record[0]
+        pass
+    except Exception as identifier:
+        pass
+
+    cursor.close()
+    conn.close()
+
+    return totDist
+
+def getFriendById(firendId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    jres = {}
+
+    try:
+        sql = ('SELECT ' + app.config['DB_USERS_FIRSTNAME']
+               + ", " + app.config['DB_USERS_LASTNAME']
+               + ", " + app.config['DB_USERS_IMAGE']
+               + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
+               + " FROM " + app.config['DB_TABLE_USERS']
+               + " WHERE " + app.config['DB_USERS_ID'] + " = "
+               + str(firendId) + ";"
+               )
+
+        cursor.execute(sql)
+
+        res = cursor.fetchone()
+
+        jres = {}
+        jres['id'] = firendId
+        jres['firstName'] = res[0]
+        jres['lastName'] = res[1]
+        jres['image'] = res[2]
+        jres['dateOfRegistration'] = res[3]
+        jres['totalDistance'] = getUserTotalDistance(firendId)
+        pass
+    except Exception as identifier:
+        pass
+    cursor.close()
+    conn.close()
+
+    return jres
+
+
+def searchFriends(page, search, usrId, usrEmail):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    jsonArr = []
+
+    try:
+
+        start = page * 10 - 10
+        end = page * 10
+
+        if page > 0:
+            limitter = ' LIMIT ' + str(start) + ', ' + str(end)
+        else:
+            limitter = ''
+
+        join = ""
+        whereID = ""
+        email = ""
+        if usrId != None:
+            join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON "
+                    + app.config['DB_TABLE_USERS'] +
+                    "." + app.config['DB_USERS_ID']
+                    + " = " + app.config['DB_TABLE_HAS_USERS'] +
+                    "." + app.config['DB_USERS_HAS_USERS_ASKER']
+                    + " OR " + app.config['DB_TABLE_USERS'] +
+                    "." + app.config['DB_USERS_ID']
+                    + " = " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + " ")
+
+            whereID = (app.config['DB_USERS_ID'] + " != " + str(usrId) + " AND "
+                       + app.config['DB_USERS_HAS_USERS_AF'] + " = 1 AND ("
+                       + app.config['DB_TABLE_HAS_USERS'] + "." +
+                       app.config['DB_USERS_HAS_USERS_ASKER']
+                       + " = " + str(usrId) + " OR "
+                       + app.config['DB_TABLE_HAS_USERS'] + "." +
+                       app.config['DB_USERS_HAS_USERS_ASKED']
+                       + " = " + str(usrId) + ") AND")
+            email = ", " + app.config['DB_USERS_EMAIL']
+        else:
+            whereID = ("(" + app.config['DB_TABLE_HAS_USERS'] + "." 
+                       + app.config['DB_USERS_HAS_USERS_ASKER']
+                       + " IS NULL OR "
+                       + app.config['DB_TABLE_HAS_USERS'] + "." 
+                       + app.config['DB_USERS_HAS_USERS_ASKED']
+                       + " IS NULL) AND " 
+            )
+            
+            # app.config['DB_USERS_HAS_USERS_AF'] + " != 1 AND "
+
+            join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON ("
+                    + app.config['DB_TABLE_USERS'] +
+                    "." + app.config['DB_USERS_ID']
+                    + " = " + app.config['DB_TABLE_HAS_USERS'] +
+                    "." + app.config['DB_USERS_HAS_USERS_ASKER']
+                        + " OR " + app.config['DB_TABLE_USERS'] +
+                    "." + app.config['DB_USERS_ID']
+                        + " = " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + ") ")
+
+        sql = ('SELECT ' + app.config['DB_USERS_ID']
+               + ", " + app.config['DB_USERS_FIRSTNAME']
+               + ", " + app.config['DB_USERS_LASTNAME']
+               + ", " + app.config['DB_USERS_IMAGE']
+               + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
+               + email
+               + " FROM " + app.config['DB_TABLE_USERS']
+               + join
+               + " WHERE "
+               + whereID
+               + "(UPPER(" + app.config['DB_USERS_FIRSTNAME'] +
+               ") LIKE UPPER('" + search + "%') "
+               + " OR UPPER(" + app.config['DB_USERS_LASTNAME'] +
+               ") LIKE UPPER('" + search + "%') "
+               + " OR UPPER(" + app.config['DB_USERS_EMAIL'] +
+               ") LIKE UPPER('" + search + "%')) "
+               + " AND UPPER(" + app.config['DB_USERS_EMAIL'] +
+               ") != UPPER('" + usrEmail + "') "
+               + limitter
+               )
+
+        cursor.execute(sql)
+
+        result = cursor.fetchall()
+
+        for res in result:
+            jres = {}
+            jres['id'] = res[0]
+            jres['firstName'] = res[1]
+            jres['lastName'] = res[2]
+            jres['image'] = res[3]
+            jres['dateOfRegistration'] = res[4]
+
+            cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
+                           app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + ";")
+
+            resultDist = cursor.fetchall()
+
+            totDist = 0
+            for record in resultDist:
+                totDist += record[0]
+
+            jres['totalDistance'] = totDist
+
+            try:
+
+                jres['email'] = res[5]
+
+                pass
+            except Exception as identifier:
+                pass
+
+            jsonArr.append(jres)
+
+        pass
+    except Exception as identifier:
+
+        pass
+
+    cursor.close()
+    conn.close()
+
+    return jsonArr
+
+
+
 ###########################
 ###    WEB API-Pages    ###
 ###########################
@@ -1226,84 +1496,6 @@ def deleteUserAPI():
     return json.dumps(jsonSuccess)
 
 
-def saveTrackThread(jsonTrack):
-
-    try:
-       # jsonTrack = json.loads(jsonString)
-
-        conn = mysql.connect()
-        cursor = conn.cursor()
-
-        print('INSERT INTO '+app.config['DB_TABLE_RECORDS'] +
-              ' ('
-              + app.config['DB_RECORD_NAME'] + ','
-              + app.config['DB_RECORD_TIME'] + ','
-              + app.config['DB_RECORD_DATE'] + ','
-              + app.config['DB_RECORD_TYPE'] + ','
-              + app.config['DB_RECORD_RIDETIME'] + ','
-              + app.config['DB_RECORD_DISTANCE'] + ','
-              + app.config['DB_RECORD_TIMESTAMP'] + ','
-              + app.config['DB_RECORD_USERS_ID']+') VALUES ("'
-              + jsonTrack['name'] + '", '
-              + str(jsonTrack['time']) + ', '
-              + str(jsonTrack['date']) + ', '
-              + str(jsonTrack['type']) + ', '
-              + str(jsonTrack['rideTime']) + ', '
-              + str(jsonTrack['distance']) + ', '
-              + str(jsonTrack['timeStamp']) + ', '
-              + str(jsonTrack['userId']) + ');')
-
-        cursor.execute(
-            'INSERT INTO '+app.config['DB_TABLE_RECORDS'] +
-            ' ('
-            + app.config['DB_RECORD_NAME'] + ','
-            + app.config['DB_RECORD_TIME'] + ','
-            + app.config['DB_RECORD_DATE'] + ','
-            + app.config['DB_RECORD_TYPE'] + ','
-            + app.config['DB_RECORD_RIDETIME'] + ','
-            + app.config['DB_RECORD_DISTANCE'] + ','
-            + app.config['DB_RECORD_TIMESTAMP'] + ','
-            + app.config['DB_RECORD_USERS_ID']+') VALUES ("'
-            + jsonTrack['name'] + '", '
-            + str(jsonTrack['time']) + ', '
-            + str(jsonTrack['date']) + ', '
-            + str(jsonTrack['type']) + ', '
-            + str(jsonTrack['rideTime']) + ', '
-            + str(jsonTrack['distance']) + ', '
-            + str(jsonTrack['timeStamp']) + ', '
-            + str(jsonTrack['userId']) + ');')
-
-        routeId = cursor.lastrowid
-
-        for jsonLocation in jsonTrack['locations']:
-            cursor.execute(
-                'INSERT INTO ' + app.config['DB_TABLE_LOCATIONS'] +
-                ' ('
-                + app.config['DB_LOCATION_LATITUDE'] + ','
-                + app.config['DB_LOCATION_LONGITUDE'] + ','
-                + app.config['DB_LOCATION_ALTITUDE'] + ','
-                + app.config['DB_LOCATION_TIME'] + ','
-                + app.config['DB_LOCATION_SPEED'] + ','
-                + app.config['DB_LOCATION_RECORD_ID'] + ') VALUES ('
-                + str(jsonLocation['latitude']) + ', '
-                + str(jsonLocation['longitude']) + ', '
-                + str(jsonLocation['altitude']) + ', '
-                + str(jsonLocation['time']) + ', '
-                + str(jsonLocation['speed']) + ', '
-                + str(routeId) + ');')
-
-        conn.commit()
-
-        cursor.close()
-        conn.close()
-
-        pass
-    except Exception as identifier:
-
-        print(identifier)
-
-        pass
-
 
 @app.route("/uploadTrackAPI", methods=['POST'])
 @requires_authorization
@@ -1312,9 +1504,7 @@ def uploadTrackAPI():
 
     try:
         jsonTrack = request.json
-        thread = Thread(target=saveTrackThread, args=(jsonTrack,))
-        thread.start()
-
+       
         conn = mysql.connect()
         cursor = conn.cursor()
 
@@ -1542,127 +1732,7 @@ def searchMyFriendsAPI():
     return json.dumps(jsonArr)
 
 
-def searchFriends(page, search, usrId, usrEmail):
-    conn = mysql.connect()
-    cursor = conn.cursor()
 
-    jsonArr = []
-
-    try:
-
-        start = page * 10 - 10
-        end = page * 10
-
-        if page > 0:
-            limitter = ' LIMIT ' + str(start) + ', ' + str(end)
-        else:
-            limitter = ''
-
-        join = ""
-        whereID = ""
-        email = ""
-        if usrId != None:
-            join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON "
-                    + app.config['DB_TABLE_USERS'] +
-                    "." + app.config['DB_USERS_ID']
-                    + " = " + app.config['DB_TABLE_HAS_USERS'] +
-                    "." + app.config['DB_USERS_HAS_USERS_ASKER']
-                    + " OR " + app.config['DB_TABLE_USERS'] +
-                    "." + app.config['DB_USERS_ID']
-                    + " = " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + " ")
-
-            whereID = (app.config['DB_USERS_ID'] + " != " + str(usrId) + " AND "
-                       + app.config['DB_USERS_HAS_USERS_AF'] + " = 1 AND ("
-                       + app.config['DB_TABLE_HAS_USERS'] + "." +
-                       app.config['DB_USERS_HAS_USERS_ASKER']
-                       + " = " + str(usrId) + " OR "
-                       + app.config['DB_TABLE_HAS_USERS'] + "." +
-                       app.config['DB_USERS_HAS_USERS_ASKED']
-                       + " = " + str(usrId) + ") AND")
-            email = ", " + app.config['DB_USERS_EMAIL']
-        else:
-            whereID = ("(" + app.config['DB_TABLE_HAS_USERS'] + "." 
-                       + app.config['DB_USERS_HAS_USERS_ASKER']
-                       + " IS NULL OR "
-                       + app.config['DB_TABLE_HAS_USERS'] + "." 
-                       + app.config['DB_USERS_HAS_USERS_ASKED']
-                       + " IS NULL) AND " 
-            )
-            
-            # app.config['DB_USERS_HAS_USERS_AF'] + " != 1 AND "
-
-            join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON ("
-                    + app.config['DB_TABLE_USERS'] +
-                    "." + app.config['DB_USERS_ID']
-                    + " = " + app.config['DB_TABLE_HAS_USERS'] +
-                    "." + app.config['DB_USERS_HAS_USERS_ASKER']
-                        + " OR " + app.config['DB_TABLE_USERS'] +
-                    "." + app.config['DB_USERS_ID']
-                        + " = " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + ") ")
-
-        sql = ('SELECT ' + app.config['DB_USERS_ID']
-               + ", " + app.config['DB_USERS_FIRSTNAME']
-               + ", " + app.config['DB_USERS_LASTNAME']
-               + ", " + app.config['DB_USERS_IMAGE']
-               + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
-               + email
-               + " FROM " + app.config['DB_TABLE_USERS']
-               + join
-               + " WHERE "
-               + whereID
-               + "(UPPER(" + app.config['DB_USERS_FIRSTNAME'] +
-               ") LIKE UPPER('" + search + "%') "
-               + " OR UPPER(" + app.config['DB_USERS_LASTNAME'] +
-               ") LIKE UPPER('" + search + "%') "
-               + " OR UPPER(" + app.config['DB_USERS_EMAIL'] +
-               ") LIKE UPPER('" + search + "%')) "
-               + " AND UPPER(" + app.config['DB_USERS_EMAIL'] +
-               ") != UPPER('" + usrEmail + "') "
-               + limitter
-               )
-
-        cursor.execute(sql)
-
-        result = cursor.fetchall()
-
-        for res in result:
-            jres = {}
-            jres['id'] = res[0]
-            jres['firstName'] = res[1]
-            jres['lastName'] = res[2]
-            jres['image'] = res[3]
-            jres['dateOfRegistration'] = res[4]
-
-            cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
-                           app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + ";")
-
-            resultDist = cursor.fetchall()
-
-            totDist = 0
-            for record in resultDist:
-                totDist += record[0]
-
-            jres['totalDistance'] = totDist
-
-            try:
-
-                jres['email'] = res[5]
-
-                pass
-            except Exception as identifier:
-                pass
-
-            jsonArr.append(jres)
-
-        pass
-    except Exception as identifier:
-
-        pass
-
-    cursor.close()
-    conn.close()
-
-    return jsonArr
 
 
 @app.route("/requestFriendAPI", methods=['POST'])
@@ -1764,64 +1834,10 @@ def showFriendRequestsAPI():
     return json.dumps(janswerArr)
 
 
-def getFriendById(firendId):
-    conn = mysql.connect()
-    cursor = conn.cursor()
-
-    jres = {}
-
-    try:
-        sql = ('SELECT ' + app.config['DB_USERS_FIRSTNAME']
-               + ", " + app.config['DB_USERS_LASTNAME']
-               + ", " + app.config['DB_USERS_IMAGE']
-               + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
-               + " FROM " + app.config['DB_TABLE_USERS']
-               + " WHERE " + app.config['DB_USERS_ID'] + " = "
-               + str(firendId) + ";"
-               )
-
-        cursor.execute(sql)
-
-        res = cursor.fetchone()
-
-        jres = {}
-        jres['id'] = firendId
-        jres['firstName'] = res[0]
-        jres['lastName'] = res[1]
-        jres['image'] = res[2]
-        jres['dateOfRegistration'] = res[3]
-        jres['totalDistance'] = getUserTotalDistance(firendId)
-        pass
-    except Exception as identifier:
-        pass
-    cursor.close()
-    conn.close()
-
-    return jres
 
 
-def getUserTotalDistance(usrId):
-    conn = mysql.connect()
-    cursor = conn.cursor()
 
-    totDist = 0
-    try:
 
-        cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
-                       app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(usrId) + ";")
-
-        resultDist = cursor.fetchall()
-
-        for record in resultDist:
-            totDist += record[0]
-        pass
-    except Exception as identifier:
-        pass
-
-    cursor.close()
-    conn.close()
-
-    return totDist
 
 
 @app.route("/showStrangerProfileAPI", methods=['POST'])
@@ -1854,63 +1870,7 @@ def showFriendProfileAPI():
     return json.dumps(friend)
 
 
-def showFriendProfile(friendID, userId):
-    janswer = {}
 
-    conn = mysql.connect()
-    cursor = conn.cursor()
-
-    try:
-        sql = ("SELECT " + app.config['DB_USERS_HAS_USERS_DOF'] + " FROM "
-               + app.config['DB_TABLE_HAS_USERS'] + " WHERE "
-               + app.config['DB_USERS_HAS_USERS_ASKER'] +
-               " IN (" + str(friendID) + ", " + str(userId) + ")"
-               + " AND " + app.config['DB_USERS_HAS_USERS_ASKED'] + " IN ("
-               + str(friendID) + ", " + str(userId) + ") AND " 
-               + app.config['DB_USERS_HAS_USERS_AF'] + " = 1;")
-
-        cursor.execute(sql)
-
-        result = cursor.fetchone()
-
-        if result != None:
-            janswer = getUserWithImageFromDB(friendID)
-
-            del janswer['password']
-            del janswer['weight']
-            del janswer['size']
-            del janswer['hints']
-            del janswer['darkTheme']
-            del janswer['timeStamp']
-            janswer['dateOfFriendship'] = result[0]
-            janswer['areFriends'] = True
-        
-        else:
-            janswer = getFriendById(friendID)
-
-            sql = ("SELECT " + app.config['DB_USERS_GENDER'] + ", "
-                    + app.config['DB_USERS_DATEOFBIRTH'] + ", "
-                    + app.config['DB_USERS_EMAIL']
-                    + " FROM "
-                    + app.config['DB_TABLE_USERS'] + " WHERE "
-                    + app.config['DB_USERS_ID'] + " = "
-                    + str(friendID) + ";")
-
-            cursor.execute(sql)
-
-            result = cursor.fetchone()
-
-            janswer['gender'] = result[0]
-            janswer['dateOfBirth'] = result[1]
-            janswer['email'] = result[2]
-            janswer['areFriends'] = False
-        pass
-    except Exception as identifier:
-        pass
-
-    cursor.close()
-    conn.close()
-    return janswer
 
 
 @app.route("/deleteFriendAPI", methods=['POST'])
@@ -1927,35 +1887,6 @@ def deleteFriendAPI():
     janswer['success'] = deleteFriend(friendId, usrid)
 
     return json.dumps(janswer)
-
-
-def deleteFriend(friendId, usrId):
-    conn = mysql.connect()
-    cursor = conn.cursor()
-
-    try:
-
-        sql = ("DELETE FROM " + app.config['DB_TABLE_HAS_USERS']
-               + " WHERE "
-               + app.config['DB_USERS_HAS_USERS_ASKER'] +
-               " IN (" + str(friendId) + ", " + str(usrId) + ")"
-               + " AND " + app.config['DB_USERS_HAS_USERS_ASKED'] + " IN ("
-               + str(friendId) + ", " + str(usrId) + ");")
-
-        cursor.execute(sql)
-        conn.commit()
-
-        success = 0
-
-        pass
-    except Exception as identifier:
-        success = 1
-        pass
-
-    cursor.close()
-    conn.close()
-
-    return success
 
 
 
