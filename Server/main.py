@@ -80,6 +80,15 @@ app.config['DB_RECORD_TIMESTAMP'] = "timeStamp"
 app.config['DB_RECORD_USERS_ID'] = "users_id"
 app.config['DB_RECORD_LOCATION_DATA'] = "locations"
 
+# COLUMN-NAMES: Live-Record
+app.config['DB_LIVE_RECORD_ID'] = 'id'
+app.config['DB_LIVE_RECORD_TIME'] = 'time'
+app.config['DB_LIVE_RECORD_DATE'] = 'date'
+app.config['DB_LIVE_RECORD_TYPE'] = 'type'
+app.config['DB_LIVE_RECORD_RIDETIME'] = 'rideTime'
+app.config['DB_LIVE_RECORD_DISTANCE'] = 'distance'
+app.config['DB_LIVE_RECORD_USERS_ID_FK'] = 'users_id'
+
 
 # COLUMN-NAMES: Location
 app.config['DB_LOCATION_LATITUDE'] = "latitude"
@@ -952,7 +961,6 @@ def searchFriends(page, search, usrId, usrEmail):
     return jsonArr
 
 
-
 def showFriendRequests(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -964,7 +972,36 @@ def showFriendRequests(userId):
                + " FROM " + app.config['DB_TABLE_HAS_USERS']
                + " WHERE "
                + app.config['DB_USERS_HAS_USERS_ASKED']
-               + " = " + str(usrid) + " AND "
+               + " = " + str(userId) + " AND "
+               + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;")
+
+        cursor.execute(sql)
+
+        result = cursor.fetchall()
+
+        for res in result:
+            janswerArr.append(getFriendById(res[0]))
+    except Exception as identifier:
+        pass
+
+    cursor.close()
+    conn.close()
+
+    return janswerArr
+
+
+def showMyFriendRequests(userId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    janswerArr = []
+
+    try:
+        sql = ("SELECT " + app.config['DB_USERS_HAS_USERS_ASKED']
+               + " FROM " + app.config['DB_TABLE_HAS_USERS']
+               + " WHERE "
+               + app.config['DB_USERS_HAS_USERS_ASKER']
+               + " = " + str(userId) + " AND "
                + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;")
 
         cursor.execute(sql)
@@ -1838,6 +1875,15 @@ def showFriendRequestsAPI():
     return json.dumps(showFriendRequests(usrid))
 
 
+@app.route("/showMyFriendRequestsAPI", methods=['POST'])
+@requires_authorization
+def showMyFriendRequestsAPI():
+    auth = request.authorization
+    usrid = getUserId(auth.username)
+
+    return json.dumps(showMyFriendRequests(usrid))
+
+
 @app.route("/showStrangerProfileAPI", methods=['POST'])
 @requires_authorization
 def showStrangerProfileAPI():
@@ -1882,6 +1928,41 @@ def deleteFriendAPI():
     janswer['success'] = deleteFriend(friendId, usrid)
 
     return json.dumps(janswer)
+
+
+@app.route("/requestLiveRecordAPI", methods=['POST'])
+@requires_authorization
+def requestLiveRecordAPI():
+    auth = request.authorization
+    usrid = getUserId(auth.username)
+
+    janswer = {}
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    try:
+        sql = ("DELETE FROM " + app.config['DB_TABLE_LIVE_RECORDS']
+               + " WHERE " + app.config['DB_LIVE_RECORD_USERS_ID_FK']
+               + " = " + usrid + ";")
+        
+        cursor.execute(sql)
+
+        conn.commit()
+
+        sql = ("INSERT INTO " + app.config['DB_TABLE_LIVE_RECORDS']
+        + "(" + ")" 
+        )
+
+
+        pass
+    except Exception as identifier:
+        pass
+
+    cursor.close()
+    conn.close()
+
+    return janswer
 
 
 ###########################
