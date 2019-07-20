@@ -366,7 +366,7 @@ def updateUserLastLogin(email):
 # Update user informations in database
 
 
-def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
+def updateUserDB(userId, newEmail, dateOfBirth, firstName, lastName,
                  gender, size, weight, image, hints, darkTheme):
     try:
         conn = mysql.connect()
@@ -374,70 +374,70 @@ def updateUserDB(oldEmail, newEmail, dateOfBirth, firstName, lastName,
 
         try:
             cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_DATEOFBIRTH']+' =  "' + dateOfBirth
-                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
+                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_FIRSTNAME']+' = "' + firstName
-                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
+                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '+app.config['DB_USERS_LASTNAME']+' = "' + lastName
-                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
+                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_GENDER']+' = "' + gender
-                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
+                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_SIZE']+' = "' + size
-                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
+                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '+app.config['DB_USERS_WEIGHT']+' = "' + weight
-                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
+                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_IMAGE']+' = "' + image
-                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
+                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_EMAIL']+' = "' + newEmail
-                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
+                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_HINTS']+' = "' + hints
-                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
+                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
             pass
         except Exception as identifier:
             pass
 
         try:
             cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_DARKTHEME']+' = "' + darkTheme
-                           + '" WHERE '+app.config['DB_USERS_EMAIL']+' = "' + oldEmail + '";')
+                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
             pass
         except Exception as identifier:
             pass
@@ -709,6 +709,7 @@ def deleteFriend(friendId, usrId):
 
     return success
 
+
 def showFriendProfile(friendID, userId):
     janswer = {}
 
@@ -721,7 +722,7 @@ def showFriendProfile(friendID, userId):
                + app.config['DB_USERS_HAS_USERS_ASKER'] +
                " IN (" + str(friendID) + ", " + str(userId) + ")"
                + " AND " + app.config['DB_USERS_HAS_USERS_ASKED'] + " IN ("
-               + str(friendID) + ", " + str(userId) + ") AND " 
+               + str(friendID) + ", " + str(userId) + ") AND "
                + app.config['DB_USERS_HAS_USERS_AF'] + " = 1;")
 
         cursor.execute(sql)
@@ -739,17 +740,17 @@ def showFriendProfile(friendID, userId):
             del janswer['timeStamp']
             janswer['dateOfFriendship'] = result[0]
             janswer['areFriends'] = True
-        
+
         else:
             janswer = getFriendById(friendID)
 
             sql = ("SELECT " + app.config['DB_USERS_GENDER'] + ", "
-                    + app.config['DB_USERS_DATEOFBIRTH'] + ", "
-                    + app.config['DB_USERS_EMAIL']
-                    + " FROM "
-                    + app.config['DB_TABLE_USERS'] + " WHERE "
-                    + app.config['DB_USERS_ID'] + " = "
-                    + str(friendID) + ";")
+                   + app.config['DB_USERS_DATEOFBIRTH'] + ", "
+                   + app.config['DB_USERS_EMAIL']
+                   + " FROM "
+                   + app.config['DB_TABLE_USERS'] + " WHERE "
+                   + app.config['DB_USERS_ID'] + " = "
+                   + str(friendID) + ";")
 
             cursor.execute(sql)
 
@@ -790,6 +791,7 @@ def getUserTotalDistance(usrId):
     conn.close()
 
     return totDist
+
 
 def getFriendById(firendId):
     conn = mysql.connect()
@@ -866,14 +868,14 @@ def searchFriends(page, search, usrId, usrEmail):
                        + " = " + str(usrId) + ") AND")
             email = ", " + app.config['DB_USERS_EMAIL']
         else:
-            whereID = ("(" + app.config['DB_TABLE_HAS_USERS'] + "." 
+            whereID = ("(" + app.config['DB_TABLE_HAS_USERS'] + "."
                        + app.config['DB_USERS_HAS_USERS_ASKER']
                        + " IS NULL OR "
-                       + app.config['DB_TABLE_HAS_USERS'] + "." 
+                       + app.config['DB_TABLE_HAS_USERS'] + "."
                        + app.config['DB_USERS_HAS_USERS_ASKED']
-                       + " IS NULL) AND " 
-            )
-            
+                       + " IS NULL) AND "
+                       )
+
             # app.config['DB_USERS_HAS_USERS_AF'] + " != 1 AND "
 
             join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON ("
@@ -948,7 +950,6 @@ def searchFriends(page, search, usrId, usrEmail):
     conn.close()
 
     return jsonArr
-
 
 
 ###########################
@@ -1123,7 +1124,7 @@ def updateUser():
     if current_user.is_authenticated:
         birthday = int(datetime.strptime(
             request.form['birthday'], "%Y-%m-%d").timestamp())
-        success = updateUserDB(current_user.email, None, str(birthday),
+        success = updateUserDB(current_user.id, None, str(birthday),
                                request.form['firstName'], request.form['lastName'], request.form['genderRadio'], request.form['size'], request.form['weight'], None, None, None)
 
         if success:
@@ -1215,7 +1216,8 @@ def removeFriend():
         success = deleteFriend(request.form['friendId'], current_user.id)
 
         if success == 0:
-            flash('Freund/in "' + request.form['friendName'] + '" wurde erfolgreich entfernt.')
+            flash('Freund/in "' +
+                  request.form['friendName'] + '" wurde erfolgreich entfernt.')
             return redirect("/community/friends?alert=success")
         else:
             flash('Unbekannter Fehler beim Entfernen des/der Freundes/Freundin!')
@@ -1440,7 +1442,9 @@ def updateUserAPI():
         darkTheme = None
         pass
 
-    if updateUserDB(email, newEmail, dateOfBirth, firstName, lastName, gender, size, weight, image, hints, darkTheme):
+    userId = getUserId(email)
+
+    if updateUserDB(userId, newEmail, dateOfBirth, firstName, lastName, gender, size, weight, image, hints, darkTheme):
         jsonSuccess['success'] = 0
     else:
         jsonSuccess['success'] = 1
@@ -1496,7 +1500,6 @@ def deleteUserAPI():
     return json.dumps(jsonSuccess)
 
 
-
 @app.route("/uploadTrackAPI", methods=['POST'])
 @requires_authorization
 def uploadTrackAPI():
@@ -1504,7 +1507,7 @@ def uploadTrackAPI():
 
     try:
         jsonTrack = request.json
-       
+
         conn = mysql.connect()
         cursor = conn.cursor()
 
@@ -1732,9 +1735,6 @@ def searchMyFriendsAPI():
     return json.dumps(jsonArr)
 
 
-
-
-
 @app.route("/requestFriendAPI", methods=['POST'])
 @requires_authorization
 def requestFriendAPI():
@@ -1834,12 +1834,6 @@ def showFriendRequestsAPI():
     return json.dumps(janswerArr)
 
 
-
-
-
-
-
-
 @app.route("/showStrangerProfileAPI", methods=['POST'])
 @requires_authorization
 def showStrangerProfileAPI():
@@ -1870,9 +1864,6 @@ def showFriendProfileAPI():
     return json.dumps(friend)
 
 
-
-
-
 @app.route("/deleteFriendAPI", methods=['POST'])
 @requires_authorization
 def deleteFriendAPI():
@@ -1887,7 +1878,6 @@ def deleteFriendAPI():
     janswer['success'] = deleteFriend(friendId, usrid)
 
     return json.dumps(janswer)
-
 
 
 ###########################
