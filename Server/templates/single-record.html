@@ -194,8 +194,8 @@
         }
     }
 
-    document.getElementById("altPos").textContent = altPos;
-    document.getElementById("altNeg").textContent = altNeg;
+    document.getElementById("altPos").textContent = Number((altPos).toFixed(2));
+    document.getElementById("altNeg").textContent = Number((altNeg).toFixed(2));
     document.getElementById("maxSpeed").textContent = maxSpeed;
 
     var polyline = L.polyline(latlngs, { color: 'red' }).addTo(map);
