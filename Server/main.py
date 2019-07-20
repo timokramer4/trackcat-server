@@ -136,15 +136,17 @@ class User(UserMixin):
 ###      Functions      ###
 ###########################
 
+## okay
 @app.template_filter('formatSeconds')
 def formatSeconds(value):
     return str(timedelta(seconds=value))
 
-
+## okay
 @app.template_filter('formatDate')
 def formatDate(value, format='%d.%m.%Y %H:%M:%S'):
     return datetime.fromtimestamp(value/1000).strftime(format)
 
+## okay
 # Validate login data
 @login_manager.user_loader
 def user_loaderlmgr(id):
@@ -163,7 +165,7 @@ def user_loaderlmgr(id):
                 jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
 
-
+## okay
 def user_loader(email):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -180,9 +182,8 @@ def user_loader(email):
                 jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
 
+## okay
 # Validate user login
-
-
 def validateLogin(email, password):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -196,7 +197,7 @@ def validateLogin(email, password):
 
     return result is not None and password == result[0]
 
-
+## okay
 # Basic Authentificate
 def authenticate():
     message = {'message': "Authenticate."}
@@ -212,7 +213,7 @@ def authenticate():
 
     return make_response("", 401)
 
-
+## okay
 def requires_authorization(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -222,9 +223,9 @@ def requires_authorization(f):
         return f(*args, **kwargs)
     return decorated
 
+
+## okay
 # Create new user in database
-
-
 def registerUserDB(firstName, lastName, email, password, birthday, gender):
     # 0 = Valid
     # 1 = Creation error
@@ -262,9 +263,8 @@ def registerUserDB(firstName, lastName, email, password, birthday, gender):
 
     return success
 
+## okay
 # Generate verify token
-
-
 def generateVerifyToken(firstName, lastName, email):
 
     # if want to use custom iterations instead of default 29000
@@ -281,9 +281,8 @@ def generateVerifyToken(firstName, lastName, email):
 
     return token
 
+## okay
 # Get selected user data as JSON
-
-
 def getUserFromDB(id):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -336,9 +335,8 @@ def getUserFromDB(id):
 
     return jsonUser
 
+## okay
 # Get user profile image
-
-
 def getUserWithImageFromDB(id):
     jsonUser = getUserFromDB(id)
 
@@ -354,9 +352,8 @@ def getUserWithImageFromDB(id):
 
     return jsonUser
 
+## okay
 # Update last login in database
-
-
 def updateUserLastLogin(email):
     try:
         conn = mysql.connect()
@@ -372,9 +369,8 @@ def updateUserLastLogin(email):
         pass
     return
 
+## okay
 # Update user informations in database
-
-
 def updateUserDB(userId, newEmail, dateOfBirth, firstName, lastName,
                  gender, size, weight, image, hints, darkTheme):
     try:
@@ -461,7 +457,8 @@ def updateUserDB(userId, newEmail, dateOfBirth, firstName, lastName,
         return False
         pass
 
-
+## okay
+# gets user id by email
 def getUserId(email):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -478,7 +475,7 @@ def getUserId(email):
     conn.close()
     return result[0]
 
-
+## okay
 # Change user password in database
 def changeUserPasswordDB(email, password, newPw, timeStamp):
     result = 0
@@ -507,9 +504,8 @@ def changeUserPasswordDB(email, password, newPw, timeStamp):
         result = 2
         return result
 
+## okay
 # Delete user account by id
-
-
 def deleteUserById(id):
     try:
         conn = mysql.connect()
@@ -525,9 +521,8 @@ def deleteUserById(id):
     except Exception as identifier:
         return 1
 
+## okay
 # Update record informations in database
-
-
 def updateRecordDB(recordId, newName, timestamp):
     try:
         conn = mysql.connect()
@@ -549,9 +544,8 @@ def updateRecordDB(recordId, newName, timestamp):
         return False
         pass
 
-# Delete user account by id
-
-
+## okay
+# Delete record by id
 def deleteRecordById(id):
     try:
         conn = mysql.connect()
@@ -567,9 +561,8 @@ def deleteRecordById(id):
     except Exception as identifier:
         return 1
 
+## okay
 # Get all record from user (all or by paging)
-
-
 def getRecordsByID(userId, page):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -611,9 +604,8 @@ def getRecordsByID(userId, page):
 
     return jsonRecords
 
-# Get single record
-
-
+## okay
+# Get single record by id
 def getSingleRecordByID(recordId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -642,16 +634,12 @@ def getSingleRecordByID(recordId):
     jsonRecord['timestamp'] = res[7]
     jsonRecord['owner'] = res[8]
 
-    # jsonRecordData = {}
-    # jsonRecordData['record'] = jsonRecord #TODO remove
-    # getLocationsByID(userId, recordId) switch from locations to json in db
     jsonRecord['locations'] = json.loads(res[9])
 
     return jsonRecord
 
+## UNUSED maybe usefull in future
 # Get all locations from user (and from specific route)
-
-
 def getLocationsByID(userId, recordId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -689,13 +677,13 @@ def getLocationsByID(userId, recordId):
 
     return jsonLocations
 
-
+## okay
+# deletes Friendship or Request
 def deleteFriend(friendId, usrId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
     try:
-
         sql = ("DELETE FROM " + app.config['DB_TABLE_HAS_USERS']
                + " WHERE "
                + app.config['DB_USERS_HAS_USERS_ASKER'] +
@@ -718,7 +706,7 @@ def deleteFriend(friendId, usrId):
 
     return success
 
-
+# TODO
 def showFriendProfile(friendID, userId):
     janswer = {}
 
@@ -777,14 +765,14 @@ def showFriendProfile(friendID, userId):
     conn.close()
     return janswer
 
-
+## okay
+# calculates total distance by userID
 def getUserTotalDistance(usrId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
     totDist = 0
     try:
-
         cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
                        app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(usrId) + ";")
 
@@ -801,7 +789,7 @@ def getUserTotalDistance(usrId):
 
     return totDist
 
-
+## TODO
 def getFriendById(firendId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -839,7 +827,10 @@ def getFriendById(firendId):
 
     return jres
 
-
+## okay
+# list friend by parameters
+# if usrId is Null serach for new Friends 
+# else search in friends
 def searchFriends(page, search, usrId, usrEmail):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -847,7 +838,6 @@ def searchFriends(page, search, usrId, usrEmail):
     jsonArr = []
 
     try:
-
         start = page * 10 - 10
         end = page * 10
 
@@ -886,8 +876,6 @@ def searchFriends(page, search, usrId, usrEmail):
                        + app.config['DB_USERS_HAS_USERS_ASKED']
                        + " IS NULL) AND "
                        )
-
-            # app.config['DB_USERS_HAS_USERS_AF'] + " != 1 AND "
 
             join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON ("
                     + app.config['DB_TABLE_USERS'] +
@@ -943,7 +931,6 @@ def searchFriends(page, search, usrId, usrEmail):
             jres['totalDistance'] = totDist
 
             try:
-
                 jres['email'] = res[5]
 
                 pass
@@ -962,7 +949,8 @@ def searchFriends(page, search, usrId, usrEmail):
 
     return jsonArr
 
-
+## okay
+# gets all friend requests the user got from other users
 def getFriendRequests(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -991,7 +979,8 @@ def getFriendRequests(userId):
 
     return janswerArr
 
-
+## okay
+# gets all friend requests the user has sent
 def showMyFriendRequests(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -1021,7 +1010,8 @@ def showMyFriendRequests(userId):
     return janswerArr
 
 
-
+## okay
+# request friendship, if already arequest exists create friendship
 def requestFriend(friendId, userId):
     conn = mysql.connect()
     cursor = conn.cursor()
