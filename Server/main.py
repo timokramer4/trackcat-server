@@ -790,7 +790,7 @@ def singleRecordPage():
 @app.route("/community/friends", methods=["GET"])
 def friendsPage():
     if current_user.is_authenticated:
-        friends = searchFriend(0, "", current_user.id)
+        friends = searchFriend(0, "", current_user.id, current_user.email)
         alertType = request.args.get('alert')
         return render_template("friends.html", user=current_user, site="friends", friends=friends, alert=alertType)
     else:
@@ -1516,12 +1516,14 @@ def searchMyFriendsAPI():
     page = int(jrequest['page'])
     search = jrequest['search']
 
-    jsonArr = searchFriend(page, search, usrid)
+    auth = request.authorization
+
+    jsonArr = searchFriend(page, search, usrid, auth.username)
 
     return json.dumps(jsonArr)
 
 
-def searchFriend(page, search, usrId):
+def searchFriend(page, search, usrId, usrEmail):
     conn = mysql.connect()
     cursor = conn.cursor()
 
@@ -1537,10 +1539,9 @@ def searchFriend(page, search, usrId):
         else:
             limitter = ''
 
-        auth = request.authorization
-
         join = ""
         whereID = ""
+        email = ""
         if usrId != None:
             join = (" INNER JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON "
                     + app.config['DB_TABLE_USERS'] +
@@ -1551,13 +1552,20 @@ def searchFriend(page, search, usrId):
                     "." + app.config['DB_USERS_ID']
                     + " = " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + " ")
 
-            whereID = app.config['DB_USERS_ID'] + " != " + str(usrId) + " AND " + app.config['DB_USERS_HAS_USERS_AF'] + " = 1 AND "
+            whereID = (app.config['DB_USERS_ID'] + " != " + str(usrId) + " AND "
+                       + app.config['DB_USERS_HAS_USERS_AF'] + " = 1 AND ("
+                       + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKER']
+                       + " = " + str(usrId) + " OR "
+                       + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED']
+                       + " = " + str(usrId) + ") AND")
+            email = ", " + app.config['DB_USERS_EMAIL']
 
         sql = ('SELECT ' + app.config['DB_USERS_ID']
                + ", " + app.config['DB_USERS_FIRSTNAME']
                + ", " + app.config['DB_USERS_LASTNAME']
                + ", " + app.config['DB_USERS_IMAGE']
                + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
+               + email
                + " FROM " + app.config['DB_TABLE_USERS']
                + join
                + " WHERE "
@@ -1569,7 +1577,7 @@ def searchFriend(page, search, usrId):
                + " OR UPPER(" + app.config['DB_USERS_EMAIL'] +
                ") LIKE UPPER('" + search + "%') "
                + " AND UPPER(" + app.config['DB_USERS_EMAIL'] +
-               ") != UPPER('" + auth.username + "')) "
+               ") != UPPER('" + usrEmail + "')) "
                + limitter
                )
 
@@ -1595,6 +1603,14 @@ def searchFriend(page, search, usrId):
                 totDist += record[0]
 
             jres['totalDistance'] = totDist
+
+            try:
+
+                jres['email'] = res[5]
+
+                pass
+            except Exception as identifier:
+                pass
 
             jsonArr.append(jres)
 
