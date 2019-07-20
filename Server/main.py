@@ -1889,7 +1889,9 @@ def showFriendProfile(friendID, userId):
             janswer = getFriendById(friendID)
 
             sql = ("SELECT " + app.config['DB_USERS_GENDER'] + ", "
-                    + app.config['DB_USERS_DATEOFBIRTH'] + " FROM "
+                    + app.config['DB_USERS_DATEOFBIRTH'] + ", "
+                    + app.config['DB_USERS_EMAIL']
+                    + " FROM "
                     + app.config['DB_TABLE_USERS'] + " WHERE "
                     + app.config['DB_USERS_ID'] + " = "
                     + str(friendID) + ";")
@@ -1900,9 +1902,8 @@ def showFriendProfile(friendID, userId):
 
             janswer['gender'] = result[0]
             janswer['dateOfBirth'] = result[1]
+            janswer['email'] = result[2]
             janswer['areFriends'] = False
-
-
         pass
     except Exception as identifier:
         pass
