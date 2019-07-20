@@ -1898,12 +1898,13 @@ def deleteFriendAPI():
 
     friendId = int(jrequest['friendId'])
 
-    return json.dumps(deleteFriend(friendId, usrid))
+    janswer = {}
+    janswer['success'] = deleteFriend(friendId, usrid)
+
+    return json.dumps(janswer)
 
 
 def deleteFriend(friendId, usrId):
-    janswer = {}
-
     conn = mysql.connect()
     cursor = conn.cursor()
 
@@ -1919,17 +1920,17 @@ def deleteFriend(friendId, usrId):
         cursor.execute(sql)
         conn.commit()
 
-        janswer['success'] = 0
+        success = 0
 
         pass
     except Exception as identifier:
-        janswer['success'] = 1
+        success = 1
         pass
 
     cursor.close()
     conn.close()
 
-    return janswer
+    return success
 
 
 ###########################
