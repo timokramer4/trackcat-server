@@ -1733,7 +1733,6 @@ def requestFriendAPI():
 @app.route("/showFriendRequestsAPI", methods=['POST'])
 @requires_authorization
 def showFriendRequestsAPI():
-
     auth = request.authorization
     usrid = getUserId(auth.username)
 
@@ -1889,7 +1888,8 @@ def showFriendProfile(friendID, userId):
                + app.config['DB_USERS_HAS_USERS_ASKER'] +
                " IN (" + str(friendID) + ", " + str(userId) + ")"
                + " AND " + app.config['DB_USERS_HAS_USERS_ASKED'] + " IN ("
-               + str(friendID) + ", " + str(userId) + ");")
+               + str(friendID) + ", " + str(userId) + ") AND " 
+               + app.config['DB_USERS_HAS_USERS_AF'] + " = 1;")
 
         cursor.execute(sql)
 
@@ -1958,6 +1958,7 @@ def deleteFriend(friendId, usrId):
     conn.close()
 
     return success
+
 
 
 ###########################
