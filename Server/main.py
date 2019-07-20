@@ -963,7 +963,6 @@ def searchFriends(page, search, usrId, usrEmail):
     return jsonArr
 
 
-
 def getFriendRequests(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -1020,6 +1019,62 @@ def showMyFriendRequests(userId):
     conn.close()
 
     return janswerArr
+
+
+
+def requestFriend(friendId, userId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    success = 1
+
+    try:
+        sql = ("SELECT * FROM " + app.config['DB_TABLE_HAS_USERS']
+               + " WHERE " + app.config['DB_USERS_HAS_USERS_ASKER'] + " = "
+               + str(friendId) + " AND "
+               + app.config['DB_USERS_HAS_USERS_ASKED'] + " = "
+               + str(userId) + " AND "
+               + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;"
+               )
+
+        cursor.execute(sql)
+
+        result = cursor.fetchone()
+
+        if result != None:
+            sql = ("UPDATE " + app.config['DB_TABLE_HAS_USERS']
+                   + " SET " + app.config['DB_USERS_HAS_USERS_AF'] + " = 1, "
+                   + app.config['DB_USERS_HAS_USERS_DOF']
+                   + " = " + str(int(time.time()))
+                   + " WHERE " + app.config['DB_USERS_HAS_USERS_ASKER'] + " = "
+                   + str(friendId) + " AND "
+                   + app.config['DB_USERS_HAS_USERS_ASKED'] + " = "
+                   + str(userId) + " AND "
+                   + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;"
+                   )
+            success = 2
+
+        else:
+            sql = ("INSERT INTO " + app.config['DB_TABLE_HAS_USERS'] + " ("
+                   + app.config['DB_USERS_HAS_USERS_ASKER'] + ", "
+                   + app.config['DB_USERS_HAS_USERS_ASKED'] + ") VALUES ("
+                   + str(userId) + ", " + str(friendId) + ");")
+
+            success = 0
+
+        cursor.execute(sql)
+
+        conn.commit()
+
+        pass
+    except Exception as identifier:
+        success = 1
+
+        pass
+    cursor.close()
+    conn.close()
+
+    return success
 
 ###########################
 ###    WEB API-Pages    ###
@@ -1824,57 +1879,9 @@ def requestFriendAPI():
     auth = request.authorization
     usrid = getUserId(auth.username)
 
-    conn = mysql.connect()
-    cursor = conn.cursor()
-
     janswer = {}
 
-    try:
-
-        sql = ("SELECT * FROM " + app.config['DB_TABLE_HAS_USERS']
-               + " WHERE " + app.config['DB_USERS_HAS_USERS_ASKER'] + " = "
-               + str(friendId) + " AND "
-               + app.config['DB_USERS_HAS_USERS_ASKED'] + " = "
-               + str(usrid) + " AND "
-               + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;"
-               )
-
-        cursor.execute(sql)
-
-        result = cursor.fetchone()
-
-        if result != None:
-            sql = ("UPDATE " + app.config['DB_TABLE_HAS_USERS']
-                   + " SET " + app.config['DB_USERS_HAS_USERS_AF'] + " = 1, "
-                   + app.config['DB_USERS_HAS_USERS_DOF']
-                   + " = " + str(int(time.time()))
-                   + " WHERE " + app.config['DB_USERS_HAS_USERS_ASKER'] + " = "
-                   + str(friendId) + " AND "
-                   + app.config['DB_USERS_HAS_USERS_ASKED'] + " = "
-                   + str(usrid) + " AND "
-                   + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;"
-                   )
-            janswer['success'] = 2
-
-        else:
-            sql = ("INSERT INTO " + app.config['DB_TABLE_HAS_USERS'] + " ("
-                   + app.config['DB_USERS_HAS_USERS_ASKER'] + ", "
-                   + app.config['DB_USERS_HAS_USERS_ASKED'] + ") VALUES ("
-                   + str(usrid) + ", " + str(friendId) + ");")
-
-            janswer['success'] = 0
-
-        cursor.execute(sql)
-
-        conn.commit()
-
-        pass
-    except Exception as identifier:
-        janswer['success'] = 1
-
-        pass
-    cursor.close()
-    conn.close()
+    janswer['success'] = requestFriend(friendId, usrid)
 
     return json.dumps(janswer)
 
@@ -1958,15 +1965,20 @@ def requestLiveRecordAPI():
         sql = ("DELETE FROM " + app.config['DB_TABLE_LIVE_RECORDS']
                + " WHERE " + app.config['DB_LIVE_RECORD_USERS_ID_FK']
                + " = " + usrid + ";")
-        
+
         cursor.execute(sql)
 
         conn.commit()
 
         sql = ("INSERT INTO " + app.config['DB_TABLE_LIVE_RECORDS']
-        + "(" + ")" 
-        )
+               + "(" + app.config['DB_LIVE_RECORD_USERS_ID_FK'] + ") VALUES ("
+               + str(usrid) + ");"
+               )
 
+        cursor.execute(sql)
+        conn.commit()
+
+        janswer['liveRecordId'] = cursor.lastrowid
 
         pass
     except Exception as identifier:
@@ -1975,7 +1987,7 @@ def requestLiveRecordAPI():
     cursor.close()
     conn.close()
 
-    return janswer
+    return json.dumps(janswer)
 
 
 ###########################
