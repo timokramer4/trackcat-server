@@ -371,8 +371,8 @@ def updateUserLastLogin(email):
 
 ## okay
 # Update user informations in database
-def updateUserDB(userId, newEmail, dateOfBirth, firstName, lastName,
-                 gender, size, weight, image, hints, darkTheme):
+def updateUserDB(userId, dateOfBirth, firstName, lastName,
+                 gender, size, weight, image, timestamp, hints, darkTheme):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -427,13 +427,6 @@ def updateUserDB(userId, newEmail, dateOfBirth, firstName, lastName,
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_EMAIL']+' = "' + newEmail
-                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
-            pass
-        except Exception as identifier:
-            pass
-
-        try:
             cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_HINTS']+' = "' + hints
                            + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
             pass
@@ -442,6 +435,13 @@ def updateUserDB(userId, newEmail, dateOfBirth, firstName, lastName,
 
         try:
             cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_DARKTHEME']+' = "' + darkTheme
+                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
+            pass
+        except Exception as identifier:
+            pass
+
+        try:
+            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_TIMESTAMP']+' = "' + timestamp
                            + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
             pass
         except Exception as identifier:
@@ -1172,6 +1172,20 @@ def singleRecordPage():
     else:
         return redirect("/login")
 
+# Search persons page
+@app.route("/community/search", methods=["GET"])
+def searchPage():
+    if current_user.is_authenticated:
+        searchQuery = request.args.get('search')
+        if searchQuery != None:
+            searchresults = searchFriends(0, searchQuery, None, current_user.email)
+        else:
+            searchresults = None
+        alertType = request.args.get('alert')
+        return render_template("search.html", user=current_user, site="search", searchresults=searchresults, alert=alertType)
+    else:
+        return redirect("/login")
+        
 # Show friend list
 @app.route("/community/friends", methods=["GET"])
 def friendsPage():
@@ -1251,8 +1265,8 @@ def updateUser():
     if current_user.is_authenticated:
         birthday = int(datetime.strptime(
             request.form['birthday'], "%Y-%m-%d").timestamp())
-        success = updateUserDB(current_user.id, None, str(birthday),
-                               request.form['firstName'], request.form['lastName'], request.form['genderRadio'], request.form['size'], request.form['weight'], None, None, None)
+        success = updateUserDB(current_user.id, str(birthday),
+                               request.form['firstName'], request.form['lastName'], request.form['genderRadio'], request.form['size'], request.form['weight'], None, str(int(time.time())), None, None)
 
         if success:
             flash('Profil erflogreich gespeichert.')
@@ -1369,6 +1383,15 @@ def removeFriend():
         else:
             flash('Unbekannter Fehler beim Entfernen des/der Freundes/Freundin!')
             return redirect("/community/friends?alert=danger")
+    else:
+        return redirect("/login")
+
+# Search for profile
+@app.route("/search", methods=['POST'])
+def search():
+    if current_user.is_authenticated:
+        searchParam = request.form['searchParam']
+        return redirect("/community/search?search=" + searchParam)
     else:
         return redirect("/login")
 
@@ -1520,13 +1543,6 @@ def updateUserAPI():
         pass
 
     try:
-        newEmail = j['newemail']
-        pass
-    except Exception as identifier:
-        newEmail = None
-        pass
-
-    try:
         dateOfBirth = j['dateOfBirth']
         pass
     except Exception as identifier:
@@ -1589,9 +1605,16 @@ def updateUserAPI():
         darkTheme = None
         pass
 
+    try:
+        timestamp = j['timeStamp']
+        pass
+    except Exception as identifier:
+        timestamp = None
+        pass
+
     userId = getUserId(email)
 
-    if updateUserDB(userId, newEmail, dateOfBirth, firstName, lastName, gender, size, weight, image, hints, darkTheme):
+    if updateUserDB(userId, dateOfBirth, firstName, lastName, gender, size, weight, image, timestamp, hints, darkTheme):
         jsonSuccess['success'] = 0
     else:
         jsonSuccess['success'] = 1

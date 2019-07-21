@@ -1,0 +1,149 @@
+{% extends "model/loggedMenu.html" %}
+
+{% block subcontent %}
+<!-- Modal window: Revert friend request -->
+<div id="revertFriendRequestModal" class="modal fade" tabindex="-1" role="dialog"
+    aria-labelledby="revertFriendRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="revertFriendRequestModalLabel">Anfrage zurückziehen?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Sie sind dabei die Freundschaftsanfrage an <b id="profileNameTxt"></b> zurückzuziehen. Die
+                gegenüberstehenden
+                Person wird Ihre Anfrage nicht mehr annehmen können.
+                <br></br><b>Sind Sie sich sicher, dass Sie Ihre Freundschaftsanfrage zurückziehen wollen?</b>
+            </div>
+            <div class="modal-footer">
+                <form action="/removeFriend" method="POST">
+                    <input id="profileId" name="profileId" type="text" style="display: none;">
+                    <input id="profileName" name="profileName" type="text" style="display: none;">
+                    <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
+                    <button type="submit" class="btn btn-danger">Zurückziehen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-xl-5">
+    <section class="py-5">
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="col-lg-12 mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{alert}} alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                {{message}}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="col-lg-12 mb-4 text-center">
+            <form action="/search" method="POST" class="form-inline my-2 my-lg-0">
+                <input name="searchParam" class="form-control mr-sm-2" type="search" placeholder="Suche" aria-label="Suche">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Suche</button>
+            </form>
+        </div>
+
+        {% if searchresults != None %}
+        {% for search in searchresults %}
+        <div class="col-lg-12">
+            <div id="search" class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
+                <div class="row">
+                    <div
+                        class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
+                        <span class="mb-2 mr-lg-3 mb-lg-0">
+                            <img src="/image?userID={{search.id}}" alt="{{search.firstName}} {{search.lastName}}"
+                                style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow">
+                        </span>
+                        <h6 class="mb-0">{{search.firstName}} {{search.lastName}}</h6>
+                    </div>
+                    <div
+                        class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-sm-row justify-content-center justify-content-lg-start">
+                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
+                            Registriert seit {{(search.dateOfRegistration*1000)|formatDate('%d.%m.%Y %H:%M')}}</div>
+                    </div>
+                    <div
+                        class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
+                        <div id="openProfile" title="Profil anzeigen" class="icon text-white bg-green mr-1"
+                            style="cursor: pointer;" data-profileid="{{search.id}}"><i class="far fa-eye"></i>
+                        </div>
+                        <form action="/addFriend" method="POST">
+                            <input id="profileName" name="profileName" type="text" style="display:none;"
+                                value="{{search.firstName}} {{search.lastName}}">
+                            <input id="profileId" name="profileId" type="text" style="display:none;"
+                                value="{{search.id}}">
+                            <button type="submit" id="sendRequest" title="Freundschaftsanfrage senden"
+                                class="icon text-white bg-blue mr-1" style="cursor: pointer; border: none;"><i
+                                    class="fas fa-user-plus"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% if searchresults|length == 0 %}
+        <div class="row justify-content-md-center">
+            <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                <div class="text-center">
+                    <h1>Keine Ergebnisse</h1>
+                    <p>Die Suche mit den eingegebenen Parametern ergab keine Treffer.</p>
+                    <br>
+                    <a href="/community/friends"><button type="button" class="btn btn-primary shadow px-5">Stattdessen
+                            Freunde
+                            anzeigen</button></a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        {% if searchresults == None %}
+        <div class="row justify-content-md-center">
+            <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                <div class="text-center">
+                    <h1>Starten Sie zunächst eine Suche</h1>
+                    <p>Ohne Suchparameter können wir nicht nach Personen suchen.</p>
+                    <br>
+                    <a href="/community/friends"><button type="button" class="btn btn-primary shadow px-5">Stattdessen
+                            Freunde
+                            anzeigen</button></a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block customScripts %}
+<script src="{{ url_for('static', filename='js/validate.js')}}"></script>
+<script>
+    /* Get current friend name for modal */
+    $('#revertFriendRequestModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        var requestName = button.data('profilefirstname') + " " + button.data('profilelastname');
+        var requestId = button.data('profileid');
+        var modal = $(this);
+        modal.find('#profileId').val(requestId);
+        modal.find('#profileName').val(requestName);
+        modal.find('#profileNameTxt').text(requestName);
+    });
+
+    /* Open user profile*/
+    $('[id=openProfile]').on('click', function () {
+        window.location.href = `/profile?id=${$(this).data('profileid')}`;
+    });
+</script>
+{% endblock %}

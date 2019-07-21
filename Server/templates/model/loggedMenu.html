@@ -23,7 +23,7 @@
             class="collapse {% if site == 'search' or site == 'friends' or site == 'friendrequests' or site == 'live' %}show{% endif %}">
             <ul class="sidebar-menu list-unstyled border-left border-primary border-thick">
                 <li class="sidebar-list-item"><a href="/community/search"
-                        class="sidebar-link text-muted pl-lg-5">Suche</a></li>
+                        class="sidebar-link text-muted pl-lg-5 {% if site == 'search'%}active{% endif %}">Suche</a></li>
                 <li class="sidebar-list-item"><a href="/community/friends"
                         class="sidebar-link text-muted pl-lg-5 {% if site == 'friends'%}active{% endif %}">Freunde</a>
                 </li>

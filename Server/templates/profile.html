@@ -52,7 +52,7 @@
                                                 class="fas fa-birthday-cake"></i>&nbsp;&nbsp;Geburtstag</span></h6>
                                 </div>
                             </div>
-                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
+                            <div class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 text-black">
                                 <h5>
                                     {{(user.dateOfBirth*1000)|formatDate('%d.%m.%Y')}}
                                 </h5>
@@ -67,7 +67,7 @@
                                 </div>
                             </div>
                             <div
-                                class="right ml-5 ml-sm-0 pl-3 pl-sm-0 {% if user.gender == 0%}text-violet{% else %}text-blue{% endif %}">
+                                class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 {% if user.gender == 0%}text-violet{% else %}text-blue{% endif %}">
                                 <h5>{% if user.gender == 0%}weiblich <i class="fas fa-venus"></i>{% else %}männlich <i
                                         class="fas fa-mars"></i>{% endif %}</h5>
                             </div>
@@ -81,7 +81,7 @@
                                                 class="fas fa-long-arrow-alt-up"></i>&nbsp;&nbsp;Größe</span></h6>
                                 </div>
                             </div>
-                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
+                            <div class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 text-black">
                                 <h5><span id="usr_size">{% if user.size != None %}{{user.size}}
                                         cm{% else %}NaN{% endif %}</span></h5>
                             </div>
@@ -94,7 +94,7 @@
                                                 class="fas fa-weight"></i>&nbsp;&nbsp;Gewicht</span></h6>
                                 </div>
                             </div>
-                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
+                            <div class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 text-black">
                                 <h5><span id="usr_weight">{% if user.weight != None %}{{user.weight}}
                                         kg{% else %}NaN{% endif %}</span></h5>
                             </div>
@@ -107,7 +107,7 @@
                                                 class="fas fa-weight"></i>&nbsp;&nbsp;BMI</span></h6>
                                 </div>
                             </div>
-                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
+                            <div class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 text-black">
                                 <h5>
                                     <script>
                                         var size = parseFloat(document.getElementById("usr_size").innerText);
@@ -127,7 +127,7 @@
                                     </h6>
                                 </div>
                             </div>
-                            <div class="right ml-5 ml-sm-0 pl-3 pl-sm-0 text-black">
+                            <div class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 text-black">
                                 <h5>
                                     {{(user.dateOfRegistration*1000)|formatDate('%d.%m.%Y')}}
                                 </h5>

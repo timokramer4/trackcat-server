@@ -30,6 +30,33 @@
     </div>
 </div>
 
+<!-- Modal window: Reject friend request -->
+<div id="rejectFriendRequestModal" class="modal fade" tabindex="-1" role="dialog"
+    aria-labelledby="rejectFriendRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectFriendRequestModalLabel">Anfrage ablehnen?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Sie sind dabei die Freundschaftsanfrage von <b id="profileNameTxt"></b> abzulehnen. Sie können jederzeit eine neue Freundschaftsanfrage versenden.
+                <br></br><b>Sind Sie sich sicher, dass Sie die Freundschaftsanfrage ablehnen wollen?</b>
+            </div>
+            <div class="modal-footer">
+                <form action="/removeFriend" method="POST">
+                    <input id="profileId" name="profileId" type="text" style="display: none;">
+                    <input id="profileName" name="profileName" type="text" style="display: none;">
+                    <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
+                    <button type="submit" class="btn btn-danger">Ablehnen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container-fluid px-xl-5">
     <section class="py-5">
 
@@ -92,6 +119,12 @@
                                         class="fas fa-check"></i>
                                 </button>
                             </form>
+                            <button type="submit" id="revertRequest" title="Anfrage ablehnen"
+                                class="icon text-white bg-red mr-1" style="cursor: pointer; border: none;"
+                                data-profileFirstName="{{request.firstName}}"
+                                data-profileLastName="{{request.lastName}}" data-profileId="{{request.id}}"
+                                data-toggle="modal" data-target="#rejectFriendRequestModal"><i class="fas fa-times"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -169,7 +202,7 @@
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
 <script>
     /* Get current friend name for modal */
-    $('#revertFriendRequestModal').on('show.bs.modal', function (event) {
+    $('[id*="FriendRequestModal"]').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget) // Button that triggered the modal
         var requestName = button.data('profilefirstname') + " " + button.data('profilelastname');
         var requestId = button.data('profileid');
@@ -182,7 +215,7 @@
     /* Open user profile*/
     $('[id=openProfile]').on('click', function () {
         window.location.href = `/profile?id=${$(this).data('profileid')}`;
-    })
+    });
 
     /* Switch button */
     $('.btn-group button').on('click', function () {
