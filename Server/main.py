@@ -1613,9 +1613,13 @@ def changeUserPasswordAPI():
 def synchronizeDataAPI():
     conn = mysql.connect()
     cursor = conn.cursor()
+
+    auth = request.authorization
+    usrid = getUserId(auth.username)
+
     params = "timeStamp"
     cursor.execute('SELECT ' + params +
-                   ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + request.json['email'] + '";')
+                   ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = ' + str(usrid) + ';')
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -1624,7 +1628,7 @@ def synchronizeDataAPI():
 
     if(int(request.json['timeStamp']) < result[0]):
         jsonAnswer['state'] = 0
-        jsonAnswer['user'] = getUserWithImageFromDB(request.json['email'])
+        jsonAnswer['user'] = getUserWithImageFromDB(usrid)
     elif (int(request.json['timeStamp']) == result[0]):
         jsonAnswer['state'] = 2
         jsonAnswer['user'] = None
@@ -1974,7 +1978,7 @@ def requestLiveRecordAPI():
     try:
         sql = ("DELETE FROM " + app.config['DB_TABLE_LIVE_RECORDS']
                + " WHERE " + app.config['DB_LIVE_RECORD_USERS_ID_FK']
-               + " = " + usrid + ";")
+               + " = " + str(usrid) + ";")
 
         cursor.execute(sql)
 
@@ -1998,6 +2002,9 @@ def requestLiveRecordAPI():
     conn.close()
 
     return json.dumps(janswer)
+
+
+
 
 
 ###########################
