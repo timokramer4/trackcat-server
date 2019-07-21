@@ -1,28 +1,29 @@
 {% extends "model/loggedMenu.html" %}
 
 {% block subcontent %}
-<!-- Modal window: Remove request -->
-<div id="removeFriendModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="removeFriendModalLabel"
-    aria-hidden="true">
+<!-- Modal window: Revert friend request -->
+<div id="revertFriendRequestModal" class="modal fade" tabindex="-1" role="dialog"
+    aria-labelledby="revertFriendRequestModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="removeFriendModalLabel">Freund entfernen?</h5>
+                <h5 class="modal-title" id="revertFriendRequestModalLabel">Anfrage zurückziehen?</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                Sie sind dabei Ihre(n) Freund/in <b id="friendNameTxt"></b> zu entfernen. Dabei verlieren Sie auch den
-                Zugriff auf deren Statistiken.
-                <br></br><b>Sind Sie sich sicher, dass Sie den Freund entfernen wollen?</b>
+                Sie sind dabei die Freundschaftsanfrage an <b id="profileNameTxt"></b> zurückzuziehen. Die
+                gegenüberstehenden
+                Person wird Ihre Anfrage nicht mehr annehmen können.
+                <br></br><b>Sind Sie sich sicher, dass Sie Ihre Freundschaftsanfrage zurückziehen wollen?</b>
             </div>
             <div class="modal-footer">
                 <form action="/removeFriend" method="POST">
-                    <input id="friendId" name="friendId" type="text" style="display: none;">
-                    <input id="friendName" name="friendName" type="text" style="display: none;">
+                    <input id="profileId" name="profileId" type="text" style="display: none;">
+                    <input id="profileName" name="profileName" type="text" style="display: none;">
                     <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
-                    <button type="submit" class="btn btn-danger">Freund entfernen</button>
+                    <button type="submit" class="btn btn-danger">Zurückziehen</button>
                 </form>
             </div>
         </div>
@@ -48,63 +49,117 @@
         {% endwith %}
 
         <div class="col-lg-12 mb-4 text-center">
-            <div class="btn-group" role="group" aria-label="Basic example">
-                <button type="button" class="btn btn-secondary">Gesendete</button>
-                <button type="button" class="btn btn-secondary active">Empfangene <span
-                        class="badge badge-light">{{friendrequests|length}}</span></button>
+            <div class="btn-group">
+                <button id="out" type="button"
+                    class="btn btn-secondary switch-mode {% if type == 'out' %}active{% endif %}">Gesendete{% if outgoings|length > 0 %}
+                    <span class="badge badge-light">{{outgoings|length}}</span>{% endif %}</button>
+                <button id="in" type="button"
+                    class="btn btn-secondary switch-mode {% if type != 'out' %}active{% endif %}">Empfangene{% if incommings|length > 0 %}
+                    <span class="badge badge-light">{{incommings|length}}</span>{% endif %}</button>
             </div>
         </div>
 
-        {% for request in friendrequests %}
-        <div class="col-lg-12">
-            <div id="request" class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
-                <div class="row">
-                    <div
-                        class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
-                        <span class="mb-2 mr-lg-3 mb-lg-0">
-                            <img src="/image?userID={{request.id}}" alt="{{request.firstName}} {{request.lastName}}"
-                                style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow">
-                        </span>
-                        <h6 class="mb-0">{{request.firstName}} {{request.lastName}}</h6>
-                    </div>
-                    <div
-                        class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-sm-row justify-content-center justify-content-lg-start">
-                        <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
-                            {{request.email}}</div>
-                    </div>
-                    <div
-                        class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
-                        <div id="openProfile" title="Profil anzeigen" class="icon text-white bg-green mr-1"
-                            style="cursor: pointer;" data-friendid="{{request.id}}"><i class="far fa-eye"></i>
+        <div id="incommings" {% if type == 'out' %}style="display: none;"{% endif %}>
+            {% for request in incommings %}
+            <div class="col-lg-12">
+                <div id="request" class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
+                    <div class="row">
+                        <div
+                            class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
+                            <span class="mb-2 mr-lg-3 mb-lg-0">
+                                <img src="/image?userID={{request.id}}" alt="{{request.firstName}} {{request.lastName}}"
+                                    style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow">
+                            </span>
+                            <h6 class="mb-0">{{request.firstName}} {{request.lastName}}</h6>
                         </div>
-                        <form action="/addFriend" method="POST">
-                            <input id="profileName" name="profileName" type="text" style="display:none;"
-                                value="{{request.firstName}} {{request.lastName}}">
-                            <input id="profileId" name="profileId" type="text" style="display:none;"
-                                value="{{request.id}}">
-                            <button type="submit" id="acceptRequest" title="Freundschaftsanfrage annehmen"
-                                class="icon text-white bg-blue mr-1" style="cursor: pointer; border: none;"><i
-                                    class="fas fa-check"></i>
-                            </button>
-                        </form>
+                        <div
+                            class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-sm-row justify-content-center justify-content-lg-start">
+                            <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
+                                {{request.email}}</div>
+                        </div>
+                        <div
+                            class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
+                            <div id="openProfile" title="Profil anzeigen" class="icon text-white bg-green mr-1"
+                                style="cursor: pointer;" data-profileid="{{request.id}}"><i class="far fa-eye"></i>
+                            </div>
+                            <form action="/addFriend" method="POST">
+                                <input id="profileName" name="profileName" type="text" style="display:none;"
+                                    value="{{request.firstName}} {{request.lastName}}">
+                                <input id="profileId" name="profileId" type="text" style="display:none;"
+                                    value="{{request.id}}">
+                                <button type="submit" id="acceptRequest" title="Freundschaftsanfrage annehmen"
+                                    class="icon text-white bg-blue mr-1" style="cursor: pointer; border: none;"><i
+                                        class="fas fa-check"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        {% endfor %}
-        {% if friendrequests|length == 0 %}
-        <div class="row justify-content-md-center">
-            <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
-                <div class="text-center">
-                    <h1>Kein offene Anfragen!</h1>
-                    <p>Zur Zeit haben Sie keine offenen Freundschaftsanfragen.</p>
-                    <br>
-                    <a href="/community/friends"><button type="button" class="btn btn-primary shadow px-5">Freunde
-                            anzeigen</button></a>
+            {% endfor %}
+            {% if incommings|length == 0 %}
+            <div class="row justify-content-md-center">
+                <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                    <div class="text-center">
+                        <h1>Keine offenen Anfragen!</h1>
+                        <p>Zur Zeit haben Sie keine offenen Freundschaftsanfragen.</p>
+                        <br>
+                        <a href="/community/friends"><button type="button" class="btn btn-primary shadow px-5">Freunde
+                                anzeigen</button></a>
+                    </div>
                 </div>
             </div>
+            {% endif %}
         </div>
-        {% endif %}
+
+        <div id="outgoings" {% if type != 'out' %}style="display:none;"{% endif %}>
+            {% for request in outgoings %}
+            <div class="col-lg-12">
+                <div id="request" class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
+                    <div class="row">
+                        <div
+                            class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
+                            <span class="mb-2 mr-lg-3 mb-lg-0">
+                                <img src="/image?userID={{request.id}}" alt="{{request.firstName}} {{request.lastName}}"
+                                    style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow">
+                            </span>
+                            <h6 class="mb-0">{{request.firstName}} {{request.lastName}}</h6>
+                        </div>
+                        <div
+                            class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-sm-row justify-content-center justify-content-lg-start">
+                            <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
+                                {{request.email}}</div>
+                        </div>
+                        <div
+                            class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
+                            <div id="openProfile" title="Profil anzeigen" class="icon text-white bg-green mr-1"
+                                style="cursor: pointer;" data-profileId="{{request.id}}"><i class="far fa-eye"></i>
+                            </div>
+                            <button type="submit" id="revertRequest" title="Zurückziehen"
+                                class="icon text-white bg-red mr-1" style="cursor: pointer; border: none;"
+                                data-profileFirstName="{{request.firstName}}"
+                                data-profileLastName="{{request.lastName}}" data-profileId="{{request.id}}"
+                                data-toggle="modal" data-target="#revertFriendRequestModal"><i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% if outgoings|length == 0 %}
+            <div class="row justify-content-md-center">
+                <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
+                    <div class="text-center">
+                        <h1>Keine offenen Anfragen!</h1>
+                        <p>Zur Zeit haben Sie keine versendeten und unbeantworteten Freundschaftsanfragen.</p>
+                        <br>
+                        <a href="/community/search"><button type="button" class="btn btn-primary shadow px-5">Freunde
+                                suchen</button></a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
 
     </section>
 </div>
@@ -113,8 +168,35 @@
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
 <script>
+    /* Get current friend name for modal */
+    $('#revertFriendRequestModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        var requestName = button.data('profilefirstname') + " " + button.data('profilelastname');
+        var requestId = button.data('profileid');
+        var modal = $(this);
+        modal.find('#profileId').val(requestId);
+        modal.find('#profileName').val(requestName);
+        modal.find('#profileNameTxt').text(requestName);
+    });
+
+    /* Open user profile*/
     $('[id=openProfile]').on('click', function () {
-        window.location.href = `/profile?id=${$(this).data('friendid')}`;
+        window.location.href = `/profile?id=${$(this).data('profileid')}`;
     })
+
+    /* Switch button */
+    $('.btn-group button').on('click', function () {
+        $(this).siblings('button').removeClass('active');
+        $(this).addClass('active');
+        if ($(this).attr('id') == 'out') {
+            // document.location = "?type=out";
+            $('#outgoings').show();
+            $('#incommings').hide();
+        } else {
+            // document.location = "?type=in";
+            $('#outgoings').hide();
+            $('#incommings').show();
+        }
+    });
 </script>
 {% endblock %}

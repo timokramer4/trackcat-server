@@ -67,14 +67,14 @@
                     <div
                         class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
                         <div id="openProfile" title="Profil anzeigen" class="icon text-white bg-green mr-1"
-                            style="cursor: pointer;" data-friendid="{{friend.id}}"><i class="far fa-eye"></i>
+                            style="cursor: pointer;" data-profileId="{{friend.id}}"><i class="far fa-eye"></i>
                         </div>
                         <div id="openLivefeed" title="Liveansicht öffnen" class="icon text-white bg-blue mr-1"
-                            data-friendid="{{friend.id}}" style="cursor: pointer;"><i class="fas fa-location-arrow"></i>
+                            data-profileId="{{friend.id}}" style="cursor: pointer;"><i class="fas fa-location-arrow"></i>
                         </div>
                         <div id="removeFriend" title="Freund entfernen" class="icon text-white bg-red mr-1"
-                            style="cursor: pointer;" data-friendFirstName="{{friend.firstName}}"
-                            data-friendLastName="{{friend.lastName}}" data-friendId="{{friend.id}}" data-toggle="modal"
+                            style="cursor: pointer;" data-profileFirstName="{{friend.firstName}}"
+                            data-profileLastName="{{friend.lastName}}" data-profileId="{{friend.id}}" data-toggle="modal"
                             data-target="#removeFriendModal"><i class="fas fa-user-minus"></i>
                         </div>
                     </div>
@@ -106,8 +106,8 @@
     /* Get current friend name for modal */
     $('#removeFriendModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget) // Button that triggered the modal
-        var friendName = button.data('friendfirstname') + " " + button.data('friendlastname');
-        var friendId = button.data('friendid');
+        var friendName = button.data('profilefirstname') + " " + button.data('profilelastname');
+        var friendId = button.data('profileid');
         var modal = $(this);
         modal.find('#friendId').val(friendId);
         modal.find('#friendName').val(friendName);
@@ -115,7 +115,7 @@
     });
 
     $('[id=openProfile]').on('click', function () {
-        window.location.href = `/profile?id=${$(this).data('friendid')}`;
+        window.location.href = `/profile?id=${$(this).data('profileid')}`;
     })
 </script>
 {% endblock %}

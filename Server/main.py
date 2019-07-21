@@ -1108,6 +1108,7 @@ def dashboardPage():
 def profilePage():
     if current_user.is_authenticated:
         userId = request.args.get('id')
+        backOpt = request.args.get('back')
 
         if userId:
             try:
@@ -1116,9 +1117,9 @@ def profilePage():
             except Exception as identifier:
                 userData = None
                 pass
-            return render_template("profile.html", site="other_profile", user=userData)
+            return render_template("profile.html", site="other_profile", user=userData, back=backOpt)
         else:
-            return render_template("profile.html", site="profile", user=current_user)
+            return render_template("profile.html", site="profile", user=current_user, back=backOpt)
     else:
         return redirect("/login")
 
@@ -1185,9 +1186,11 @@ def friendsPage():
 @app.route("/community/friendrequests", methods=["GET"])
 def friendRequestsPage():
     if current_user.is_authenticated:
-        friendrequests = getFriendRequests(current_user.id)
+        requestType = request.args.get('type')
+        incommings = getFriendRequests(current_user.id)
+        outgoings = showMyFriendRequests(current_user.id)
         alertType = request.args.get('alert')
-        return render_template("friendrequests.html", user=current_user, site="friendrequests", friendrequests=friendrequests, alert=alertType)
+        return render_template("friendrequests.html", user=current_user, site="friendrequests", type=requestType, incommings=incommings, outgoings=outgoings, alert=alertType)
     else:
         return redirect("/login")
 
@@ -1357,11 +1360,11 @@ def addFriend():
 @app.route("/removeFriend", methods=['POST'])
 def removeFriend():
     if current_user.is_authenticated:
-        success = deleteFriend(request.form['friendId'], current_user.id)
+        success = deleteFriend(request.form['profileId'], current_user.id)
 
         if success == 0:
             flash('Freund/in "' +
-                  request.form['friendName'] + '" wurde erfolgreich entfernt.')
+                  request.form['profileName'] + '" wurde erfolgreich entfernt.')
             return redirect("/community/friends?alert=success")
         else:
             flash('Unbekannter Fehler beim Entfernen des/der Freundes/Freundin!')
