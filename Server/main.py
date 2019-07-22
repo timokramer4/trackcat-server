@@ -1114,6 +1114,76 @@ def requestFriend(friendId, userId):
 
     return success
 
+def getLiveRecord(friendId, userId, index):
+    janswer = {}
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    try:
+
+        userJson = showFriendProfile(friendId, userId)
+
+        if userJson['firstName'] != None:
+            sql = ("SELECT " + app.config['DB_LIVE_RECORD_ID'] + ", "
+                   + app.config['DB_LIVE_RECORD_TIME'] + ", "
+                   + app.config['DB_LIVE_RECORD_TYPE'] + ", "
+                   + app.config['DB_LIVE_RECORD_RIDETIME'] + ", "
+                   + app.config['DB_LIVE_RECORD_DISTANCE']
+                   + " FROM " + app.config['DB_TABLE_LIVE_RECORDS']
+                   + " WHERE " + app.config['DB_LIVE_RECORD_USERS_ID_FK']
+                   + " = " + str(friendId) + ";")
+
+            cursor.execute(sql)
+
+            result = cursor.fetchone()
+
+            janswer['fistName'] = userJson['firstName']
+            janswer['lastName'] = userJson['lastName']
+            janswer['id'] = result[0]
+            janswer['time'] = result[1]
+            janswer['type'] = result[2]
+            janswer['rideTime'] = result[3]
+            janswer['distance'] = result[4]
+            janswer['locations'] = []
+
+            sql = ("SELECT " + app.config['DB_LOCATION_LATITUDE'] + ", "
+                   + app.config['DB_LOCATION_LONGITUDE'] + ", "
+                   + app.config['DB_LOCATION_ALTITUDE'] + ", "
+                   + app.config['DB_LOCATION_TIME'] + ", "
+                   + app.config['DB_LOCATION_SPEED'] + ", "
+                   + app.config['DB_LOCATION_ID']
+                   + " FROM " + app.config['DB_TABLE_LOCATIONS']
+                   + " WHERE " +
+                   app.config['DB_LOCATION_ID'] + " > " + str(index)
+                   + " AND " + app.config['DB_LOCATION_RECORD_ID'] + " = "
+                   + str(result[0]))
+
+            cursor.execute(sql)
+
+            locations = cursor.fetchall()
+
+            for location in locations:
+                jloc = {}
+                jloc['latitude'] = location[0]
+                jloc['longitude'] = location[1]
+                jloc['altitude'] = location[2]
+                jloc['time'] = location[3]
+                jloc['speed'] = location[4]
+                jloc['id'] = location[5]
+
+                janswer['locations'].append(jloc)
+
+
+        pass
+    except Exception as identifier:
+        pass
+    
+    cursor.close()
+    conn.close()
+
+    return janswer
+
 ###########################
 ###    WEB API-Pages    ###
 ###########################
@@ -2144,78 +2214,13 @@ def updateLiveRecordAPI():
 def getLiveRecordAPI():
     jrequest = request.json
 
-    conn = mysql.connect()
-    cursor = conn.cursor()
-
     friendId = jrequest['friendId']
     index = jrequest['index']
 
     auth = request.authorization
     userId = getUserId(auth.username)
 
-    janswer = {}
-
-    try:
-
-        userJson = showFriendProfile(friendId, userId)
-
-        if userJson['firstName'] != None:
-            sql = ("SELECT " + app.config['DB_LIVE_RECORD_ID'] + ", "
-                   + app.config['DB_LIVE_RECORD_TIME'] + ", "
-                   + app.config['DB_LIVE_RECORD_TYPE'] + ", "
-                   + app.config['DB_LIVE_RECORD_RIDETIME'] + ", "
-                   + app.config['DB_LIVE_RECORD_DISTANCE']
-                   + " FROM " + app.config['DB_TABLE_LIVE_RECORDS']
-                   + " WHERE " + app.config['DB_LIVE_RECORD_USERS_ID_FK']
-                   + " = " + str(friendId) + ";")
-
-            cursor.execute(sql)
-
-            result = cursor.fetchone()
-
-            janswer['fistName'] = userJson['firstName']
-            janswer['lastName'] = userJson['lastName']
-            janswer['id'] = result[0]
-            janswer['time'] = result[1]
-            janswer['type'] = result[2]
-            janswer['rideTime'] = result[3]
-            janswer['distance'] = result[4]
-            janswer['locations'] = []
-
-            sql = ("SELECT " + app.config['DB_LOCATION_LATITUDE'] + ", "
-                   + app.config['DB_LOCATION_LONGITUDE'] + ", "
-                   + app.config['DB_LOCATION_ALTITUDE'] + ", "
-                   + app.config['DB_LOCATION_TIME'] + ", "
-                   + app.config['DB_LOCATION_SPEED'] + ", "
-                   + app.config['DB_LOCATION_ID']
-                   + " FROM " + app.config['DB_TABLE_LOCATIONS']
-                   + " WHERE " +
-                   app.config['DB_LOCATION_ID'] + " > " + str(index)
-                   + " AND " + app.config['DB_LOCATION_RECORD_ID'] + " = "
-                   + str(result[0]))
-
-            cursor.execute(sql)
-
-            locations = cursor.fetchall()
-
-            for location in locations:
-                jloc = {}
-                jloc['latitude'] = location[0]
-                jloc['longitude'] = location[1]
-                jloc['altitude'] = location[2]
-                jloc['time'] = location[3]
-                jloc['speed'] = location[4]
-                jloc['id'] = location[5]
-
-                janswer['locations'].append(jloc)
-
-
-        pass
-    except Exception as identifier:
-        pass
-
-    cursor.close()
-    conn.close()
+    janswer = getLiveRecord(friendId, userId, index)
 
     return json.dumps(janswer)
 
