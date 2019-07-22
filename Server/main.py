@@ -1138,7 +1138,7 @@ def getLiveRecord(friendId, userId, index):
 
             result = cursor.fetchone()
 
-            janswer['fistName'] = userJson['firstName']
+            janswer['firstName'] = userJson['firstName']
             janswer['lastName'] = userJson['lastName']
             janswer['id'] = result[0]
             janswer['time'] = result[1]
