@@ -83,7 +83,6 @@ app.config['DB_RECORD_LOCATION_DATA'] = "locations"
 # COLUMN-NAMES: Live-Record
 app.config['DB_LIVE_RECORD_ID'] = 'id'
 app.config['DB_LIVE_RECORD_TIME'] = 'time'
-app.config['DB_LIVE_RECORD_DATE'] = 'date'
 app.config['DB_LIVE_RECORD_TYPE'] = 'type'
 app.config['DB_LIVE_RECORD_RIDETIME'] = 'rideTime'
 app.config['DB_LIVE_RECORD_DISTANCE'] = 'distance'
@@ -136,17 +135,17 @@ class User(UserMixin):
 ###      Functions      ###
 ###########################
 
-## okay
+# okay
 @app.template_filter('formatSeconds')
 def formatSeconds(value):
     return str(timedelta(seconds=value))
 
-## okay
+# okay
 @app.template_filter('formatDate')
 def formatDate(value, format='%d.%m.%Y %H:%M:%S'):
     return datetime.fromtimestamp(value/1000).strftime(format)
 
-## okay
+# okay
 # Validate login data
 @login_manager.user_loader
 def user_loaderlmgr(id):
@@ -165,7 +164,9 @@ def user_loaderlmgr(id):
                 jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
 
-## okay
+# okay
+
+
 def user_loader(email):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -182,8 +183,10 @@ def user_loader(email):
                 jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
 
-## okay
+# okay
 # Validate user login
+
+
 def validateLogin(email, password):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -197,8 +200,10 @@ def validateLogin(email, password):
 
     return result is not None and password == result[0]
 
-## okay
+# okay
 # Basic Authentificate
+
+
 def authenticate():
     message = {'message': "Authenticate."}
     resp = jsonify(message)
@@ -213,7 +218,9 @@ def authenticate():
 
     return make_response("", 401)
 
-## okay
+# okay
+
+
 def requires_authorization(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -224,7 +231,7 @@ def requires_authorization(f):
     return decorated
 
 
-## okay
+# okay
 # Create new user in database
 def registerUserDB(firstName, lastName, email, password, birthday, gender):
     # 0 = Valid
@@ -263,8 +270,10 @@ def registerUserDB(firstName, lastName, email, password, birthday, gender):
 
     return success
 
-## okay
+# okay
 # Generate verify token
+
+
 def generateVerifyToken(firstName, lastName, email):
 
     # if want to use custom iterations instead of default 29000
@@ -281,8 +290,10 @@ def generateVerifyToken(firstName, lastName, email):
 
     return token
 
-## okay
+# okay
 # Get selected user data as JSON
+
+
 def getUserFromDB(id):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -335,8 +346,10 @@ def getUserFromDB(id):
 
     return jsonUser
 
-## okay
+# okay
 # Get user profile image
+
+
 def getUserWithImageFromDB(id):
     jsonUser = getUserFromDB(id)
 
@@ -352,8 +365,10 @@ def getUserWithImageFromDB(id):
 
     return jsonUser
 
-## okay
+# okay
 # Update last login in database
+
+
 def updateUserLastLogin(email):
     try:
         conn = mysql.connect()
@@ -369,8 +384,10 @@ def updateUserLastLogin(email):
         pass
     return
 
-## okay
+# okay
 # Update user informations in database
+
+
 def updateUserDB(userId, dateOfBirth, firstName, lastName,
                  gender, size, weight, image, timestamp, hints, darkTheme):
     try:
@@ -457,8 +474,10 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
         return False
         pass
 
-## okay
+# okay
 # gets user id by email
+
+
 def getUserId(email):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -475,8 +494,10 @@ def getUserId(email):
     conn.close()
     return result[0]
 
-## okay
+# okay
 # Change user password in database
+
+
 def changeUserPasswordDB(email, password, newPw, timeStamp):
     result = 0
     try:
@@ -504,8 +525,10 @@ def changeUserPasswordDB(email, password, newPw, timeStamp):
         result = 2
         return result
 
-## okay
+# okay
 # Delete user account by id
+
+
 def deleteUserById(id):
     try:
         conn = mysql.connect()
@@ -521,8 +544,10 @@ def deleteUserById(id):
     except Exception as identifier:
         return 1
 
-## okay
+# okay
 # Update record informations in database
+
+
 def updateRecordDB(recordId, newName, timestamp):
     try:
         conn = mysql.connect()
@@ -544,8 +569,10 @@ def updateRecordDB(recordId, newName, timestamp):
         return False
         pass
 
-## okay
+# okay
 # Delete record by id
+
+
 def deleteRecordById(id):
     try:
         conn = mysql.connect()
@@ -561,8 +588,10 @@ def deleteRecordById(id):
     except Exception as identifier:
         return 1
 
-## okay
+# okay
 # Get all record from user (all or by paging)
+
+
 def getRecordsByID(userId, page):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -604,8 +633,10 @@ def getRecordsByID(userId, page):
 
     return jsonRecords
 
-## okay
+# okay
 # Get single record by id
+
+
 def getSingleRecordByID(recordId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -638,8 +669,10 @@ def getSingleRecordByID(recordId):
 
     return jsonRecord
 
-## UNUSED maybe usefull in future
+# UNUSED maybe usefull in future
 # Get all locations from user (and from specific route)
+
+
 def getLocationsByID(userId, recordId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -677,8 +710,10 @@ def getLocationsByID(userId, recordId):
 
     return jsonLocations
 
-## okay
+# okay
 # deletes Friendship or Request
+
+
 def deleteFriend(friendId, usrId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -707,6 +742,8 @@ def deleteFriend(friendId, usrId):
     return success
 
 # TODO
+
+
 def showFriendProfile(friendID, userId):
     janswer = {}
 
@@ -765,8 +802,10 @@ def showFriendProfile(friendID, userId):
     conn.close()
     return janswer
 
-## okay
+# okay
 # calculates total distance by userID
+
+
 def getUserTotalDistance(usrId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -789,7 +828,9 @@ def getUserTotalDistance(usrId):
 
     return totDist
 
-## TODO
+# TODO
+
+
 def getFriendById(firendId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -827,10 +868,12 @@ def getFriendById(firendId):
 
     return jres
 
-## okay
+# okay
 # list friend by parameters
-# if usrId is Null serach for new Friends 
+# if usrId is Null serach for new Friends
 # else search in friends
+
+
 def searchFriends(page, search, usrId, usrEmail):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -949,8 +992,10 @@ def searchFriends(page, search, usrId, usrEmail):
 
     return jsonArr
 
-## okay
+# okay
 # gets all friend requests the user got from other users
+
+
 def getFriendRequests(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -979,8 +1024,10 @@ def getFriendRequests(userId):
 
     return janswerArr
 
-## okay
+# okay
 # gets all friend requests the user has sent
+
+
 def showMyFriendRequests(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -1010,7 +1057,7 @@ def showMyFriendRequests(userId):
     return janswerArr
 
 
-## okay
+# okay
 # request friendship, if already arequest exists create friendship
 def requestFriend(friendId, userId):
     conn = mysql.connect()
@@ -1178,14 +1225,15 @@ def searchPage():
     if current_user.is_authenticated:
         searchQuery = request.args.get('search')
         if searchQuery != None:
-            searchresults = searchFriends(0, searchQuery, None, current_user.email)
+            searchresults = searchFriends(
+                0, searchQuery, None, current_user.email)
         else:
             searchresults = None
         alertType = request.args.get('alert')
         return render_template("search.html", user=current_user, site="search", searchresults=searchresults, alert=alertType)
     else:
         return redirect("/login")
-        
+
 # Show friend list
 @app.route("/community/friends", methods=["GET"])
 def friendsPage():
@@ -1679,11 +1727,11 @@ def deleteUserAPI():
 def uploadTrackAPI():
     jsonSuccess = {}
 
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
     try:
         jsonTrack = request.json
-
-        conn = mysql.connect()
-        cursor = conn.cursor()
 
         sql = ('INSERT INTO ' + app.config['DB_TABLE_RECORDS'] + ' ('
                + app.config['DB_RECORD_NAME'] + ','
@@ -1711,16 +1759,16 @@ def uploadTrackAPI():
 
         conn.commit()
 
-        conn.close()
-
         jsonSuccess['success'] = 0
         jsonSuccess['record'] = getSingleRecordByID(cursor.lastrowid)
         jsonSuccess['oldId'] = jsonTrack['id']
-        cursor.close()
+
         pass
     except Exception as identifier:
         jsonSuccess['success'] = 1
         pass
+    cursor.close()
+    conn.close()
 
     return json.dumps(jsonSuccess)
 
@@ -2030,7 +2078,64 @@ def requestLiveRecordAPI():
     return json.dumps(janswer)
 
 
+@app.route("/updateLiveRecordAPI", methods=['POST'])
+@requires_authorization
+def updateLiveRecordAPI():
+    jrequest = request.json
 
+    jsonSuccess = {}
+    jsonSuccess['success'] = 1
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    lrId = jrequest['id']
+    time = jrequest['time']
+    typeLr = jrequest['type']
+    rideTime = jrequest['rideTime']
+    distance = jrequest['distance']
+    locations = jrequest['locations']
+
+    try:
+
+        sql = ("UPDATE " + app.config['DB_TABLE_LIVE_RECORDS'] + " SET "
+               + app.config['DB_LIVE_RECORD_TIME'] + " = " + str(time) + ", "
+               + app.config['DB_LIVE_RECORD_TYPE'] + " = " + str(typeLr) + ", "
+               + app.config['DB_LIVE_RECORD_RIDETIME'] +
+               " = " + str(rideTime) + ", "
+               + app.config['DB_LIVE_RECORD_DISTANCE'] + " = " + str(distance)
+               + " WHERE " + app.config['DB_LIVE_RECORD_ID'] + " = " + str(lrId) + ";")
+
+        cursor.execute(sql)
+        conn.commit()
+
+        for location in locations:
+            sql = ("INSERT INTO " + app.config['DB_TABLE_LOCATIONS'] + " ("
+                   + app.config['DB_LOCATION_LATITUDE'] + ", "
+                   + app.config['DB_LOCATION_LONGITUDE'] + ", "
+                   + app.config['DB_LOCATION_ALTITUDE'] + ", "
+                   + app.config['DB_LOCATION_TIME'] + ", "
+                   + app.config['DB_LOCATION_SPEED'] + ", "
+                   + app.config['DB_LOCATION_RECORD_ID'] + ") VALUES ("
+                   + str(location['latitude']) + ", "
+                   + str(location['longitude']) + ", "
+                   + str(location['altitude']) + ", "
+                   + str(location['time']) + ", "
+                   + str(location['speed']) + ", "
+                   + str(lrId) + ");")
+
+            cursor.execute(sql)
+        
+        conn.commit()
+
+        pass
+    except Exception as identifier:
+        pass
+
+    cursor.close()
+    conn.close()
+
+    return json.dumps(jsonSuccess)
 
 
 ###########################
