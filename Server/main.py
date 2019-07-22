@@ -1184,6 +1184,25 @@ def getLiveRecord(friendId, userId, index):
 
     return janswer
 
+def getLiveFriends(userId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    try:
+        sql = ""
+
+
+
+        pass
+    except Exception as identifier:
+        pass
+
+
+    cursor.close()
+    conn.close()
+
+    return json.dumps(jsonSuccess)
+
 ###########################
 ###    WEB API-Pages    ###
 ###########################
@@ -1798,6 +1817,9 @@ def deleteUserAPI():
 def uploadTrackAPI():
     jsonSuccess = {}
 
+    auth = request.authorization
+    userid = getUserId(auth.username)
+    
     conn = mysql.connect()
     cursor = conn.cursor()
 
@@ -1833,6 +1855,13 @@ def uploadTrackAPI():
         jsonSuccess['success'] = 0
         jsonSuccess['record'] = getSingleRecordByID(cursor.lastrowid)
         jsonSuccess['oldId'] = jsonTrack['id']
+
+        sql = ("DELETE FROM " + app.config['DB_TABLE_LIVE_RECORDS']
+        + " WHERE " + app.config['DB_LIVE_RECORD_USERS_ID_FK'] 
+        + " = " + str(userid) + ";")
+
+        cursor.execute(sql)
+        conn.commit()
 
         pass
     except Exception as identifier:
