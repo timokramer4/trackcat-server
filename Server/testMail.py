@@ -47,7 +47,7 @@ string = """\
          </tr>
          <tr align="center">
             <td align="center">
-               <table border="0" cellpadding="0" cellspacing="0" style="background-color:#e9ebee;min-width:360px;max-width:600pxwidth:100%;" width="100%">
+               <table border="0" cellpadding="0" cellspacing="0" style="background-color:#e9ebee;min-width:360px;max-width:600px;width:100%;" width="100%">
                   <table align="center" style="max-width:600px;width:100%;" cellpadding="0" cellspacing="0" border="0">
                      <tr align="center">
                         <td style="max-width:600px;padding:2em 40px 0em;width:100%;background-color:white;border-radius:5px 5px 0 0 ;overflow:hidden;"><a href="http://trackcat.de" style="color:#3b5998;text-decoration:none;"><img src="cid:{asparagus_cid}" style="border:0;max-width:50%;" title="Trackcat Logo" /></a></td>

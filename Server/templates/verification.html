@@ -19,7 +19,7 @@
               </div>
               <div class="col-md-10 text-center">
                 <h2>{% if state == 1 %}Herzlichen Glückwunsch{% elif state == 0 %}Es tut uns leid :({% endif %}</h2>
-                <p>{% if state == 1 %}Ihre E-Mail Adresse wurde <u>erfolgreich</u> verifiziert!<br>Sie hast nun vollen Zugriff auf die Funktionen von Trackcat. Viel Spaß ;){% elif state == 0 %}Beim Verifizieren Ihrer E-Mail Adresse ist ein Fehler aufgetreten! Bitte versuche Sie es später erneut.<br><br>Sollte der Fehler wiederholt auftreten, schreib Sie uns einfach eine Mail an <a href="mailto:info@trackcat.de">info@trackcat.de</a>.{% endif %}</p>
+                <p>{% if state == 1 %}Ihre E-Mail Adresse wurde <u>erfolgreich</u> verifiziert! Sie haben nun vollen Zugriff auf die Funktionen von Trackcat. Viel Spaß ;){% elif state == 0 %}Beim Verifizieren Ihrer E-Mail Adresse ist ein Fehler aufgetreten! Bitte versuche Sie es später erneut.<br><br>Sollte der Fehler wiederholt auftreten, schreib Sie uns einfach eine Mail an <a href="mailto:info@trackcat.de">info@trackcat.de</a>.{% endif %}</p>
                 {% if state == 1 %}
                 <a href="/login"><button type="button" id="loginBtn" class="btn btn-primary shadow px-5 mt-4">Zur Anmeldung&nbsp;&nbsp;<i class="fas fa-arrow-right"></i></button></a>
                 {% endif %}
