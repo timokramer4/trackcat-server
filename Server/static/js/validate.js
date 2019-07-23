@@ -149,7 +149,6 @@ function validate(allInputs) {
             }
         }
     }
-    console.log(result);
     return result;
 }
 
