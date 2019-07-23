@@ -1346,6 +1346,21 @@ def friendRequestsPage():
     else:
         return redirect("/login")
 
+# Show live friends
+@app.route("/community/live", methods=["GET"])
+def livePage():
+    if current_user.is_authenticated:
+        alertType = request.args.get('alert')
+        profileId = request.args.get('id')
+        if profileId:
+            livefriend = getLiveRecord(profileId, current_user.id, 0)
+            return render_template("live.html", user=current_user, site="live", livefriend=livefriend, alert=alertType)
+        else:
+            livefriends = searchFriends(0, "", current_user.id, current_user.email)
+            return render_template("livelist.html", user=current_user, site="live", livefriends=livefriends, alert=alertType)
+    else:
+        return redirect("/login")
+
 #####################################
 ###   WEB API-Handler Functions   ###
 #####################################

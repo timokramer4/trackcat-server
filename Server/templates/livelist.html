@@ -1,34 +1,6 @@
 {% extends "model/loggedMenu.html" %}
 
 {% block subcontent %}
-<!-- Modal window: Remove friend -->
-<div id="removeFriendModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="removeFriendModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="removeFriendModalLabel">Freund entfernen?</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                Sie sind dabei Ihre(n) Freund/in <b id="friendNameTxt"></b> zu entfernen. Dabei verlieren Sie auch den
-                Zugriff auf deren Statistiken.
-                <br></br><b>Sind Sie sich sicher, dass Sie den Freund entfernen wollen?</b>
-            </div>
-            <div class="modal-footer">
-                <form action="/removeFriend" method="POST">
-                    <input id="friendId" name="friendId" type="text" style="display: none;">
-                    <input id="friendName" name="friendName" type="text" style="display: none;">
-                    <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Abbruch</button>
-                    <button type="submit" class="btn btn-danger">Freund entfernen</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="container-fluid px-xl-5">
     <section class="py-5">
 
@@ -47,50 +19,45 @@
         {% endif %}
         {% endwith %}
 
-        {% for friend in friends %}
+        {% for live in livefriends %}
         <div class="col-lg-12">
-            <div id="friend" class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
+            <div id="live" class="message card px-5 py-3 mb-4 bg-hover-gradient-secondary no-anchor-style">
                 <div class="row">
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
                         <span class="mb-2 mr-lg-3 mb-lg-0">
-                            <img src="/image?userID={{friend.id}}" alt="{{friend.firstName}} {{friend.lastName}}"
+                            <img src="/image?userID={{live.id}}" alt="{{live.firstName}} {{live.lastName}}"
                                 style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow">
                         </span>
-                        <h6 class="mb-0">{{friend.firstName}} {{friend.lastName}}</h6>
+                        <h6 class="mb-0">{{live.firstName}} {{live.lastName}}</h6>
                     </div>
                     <div
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-sm-row justify-content-center justify-content-lg-start">
                         <div class="bg-gray-300 roundy px-4 py-1 mt-2 m-sm-0 mr-sm-1 text-dark exclode">
-                            {{friend.email}}</div>
+                            {{live.email}}</div>
                     </div>
                     <div
                         class="col-lg-4 d-flex align-items-center flex-row justify-content-center justify-content-lg-end">
                         <div id="openProfile" title="Profil anzeigen" class="icon text-white bg-green mr-1"
-                            style="cursor: pointer;" data-profileId="{{friend.id}}"><i class="far fa-eye"></i>
+                            style="cursor: pointer;" data-profileId="{{live.id}}"><i class="far fa-eye"></i>
                         </div>
                         <div id="openLivefeed" title="Liveansicht öffnen" class="icon text-white bg-blue mr-1"
-                            data-profileId="{{friend.id}}" style="cursor: pointer;"><i class="fas fa-location-arrow"></i>
-                        </div>
-                        <div id="removeFriend" title="Freund entfernen" class="icon text-white bg-red mr-1"
-                            style="cursor: pointer;" data-profileFirstName="{{friend.firstName}}"
-                            data-profileLastName="{{friend.lastName}}" data-profileId="{{friend.id}}" data-toggle="modal"
-                            data-target="#removeFriendModal"><i class="fas fa-user-minus"></i>
+                            data-profileId="{{live.id}}" style="cursor: pointer;"><i class="fas fa-location-arrow"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         {% endfor %}
-        {% if friends|length == 0 %}
+        {% if livefriends|length == 0 %}
         <div class="row justify-content-md-center">
             <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
                 <div class="text-center">
-                    <h1>Keine Freunde gefunden!</h1>
-                    <p>Sie sind zur Zeit mit niemandem befreundet</p>
+                    <h1>Niemand ist live!</h1>
+                    <p>Derzeit ist keiner Ihrer Freunde live.</p>
                     <br>
-                    <a href="/community/search"><button type="button" class="btn btn-primary shadow px-5">Freunde
-                            suchen</button></a>
+                    <a href="/community/friends"><button type="button" class="btn btn-primary shadow px-5">Freunde
+                            anzeigen</button></a>
                 </div>
             </div>
         </div>
