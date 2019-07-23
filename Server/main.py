@@ -901,9 +901,15 @@ def searchFriends(page, search, usrId, usrEmail):
                     "." + app.config['DB_USERS_HAS_USERS_ASKER']
                     + " OR " + app.config['DB_TABLE_USERS'] +
                     "." + app.config['DB_USERS_ID']
-                    + " = " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + " ")
+                    + " = " + app.config['DB_TABLE_HAS_USERS'] +
+                    "." + app.config['DB_USERS_HAS_USERS_ASKED']
+                    + " LEFT JOIN " +
+                    app.config['DB_TABLE_LIVE_RECORDS'] + " ON "
+                    + app.config['DB_TABLE_LIVE_RECORDS'] + "." +
+                    app.config['DB_LIVE_RECORD_USERS_ID_FK']
+                    + " = " + app.config['DB_TABLE_USERS'] + "." + app.config['DB_USERS_ID'])
 
-            whereID = (app.config['DB_USERS_ID'] + " != " + str(usrId) + " AND "
+            whereID = (app.config['DB_TABLE_USERS'] + "." + app.config['DB_USERS_ID'] + " != " + str(usrId) + " AND "
                        + app.config['DB_USERS_HAS_USERS_AF'] + " = 1 AND ("
                        + app.config['DB_TABLE_HAS_USERS'] + "." +
                        app.config['DB_USERS_HAS_USERS_ASKER']
@@ -911,7 +917,9 @@ def searchFriends(page, search, usrId, usrEmail):
                        + app.config['DB_TABLE_HAS_USERS'] + "." +
                        app.config['DB_USERS_HAS_USERS_ASKED']
                        + " = " + str(usrId) + ") AND")
-            email = ", " + app.config['DB_USERS_EMAIL']
+            email = (", " + app.config['DB_USERS_EMAIL'] + ", "
+                     " CASE WHEN " + app.config['DB_TABLE_LIVE_RECORDS'] + "."
+                     + app.config['DB_LIVE_RECORD_USERS_ID_FK'] + " > 0 THEN 1 ELSE 0 END AS isLive")
         else:
             whereID = ("(" + app.config['DB_TABLE_HAS_USERS'] + "."
                        + app.config['DB_USERS_HAS_USERS_ASKER']
@@ -930,7 +938,7 @@ def searchFriends(page, search, usrId, usrEmail):
                     "." + app.config['DB_USERS_ID']
                         + " = " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + ") ")
 
-        sql = ('SELECT ' + app.config['DB_USERS_ID']
+        sql = ('SELECT ' + app.config['DB_TABLE_USERS'] + "." + app.config['DB_USERS_ID']
                + ", " + app.config['DB_USERS_FIRSTNAME']
                + ", " + app.config['DB_USERS_LASTNAME']
                + ", " + app.config['DB_USERS_IMAGE']
@@ -963,6 +971,8 @@ def searchFriends(page, search, usrId, usrEmail):
             jres['image'] = res[3]
             jres['dateOfRegistration'] = res[4]
 
+           
+
             cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
                            app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + ";")
 
@@ -976,9 +986,12 @@ def searchFriends(page, search, usrId, usrEmail):
 
             try:
                 jres['email'] = res[5]
+                jres['isLive'] = res[6]
 
                 pass
             except Exception as identifier:
+                jres['isLive'] = 0
+
                 pass
 
             jsonArr.append(jres)
@@ -1245,6 +1258,7 @@ def getLiveFriends(userId):
             jres['lastName'] = res[2]
             jres['image'] = res[3]
             jres['dateOfRegistration'] = res[4]
+            jres['email'] = res[5]
 
             jres['distance'] = getUserTotalDistance(res[0])
 
@@ -2017,18 +2031,18 @@ def synchronizeRecordsAPI():
         if len(ids) > 0:
             placeholders = ', '.join(['%s']*len(ids))  # "%s, %s, %s, ... %s"
 
-            sql = ("SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + 
-                " WHERE " + app.config['DB_RECORD_USERS_ID']
-                   + " = " + str(usrid) + " AND " + app.config['DB_RECORD_ID'] + 
-                " NOT IN ({});".format(placeholders))
+            sql = ("SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] +
+                   " WHERE " + app.config['DB_RECORD_USERS_ID']
+                   + " = " + str(usrid) + " AND " + app.config['DB_RECORD_ID'] +
+                   " NOT IN ({});".format(placeholders))
 
             cursor.execute(sql, tuple(ids))
 
             result = cursor.fetchall()
 
         else:
-            sql = ("SELECT " + app.config['DB_RECORD_ID'] 
-                   + " FROM " + app.config['DB_TABLE_RECORDS'] 
+            sql = ("SELECT " + app.config['DB_RECORD_ID']
+                   + " FROM " + app.config['DB_TABLE_RECORDS']
                    + " WHERE " + app.config['DB_RECORD_USERS_ID']
                    + " = " + str(usrid) + ";")
 
