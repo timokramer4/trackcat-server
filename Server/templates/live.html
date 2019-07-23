@@ -26,8 +26,8 @@
             <div class="col-lg-8 mb-5">
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="h6 text-uppercase mb-0"><span
-                                class="text-red">{{livefriend.firstName}} {{livefriend.lastName}}</span> ist live</h2>
+                        <h2 class="h6 text-uppercase mb-0"><span class="text-red">{{livefriend.firstName}}
+                                {{livefriend.lastName}}</span> ist live</h2>
                     </div>
                     <div class="card-body" id="map"
                         style="height:500px; width:100%; border-radius: 0em 0em 1.5em 1.5em"></div>
@@ -121,7 +121,8 @@
             <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
                 <div class="text-center">
                     <h1>Der Nutzer ist nicht live</h1>
-                    <p>Der Nutzer <b>{{livefriend.firstName}} {{livefriend.lastName}}</b> überträgt derzeit keine Live-Aufzeichnung!</p>
+                    <p>Der Nutzer <b>{{livefriend.firstName}} {{livefriend.lastName}}</b> überträgt derzeit keine
+                        Live-Aufzeichnung!</p>
                     <br>
                     <button type="button" id="backBtn" class="btn btn-primary shadow px-5">Zurück</button>
                 </div>
@@ -206,6 +207,29 @@
 
     var polyline = L.polyline(latlngs, { color: 'red' }).addTo(map);
     map.fitBounds(polyline.getBounds());
+
+    /* Fetch live data */
+    var currentIndex = 0;
+    window.setInterval(function () {
+        console.log(currentIndex);
+        $.ajax({
+            data: {
+                friendId: '{{livefriend.profileId}}',
+                index: currentIndex,
+            },
+            type: 'POST',
+            url: '/getLiveRecord',
+            success: function(response) {
+                // console.log(response);
+                var liveData = JSON.parse(response);
+                console.log(liveData);
+                currentIndex = liveData.locations.length;
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    }, 2000);
 </script>
 {% endif %}
 {% endblock %}

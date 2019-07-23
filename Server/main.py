@@ -1154,6 +1154,7 @@ def getLiveRecord(friendId, userId, index):
 
             janswer['firstName'] = userJson['firstName']
             janswer['lastName'] = userJson['lastName']
+            janswer['profileId'] = int(friendId)
             janswer['id'] = result[0]
             janswer['time'] = result[1]
             janswer['type'] = result[2]
@@ -1451,8 +1452,7 @@ def livePage():
             livefriend = getLiveRecord(profileId, current_user.id, 0)
             return render_template("live.html", user=current_user, site="live", livefriend=livefriend, alert=alertType)
         else:
-            livefriends = searchFriends(
-                0, "", current_user.id, current_user.email)
+            livefriends = getLiveFriends(current_user.id)
             return render_template("livelist.html", user=current_user, site="live", livefriends=livefriends, alert=alertType)
     else:
         return redirect("/login")
@@ -1634,6 +1634,14 @@ def removeFriend():
             return redirect("/community/friends?alert=danger")
     else:
         return redirect("/login")
+
+@app.route("/getLiveRecord", methods=['POST'])
+def getLiveRecordWeb():
+    friendId = request.form['friendId']
+    index = request.form['index']
+
+    janswer = getLiveRecord(friendId, current_user.id, index)
+    return json.dumps(janswer)
 
 # Search for profile
 @app.route("/search", methods=['POST'])
@@ -2361,7 +2369,6 @@ def getLiveRecordAPI():
     janswer = getLiveRecord(friendId, userId, index)
 
     return json.dumps(janswer)
-
 
 @app.route("/abortLiveRecordAPI", methods=['POST'])
 @requires_authorization
