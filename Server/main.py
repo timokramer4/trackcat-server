@@ -1191,16 +1191,16 @@ def getLiveFriends(userId):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
-       
-        sql = ("SELECT " + app.config['DB_TABLE_USERS'] + "." + app.config['DB_USERS_ID']
+
+        sql = ("SELECT " + app.config['DB_TABLE_USERS'] + "." + app.config['DB_USERS_ID'] + ", "
                + app.config['DB_TABLE_USERS'] + "." +
-               app.config['DB_USERS_FIRSTNAME']
+               app.config['DB_USERS_FIRSTNAME'] + ", "
                + app.config['DB_TABLE_USERS'] + "." +
-               app.config['DB_USERS_LASTNAME']
+               app.config['DB_USERS_LASTNAME'] + ", "
                + app.config['DB_TABLE_USERS'] +
-               "." + app.config['DB_USERS_IMAGE']
+               "." + app.config['DB_USERS_IMAGE'] + ", "
                + app.config['DB_TABLE_USERS'] + "." +
-               app.config['DB_USERS_DATEOFREGISTRATION']
+               app.config['DB_USERS_DATEOFREGISTRATION'] + ", "
                + app.config['DB_TABLE_USERS'] +
                "." + app.config['DB_USERS_EMAIL']
                + " FROM " + app.config['DB_TABLE_USERS'] + " INNER JOIN "
@@ -1246,8 +1246,9 @@ def getLiveFriends(userId):
             jres['image'] = res[3]
             jres['dateOfRegistration'] = res[4]
 
-            jsonArr.append(jres)
+            jres['distance'] = getUserTotalDistance(res[0])
 
+            jsonArr.append(jres)
 
         pass
     except Exception as identifier:
@@ -1256,7 +1257,6 @@ def getLiveFriends(userId):
         cursor.close()
         conn.close()
         pass
-
 
     return jsonArr
 
@@ -1437,7 +1437,8 @@ def livePage():
             livefriend = getLiveRecord(profileId, current_user.id, 0)
             return render_template("live.html", user=current_user, site="live", livefriend=livefriend, alert=alertType)
         else:
-            livefriends = searchFriends(0, "", current_user.id, current_user.email)
+            livefriends = searchFriends(
+                0, "", current_user.id, current_user.email)
             return render_template("livelist.html", user=current_user, site="live", livefriends=livefriends, alert=alertType)
     else:
         return redirect("/login")
@@ -1981,6 +1982,9 @@ def synchronizeRecordsAPI():
     janswer['newerOnServer'] = []
     janswer['deletedOnServer'] = []
 
+    auth = request.authorization
+    usrid = getUserId(auth.username)
+
     for jsn in jarr:
         ids.append(int(jsn['id']))
 
@@ -2013,17 +2017,20 @@ def synchronizeRecordsAPI():
         if len(ids) > 0:
             placeholders = ', '.join(['%s']*len(ids))  # "%s, %s, %s, ... %s"
 
-            sql = "SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + \
-                " WHERE " + app.config['DB_RECORD_ID'] + \
-                " NOT IN ({});".format(placeholders)
+            sql = ("SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + 
+                " WHERE " + app.config['DB_RECORD_USERS_ID']
+                   + " = " + str(usrid) + " AND " + app.config['DB_RECORD_ID'] + 
+                " NOT IN ({});".format(placeholders))
 
             cursor.execute(sql, tuple(ids))
 
             result = cursor.fetchall()
 
         else:
-            sql = "SELECT " + app.config['DB_RECORD_ID'] + \
-                " FROM " + app.config['DB_TABLE_RECORDS'] + ";"
+            sql = ("SELECT " + app.config['DB_RECORD_ID'] 
+                   + " FROM " + app.config['DB_TABLE_RECORDS'] 
+                   + " WHERE " + app.config['DB_RECORD_USERS_ID']
+                   + " = " + str(usrid) + ";")
 
             cursor.execute(sql)
 
@@ -2039,9 +2046,6 @@ def synchronizeRecordsAPI():
         pass
 
     try:
-
-        auth = request.authorization
-        usrid = getUserId(auth.username)
 
         sql = ("SELECT " + app.config['DB_RECORD_ID'] + " FROM "
                + app.config['DB_TABLE_RECORDS'] + " WHERE "
