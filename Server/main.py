@@ -1114,6 +1114,7 @@ def requestFriend(friendId, userId):
 
     return success
 
+
 def getLiveRecord(friendId, userId, index):
     janswer = {}
 
@@ -1174,34 +1175,114 @@ def getLiveRecord(friendId, userId, index):
 
                 janswer['locations'].append(jloc)
 
-
         pass
     except Exception as identifier:
         pass
-    
+
     cursor.close()
     conn.close()
 
     return janswer
 
+
 def getLiveFriends(userId):
-    conn = mysql.connect()
-    cursor = conn.cursor()
+    jsonArr = []
 
     try:
-        sql = ""
+        conn = mysql.connect()
+        cursor = conn.cursor()
+       
+        sql = ("SELECT " + app.config['DB_TABLE_USERS'] + "." + app.config['DB_USERS_ID']
+               + app.config['DB_TABLE_USERS'] + "." +
+               app.config['DB_USERS_FIRSTNAME']
+               + app.config['DB_TABLE_USERS'] + "." +
+               app.config['DB_USERS_LASTNAME']
+               + app.config['DB_TABLE_USERS'] +
+               "." + app.config['DB_USERS_IMAGE']
+               + app.config['DB_TABLE_USERS'] + "." +
+               app.config['DB_USERS_DATEOFREGISTRATION']
+               + app.config['DB_TABLE_USERS'] +
+               "." + app.config['DB_USERS_EMAIL']
+               + " FROM " + app.config['DB_TABLE_USERS'] + " INNER JOIN "
+               + app.config['DB_TABLE_HAS_USERS'] + " ON "
+               + app.config['DB_TABLE_USERS'] + "." +
+               app.config['DB_USERS_ID'] + " = "
+               + app.config['DB_TABLE_HAS_USERS'] + "." +
+               app.config['DB_USERS_HAS_USERS_ASKER'] + " OR "
+               + app.config['DB_TABLE_USERS'] + "." +
+               app.config['DB_USERS_ID'] + " = "
+               + app.config['DB_TABLE_HAS_USERS'] + "." +
+               app.config['DB_USERS_HAS_USERS_ASKED']
+               + " INNER JOIN " + app.config['DB_TABLE_LIVE_RECORDS'] + " ON "
+               + app.config['DB_TABLE_HAS_USERS'] + "." +
+               app.config['DB_USERS_HAS_USERS_ASKER'] + " = "
+               + app.config['DB_TABLE_LIVE_RECORDS'] + "." +
+               app.config['DB_LIVE_RECORD_USERS_ID_FK'] + " OR "
+               + app.config['DB_TABLE_HAS_USERS'] + "." +
+               app.config['DB_USERS_HAS_USERS_ASKED'] + " = "
+               + app.config['DB_TABLE_LIVE_RECORDS'] + "." +
+               app.config['DB_LIVE_RECORD_USERS_ID_FK']
+               + " WHERE " + app.config['DB_TABLE_USERS'] +
+               "." + app.config['DB_USERS_ID']
+               + " != " + str(userId) + " AND " +
+               app.config['DB_TABLE_HAS_USERS'] + "." +
+               app.config['DB_USERS_HAS_USERS_AF']
+               + " = 1 AND (" + app.config['DB_TABLE_HAS_USERS'] +
+               "." + app.config['DB_USERS_HAS_USERS_ASKED']
+               + " = " + str(userId) + " OR "
+               + app.config['DB_TABLE_HAS_USERS'] + "." +
+               app.config['DB_USERS_HAS_USERS_ASKER'] + " = " + str(userId)
+               + ");"
+               )
+        cursor.execute(sql)
 
+        result = cursor.fetchall()
+
+        for res in result:
+            jres = {}
+            jres['id'] = res[0]
+            jres['firstName'] = res[1]
+            jres['lastName'] = res[2]
+            jres['image'] = res[3]
+            jres['dateOfRegistration'] = res[4]
+
+            jsonArr.append(jres)
 
 
         pass
     except Exception as identifier:
         pass
+    finally:
+        cursor.close()
+        conn.close()
+        pass
 
 
-    cursor.close()
-    conn.close()
+    return jsonArr
 
-    return json.dumps(jsonSuccess)
+
+def deleteLiveRecord(userId):
+    success = 1
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        sql = ("DELETE FROM " + app.config['DB_TABLE_LIVE_RECORDS']
+               + " WHERE " + app.config['DB_LIVE_RECORD_USERS_ID_FK']
+               + " = " + str(userId) + ";")
+
+        cursor.execute(sql)
+        conn.commit()
+        success = 0
+        pass
+    except Exception as identifier:
+        success = 1
+        pass
+    finally:
+        cursor.close()
+        conn.close()
+        pass
+    return success
+
 
 ###########################
 ###    WEB API-Pages    ###
@@ -1819,7 +1900,7 @@ def uploadTrackAPI():
 
     auth = request.authorization
     userid = getUserId(auth.username)
-    
+
     conn = mysql.connect()
     cursor = conn.cursor()
 
@@ -1856,12 +1937,7 @@ def uploadTrackAPI():
         jsonSuccess['record'] = getSingleRecordByID(cursor.lastrowid)
         jsonSuccess['oldId'] = jsonTrack['id']
 
-        sql = ("DELETE FROM " + app.config['DB_TABLE_LIVE_RECORDS']
-        + " WHERE " + app.config['DB_LIVE_RECORD_USERS_ID_FK'] 
-        + " = " + str(userid) + ";")
-
-        cursor.execute(sql)
-        conn.commit()
+        deleteLiveRecord(userid)
 
         pass
     except Exception as identifier:
@@ -2252,6 +2328,29 @@ def getLiveRecordAPI():
     janswer = getLiveRecord(friendId, userId, index)
 
     return json.dumps(janswer)
+
+
+@app.route("/abortLiveRecordAPI", methods=['POST'])
+@requires_authorization
+def abortLiveRecordAPI():
+    auth = request.authorization
+    userId = getUserId(auth.username)
+
+    janswer = {}
+    janswer['success'] = deleteLiveRecord(userId)
+
+    return json.dumps(janswer)
+
+
+@app.route("/getLiveFriendsAPI", methods=['POST'])
+@requires_authorization
+def getLiveFriendsAPI():
+    auth = request.authorization
+    userId = getUserId(auth.username)
+
+    jArr = getLiveFriends(userId)
+
+    return json.dumps(jArr)
 
 
 ###########################
