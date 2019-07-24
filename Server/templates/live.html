@@ -76,10 +76,8 @@
                         <div class="flex-grow-1 d-flex align-items-center">
                             <div class="dot mr-3 bg-red"></div>
                             <div class="text">
-                                <h6 class="mb-0">Höhenmeter</h6>
-                                <span class="text-gray"><i class="fas fa-arrow-up"></i>&nbsp;&nbsp;<span
-                                        id="altPos"></span> m&nbsp;&nbsp;|&nbsp;&nbsp;<i
-                                        class="fas fa-arrow-down"></i>&nbsp;&nbsp;<span id="altNeg"></span> m</span>
+                                <h6 class="mb-0">Geschwindigkeit</h6>
+                                <span class="text-gray"><span id="currentSpeed"></span> km/h</span>
                             </div>
                         </div>
                         <div class="icon text-white bg-red"><i class="fas fa-hiking"></i></div>
@@ -90,11 +88,13 @@
                         <div class="flex-grow-1 d-flex align-items-center">
                             <div class="dot mr-3 bg-green"></div>
                             <div class="text">
-                                <h6 class="mb-0">Maximalgeschw.</h6>
-                                <span class="text-gray"><span id="maxSpeed"></span> km/h</span>
+                                <h6 class="mb-0">Höhenmeter</h6>
+                                <span class="text-gray"><i class="fas fa-arrow-up"></i>&nbsp;&nbsp;<span
+                                        id="altPos"></span> m&nbsp;&nbsp;|&nbsp;&nbsp;<i
+                                        class="fas fa-arrow-down"></i>&nbsp;&nbsp;<span id="altNeg"></span> m</span>
                             </div>
                         </div>
-                        <div class="icon text-white bg-green"><i class="fas fa-tachometer-alt"></i></div>
+                        <div class="icon text-white bg-green"><i class="fas fa-hiking"></i></div>
                     </div>
                 </div>
                 <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
@@ -102,11 +102,35 @@
                         <div class="flex-grow-1 d-flex align-items-center">
                             <div class="dot mr-3 bg-blue"></div>
                             <div class="text">
-                                <h6 class="mb-0">Ø-Geschw.</h6>
-                                <span id="avgSpeed" class="text-gray"></span>
+                                <h6 class="mb-0">Aktuelle Höhe</h6>
+                                <span class="text-gray"><span id="currentAlt"></span> m</span>
                             </div>
                         </div>
-                        <div class="icon text-white bg-blue"><i class="fas fa-chart-area"></i></div>
+                        <div class="icon text-white bg-blue"><i class="fas fa-hiking"></i></div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-xl-6 col-lg-6 mb-4">
+                    <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
+                        <div class="flex-grow-1 d-flex align-items-center">
+                            <div class="dot mr-3 bg-red"></div>
+                            <div class="text">
+                                <h6 class="mb-0">Max Geschw.</h6>
+                                <span class="text-gray"><span id="maxSpeed"></span> km/h</span>
+                            </div>
+                        </div>
+                        <div class="icon text-white bg-red"><i class="fas fa-tachometer-alt"></i></div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-xl-6 col-lg-6 mb-4">
+                    <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
+                        <div class="flex-grow-1 d-flex align-items-center">
+                            <div class="dot mr-3 bg-green"></div>
+                            <div class="text">
+                                <h6 class="mb-0">Ø-Geschw.</h6>
+                                <span class="text-gray"><span id="avgSpeed"></span> km/h</span>
+                            </div>
+                        </div>
+                        <div class="icon text-white bg-green"><i class="fas fa-chart-area"></i></div>
                     </div>
                 </div>
             </div>
@@ -161,7 +185,7 @@
     var currentIndex = 0;
     var startMarker, cPosMarker;
     var latlngs = [];
-    var altPos = 0, altNeg = 0, maxSpeed = 0, avgSpeed = 0;
+    var altPos = 0, altNeg = 0, minSpeed = 0, maxSpeed = 0, avgSpeed = 0;
     getLiveData();
 
     /* Start routine */
@@ -206,7 +230,6 @@
 
                         if (Math.floor(loc.speed * 3.6 * 100) / 100 > maxSpeed) {
                             maxSpeed = Math.floor(loc.speed * 3.6 * 100) / 100;
-                            console.log(maxSpeed);
                         }
                     }
 
@@ -221,8 +244,10 @@
                         cPosMarker.setLatLng(newLatLng);
                     }
 
-                    document.getElementById('altPos').textContent = Number((altPos).toFixed(2));
-                    document.getElementById('altNeg').textContent = Number((altNeg).toFixed(2));
+                    document.getElementById('altPos').textContent = Number(altPos.toFixed(2));
+                    document.getElementById('altNeg').textContent = Number(altNeg.toFixed(2));
+                    document.getElementById('currentAlt').textContent = Number(loc.altitude.toFixed(2));
+                    document.getElementById('currentSpeed').textContent = Number(loc.speed.toFixed(2));
                     document.getElementById('maxSpeed').textContent = maxSpeed;
 
                     polyline = L.polyline(latlngs, { color: 'red' }).addTo(map);
@@ -233,7 +258,12 @@
                 document.getElementById('totalTime').textContent = formatTime(liveData.time);
                 document.getElementById('rideTime').textContent = formatTime(liveData.rideTime);
                 document.getElementById('distance').textContent = formatDistance(liveData.distance);
-                document.getElementById('avgSpeed').textContent = formatDistance((liveData.distance/1000.0)/(liveData.rideTime/3600.0));
+                if(liveData.rideTime > 0){
+                    document.getElementById('avgSpeed').textContent = (liveData.distance/1000.0)/(liveData.rideTime/3600.0);
+                } else {
+                    document.getElementById('avgSpeed').textContent = "NaN";
+                }
+                
             },
             error: function (error) {
                 console.log(error);
