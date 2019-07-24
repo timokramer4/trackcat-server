@@ -1228,12 +1228,12 @@ def getLiveFriends(userId):
                + app.config['DB_TABLE_HAS_USERS'] + "." +
                app.config['DB_USERS_HAS_USERS_ASKED']
                + " INNER JOIN " + app.config['DB_TABLE_LIVE_RECORDS'] + " ON "
-               + app.config['DB_TABLE_HAS_USERS'] + "." +
-               app.config['DB_USERS_HAS_USERS_ASKER'] + " = "
+               +app.config['DB_TABLE_USERS'] + "." +
+               app.config['DB_USERS_ID'] + " = "
                + app.config['DB_TABLE_LIVE_RECORDS'] + "." +
                app.config['DB_LIVE_RECORD_USERS_ID_FK'] + " OR "
-               + app.config['DB_TABLE_HAS_USERS'] + "." +
-               app.config['DB_USERS_HAS_USERS_ASKED'] + " = "
+               + app.config['DB_TABLE_USERS'] + "." +
+               app.config['DB_USERS_ID'] + " = "
                + app.config['DB_TABLE_LIVE_RECORDS'] + "." +
                app.config['DB_LIVE_RECORD_USERS_ID_FK']
                + " WHERE " + app.config['DB_TABLE_USERS'] +
