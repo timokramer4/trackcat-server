@@ -65,10 +65,7 @@
                         <div class="flex-grow-1 d-flex align-items-center">
                             <div class="dot mr-3 bg-blue"></div>
                             <div class="text">
-                                <h6 class="mb-0">Strecke</h6><span id="distance"
-                                    class="text-gray">{% if livefriend.distance / 1000 >= 1 %}{{'%0.2f'| format(livefriend.distance/1000|float)}}
-                                    km{% else %}{{'%0.2f'| format(livefriend.distance|float)}}
-                                    m{% endif %}</span>
+                                <h6 class="mb-0">Strecke</h6><span id="distance" class="text-gray"></span>
                             </div>
                         </div>
                         <div class="icon text-white bg-blue"><i class="fas fa-fire"></i></div>
@@ -106,9 +103,7 @@
                             <div class="dot mr-3 bg-blue"></div>
                             <div class="text">
                                 <h6 class="mb-0">Ø-Geschw.</h6>
-                                <span
-                                    class="text-gray">{% if livefriend.rideTime != 0 %}{{((livefriend.distance/1000.0)/(livefriend.rideTime/3600.0))|round(2)}}{% else %}0{% endif %}
-                                    km/h</span>
+                                <span id="avgSpeed" class="text-gray"></span>
                             </div>
                         </div>
                         <div class="icon text-white bg-blue"><i class="fas fa-chart-area"></i></div>
@@ -136,7 +131,6 @@
 
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
-{% if livefriend.locations %}
 <script>
     /* Initialize the map on the "map" div with a given center and default zoom */
     var map = L.map('map');
@@ -239,6 +233,7 @@
                 document.getElementById('totalTime').textContent = formatTime(liveData.time);
                 document.getElementById('rideTime').textContent = formatTime(liveData.rideTime);
                 document.getElementById('distance').textContent = formatDistance(liveData.distance);
+                document.getElementById('avgSpeed').textContent = formatDistance((liveData.distance/1000.0)/(liveData.rideTime/3600.0));
             },
             error: function (error) {
                 console.log(error);
@@ -267,5 +262,4 @@
         }
     }
 </script>
-{% endif %}
 {% endblock %}
