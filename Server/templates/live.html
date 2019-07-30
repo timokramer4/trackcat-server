@@ -259,7 +259,7 @@
                 document.getElementById('rideTime').textContent = formatTime(liveData.rideTime);
                 document.getElementById('distance').textContent = formatDistance(liveData.distance);
                 if(liveData.rideTime > 0){
-                    document.getElementById('avgSpeed').textContent = (liveData.distance/1000.0)/(liveData.rideTime/3600.0);
+                    document.getElementById('avgSpeed').textContent = Number(((liveData.distance/1000.0)/(liveData.rideTime/3600.0)).toFixed(2));
                 } else {
                     document.getElementById('avgSpeed').textContent = "NaN";
                 }
