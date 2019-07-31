@@ -2344,9 +2344,12 @@ def updateLiveRecordAPI():
             cursor.execute(sql)
 
         conn.commit()
+        jsonSuccess['success'] = 0
 
         pass
     except Exception as identifier:
+        jsonSuccess['success'] = 1
+
         pass
 
     cursor.close()
