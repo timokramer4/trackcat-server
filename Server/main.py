@@ -893,6 +893,8 @@ def searchFriends(page, search, usrId, usrEmail):
         join = ""
         whereID = ""
         email = ""
+        case = ""
+
         if usrId != None:
             join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON "
                     + app.config['DB_TABLE_USERS'] +
@@ -921,15 +923,19 @@ def searchFriends(page, search, usrId, usrEmail):
                      " CASE WHEN " + app.config['DB_TABLE_LIVE_RECORDS'] + "."
                      + app.config['DB_LIVE_RECORD_USERS_ID_FK'] + " > 0 THEN 1 ELSE 0 END AS isLive")
         else:
-            whereID = ("(" + app.config['DB_TABLE_HAS_USERS'] + "."
-                       + app.config['DB_USERS_HAS_USERS_ASKER']
-                       + " IS NULL OR "
-                       + app.config['DB_TABLE_HAS_USERS'] + "."
-                       + app.config['DB_USERS_HAS_USERS_ASKED']
-                       + " IS NULL) AND "
-                       )
+            
+            usrId = getUserId(usrEmail)
 
-            join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON ("
+            case = (" AND (CASE WHEN " + app.config['DB_TABLE_HAS_USERS']
+            + "." + app.config['DB_USERS_HAS_USERS_ASKER'] + " != " + str(usrId) 
+            + " AND " + app.config['DB_TABLE_HAS_USERS']
+            + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + " != " + str(usrId) 
+            + " THEN 0 ELSE 1 END) = 0"
+
+
+            )
+            whereID = ""
+            join = (" INNER JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON ("
                     + app.config['DB_TABLE_USERS'] +
                     "." + app.config['DB_USERS_ID']
                     + " = " + app.config['DB_TABLE_HAS_USERS'] +
@@ -956,6 +962,7 @@ def searchFriends(page, search, usrId, usrEmail):
                ") LIKE UPPER('" + search + "%')) "
                + " AND UPPER(" + app.config['DB_USERS_EMAIL'] +
                ") != UPPER('" + usrEmail + "') "
+               + case
                + limitter
                )
 
@@ -2021,10 +2028,11 @@ def synchronizeRecordsAPI():
             janswer['missingId'].append(jsn['id'])
         elif result[0] < timeStamp:
             # update Recordname
-            sql = 'UPDATE ' + app.config['DB_TABLE_RECORDS'] + \
-                ' SET  ' + app.config['DB_RECORD_NAME'] + " = %s;"
-            cursor.execute(sql, (jsn['name'],))
-            conn.commit()
+            # sql = 'UPDATE ' + app.config['DB_TABLE_RECORDS'] + \
+            #     ' SET  ' + app.config['DB_RECORD_NAME'] + " = %s;"
+            # cursor.execute(sql, (jsn['name'],))
+            #conn.commit()
+            updateRecordDB(jsn['id'], jsn['name'], jsn['timeStamp'])
         elif result[0] > timeStamp:
             jnewName = {}
             jnewName['id'] = jsn['id']
