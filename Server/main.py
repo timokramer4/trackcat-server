@@ -1418,7 +1418,7 @@ def recordsPage():
         page = request.args.get('page')
         if page == None:
             page = 1
-        amount = getRecordAmount()
+        amount = getRecordsAmount(current_user.id)
         records = getRecordsByID(current_user.id, int(page))
         alertType = request.args.get('alert')
         return render_template("records.html", user=current_user, site="records", records=records, amount=amount, alert=alertType)
@@ -1464,7 +1464,9 @@ def searchPage():
 @app.route("/community/friends", methods=["GET"])
 def friendsPage():
     if current_user.is_authenticated:
-        friends = searchFriends(0, "", current_user.id, current_user.email)
+        page = request.args.get('page')
+        amount = getFriendsAmount(current_user.id)
+        friends = searchFriends(page, "", current_user.id, current_user.email)
         alertType = request.args.get('alert')
         return render_template("friends.html", user=current_user, site="friends", friends=friends, alert=alertType)
     else:
@@ -1716,12 +1718,6 @@ def getImage():
 
     except Exception as identifier:
         return send_file("./static/img/defaultUser.jpg", attachment_filename='.jpg')
-
-# Get amount of record pages
-@app.route("/recordAmount", methods=['GET'])
-def getRecordAmount():
-    amount = getRecordsAmount(current_user.id)
-    return amount
 
 # Edit record name
 @app.route("/editRecord", methods=['POST'])

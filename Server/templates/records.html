@@ -137,6 +137,8 @@
 {% block customScripts %}
 <script src="{{ url_for('static', filename='js/validate.js')}}"></script>
 <script>
+    var pageLink = '/records';
+
     /* Get current record name for modal */
     $('#renameRecordModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget) // Button that triggered the modal
@@ -155,6 +157,7 @@
         modal.find('#recordId').val(recordId)
     });
 
+    /* Open record page */
     $('[id=openRecord]').on('click', function () {
         document.location.href = "/record?id=" + $(this).data('recordid');
     });
@@ -170,7 +173,7 @@
     var currentPage = window.sessionStorage.getItem('page');
 
     /* Check Previous/Next button state */
-    if(parseInt(currentPage) === 1){
+    if (parseInt(currentPage) === 1){
         $('#prevItem').addClass("disabled");
     }
     if (parseInt(currentPage) === parseInt($('#pageAmount').val())){
@@ -180,13 +183,13 @@
     /* Previous page */
     $('[id=prevPage]').on('click', function () {
         setSessionStorage('page', --currentPage);
-        document.location.href = "/records?page=" + currentPage;
+        document.location.href = `${pageLink}?page=${currentPage}`;
     });
 
     /* Next page */
     $('[id=nextPage]').on('click', function () {
         setSessionStorage('page', ++currentPage);
-        document.location.href = "/records?page=" + currentPage;
+        document.location.href = `${pageLink}?page=${currentPage}`;
     });
 
     /* Change storage value */
