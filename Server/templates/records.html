@@ -170,13 +170,11 @@
     var currentPage = window.sessionStorage.getItem('page');
 
     /* Check Previous/Next button state */
-    console.log(1);
-    console.log(parseInt(currentPage));
-    console.log("Ist gleich: " + currentPage === "1");
-    if(parseInt(currentPage) == 1){
-        $('#prevItem').disabled = true;
-    } else if (parseInt(currentPage) === parseInt($('#pageAmount').val())){
-        $('#nextItem').disabled = true;
+    if(parseInt(currentPage) === 1){
+        $('#prevItem').addClass("disabled");
+    }
+    if (parseInt(currentPage) === parseInt($('#pageAmount').val())){
+        $('#nextItem').addClass("disabled");
     }
 
     /* Previous page */
