@@ -651,6 +651,19 @@ def getRecordsAmount(userId):
 
     return math.ceil(result/10)
 
+def getFriendsAmount(userId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT count(*) FROM ' + app.config['DB_TABLE_RECORDS'] +
+                   ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId) + ";")
+    result = cursor.fetchone()[0]
+
+    cursor.close()
+    conn.close()
+
+    return math.ceil(result/10)
+
 # Get single record by id
 
 
@@ -1465,10 +1478,12 @@ def searchPage():
 def friendsPage():
     if current_user.is_authenticated:
         page = request.args.get('page')
+        if page == None:
+            page = 1
         amount = getFriendsAmount(current_user.id)
         friends = searchFriends(page, "", current_user.id, current_user.email)
         alertType = request.args.get('alert')
-        return render_template("friends.html", user=current_user, site="friends", friends=friends, alert=alertType)
+        return render_template("friends.html", user=current_user, site="friends", friends=friends, amount=amount, alert=alertType)
     else:
         return redirect("/login")
 
