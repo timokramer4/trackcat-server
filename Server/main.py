@@ -8,6 +8,7 @@ import simplejson
 import time
 import os
 import json
+import math
 from mailSend import sendVmail
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
 from datetime import datetime, timedelta
@@ -634,10 +635,21 @@ def getRecordsByID(userId, page):
 
     return jsonRecords
 
-# okay
+# Get amount of records
+def getRecordsAmount(userId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT count(*) FROM ' + app.config['DB_TABLE_RECORDS'] +
+                   ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId) + ";")
+    result = cursor.fetchone()[0]
+
+    cursor.close()
+    conn.close()
+
+    return math.ceil(result/10)
+
 # Get single record by id
-
-
 def getSingleRecordByID(recordId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -1386,9 +1398,13 @@ def dataProtectionPage():
 @app.route("/records", methods=["GET"])
 def recordsPage():
     if current_user.is_authenticated:
-        records = getRecordsByID(current_user.id, 1)
+        page = request.args.get('page')
+        if page == None:
+            page = 1
+        amount = getRecordAmount()
+        records = getRecordsByID(current_user.id, int(page))
         alertType = request.args.get('alert')
-        return render_template("records.html", user=current_user, site="records", records=records, alert=alertType)
+        return render_template("records.html", user=current_user, site="records", records=records, amount=amount, alert=alertType)
     else:
         return redirect("/login")
 
@@ -1682,6 +1698,12 @@ def getImage():
 
     except Exception as identifier:
         return send_file("./static/img/defaultUser.jpg", attachment_filename='.jpg')
+
+# Get amount of record pages
+@app.route("/recordAmount", methods=['GET'])
+def getRecordAmount():
+    amount = getRecordsAmount(current_user.id)
+    return amount
 
 # Edit record name
 @app.route("/editRecord", methods=['POST'])
