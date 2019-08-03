@@ -655,8 +655,11 @@ def getFriendsAmount(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT count(*) FROM ' + app.config['DB_TABLE_RECORDS'] +
-                   ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId) + ";")
+    cursor.execute('SELECT count(*) FROM ' + app.config['DB_TABLE_HAS_USERS'] +
+                   ' WHERE ' + app.config['DB_USERS_HAS_USERS_ASKER'] + ' = ' 
+                   + str(userId) + " = OR " +  + app.config['DB_USERS_HAS_USERS_ASKED'] 
+                   + ' = ' 
+                   + str(userId) +  ";")
     result = cursor.fetchone()[0]
 
     cursor.close()
