@@ -636,6 +636,8 @@ def getRecordsByID(userId, page):
     return jsonRecords
 
 # Get amount of records
+
+
 def getRecordsAmount(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -650,6 +652,8 @@ def getRecordsAmount(userId):
     return math.ceil(result/10)
 
 # Get single record by id
+
+
 def getSingleRecordByID(recordId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -905,7 +909,14 @@ def searchFriends(page, search, usrId, usrEmail):
         join = ""
         whereID = ""
         email = ""
+        case = ""
+        group = ""
+
+        isFriend = False
+
         if usrId != None:
+            isFriend = True
+
             join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON "
                     + app.config['DB_TABLE_USERS'] +
                     "." + app.config['DB_USERS_ID']
@@ -933,15 +944,22 @@ def searchFriends(page, search, usrId, usrEmail):
                      " CASE WHEN " + app.config['DB_TABLE_LIVE_RECORDS'] + "."
                      + app.config['DB_LIVE_RECORD_USERS_ID_FK'] + " > 0 THEN 1 ELSE 0 END AS isLive")
         else:
-            whereID = ("(" + app.config['DB_TABLE_HAS_USERS'] + "."
-                       + app.config['DB_USERS_HAS_USERS_ASKER']
-                       + " IS NULL OR "
-                       + app.config['DB_TABLE_HAS_USERS'] + "."
-                       + app.config['DB_USERS_HAS_USERS_ASKED']
-                       + " IS NULL) AND "
-                       )
 
-            join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON ("
+            usrId = getUserId(usrEmail)
+
+            case = (", SUM((CASE WHEN " + app.config['DB_TABLE_HAS_USERS']
+                    + "." +
+                    app.config['DB_USERS_HAS_USERS_ASKER'] +
+                    " != " + str(usrId)
+                    + " AND " + app.config['DB_TABLE_HAS_USERS']
+                    + "." +
+                    app.config['DB_USERS_HAS_USERS_ASKED'] +
+                    " != " + str(usrId)
+                    + " THEN 0 ELSE 1 END) ) AS tempSum"
+
+
+                    )
+            join = (" INNER JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON ("
                     + app.config['DB_TABLE_USERS'] +
                     "." + app.config['DB_USERS_ID']
                     + " = " + app.config['DB_TABLE_HAS_USERS'] +
@@ -950,12 +968,18 @@ def searchFriends(page, search, usrId, usrEmail):
                     "." + app.config['DB_USERS_ID']
                         + " = " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + ") ")
 
+            group = (" GROUP BY " + app.config['DB_TABLE_USERS']
+                       + "." + app.config['DB_USERS_ID']
+                       + " HAVING tempSum = 0"
+                       )
+
         sql = ('SELECT ' + app.config['DB_TABLE_USERS'] + "." + app.config['DB_USERS_ID']
                + ", " + app.config['DB_USERS_FIRSTNAME']
                + ", " + app.config['DB_USERS_LASTNAME']
                + ", " + app.config['DB_USERS_IMAGE']
                + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
                + email
+               + case
                + " FROM " + app.config['DB_TABLE_USERS']
                + join
                + " WHERE "
@@ -968,6 +992,7 @@ def searchFriends(page, search, usrId, usrEmail):
                ") LIKE UPPER('" + search + "%')) "
                + " AND UPPER(" + app.config['DB_USERS_EMAIL'] +
                ") != UPPER('" + usrEmail + "') "
+               + group
                + limitter
                )
 
@@ -983,8 +1008,6 @@ def searchFriends(page, search, usrId, usrEmail):
             jres['image'] = res[3]
             jres['dateOfRegistration'] = res[4]
 
-           
-
             cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
                            app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + ";")
 
@@ -996,15 +1019,16 @@ def searchFriends(page, search, usrId, usrEmail):
 
             jres['totalDistance'] = totDist
 
-            try:
-                jres['email'] = res[5]
-                jres['isLive'] = res[6]
+            if isFriend:
+                try:
+                    jres['email'] = res[5]
+                    jres['isLive'] = res[6]
 
-                pass
-            except Exception as identifier:
-                jres['isLive'] = 0
+                    pass
+                except Exception as identifier:
+                    jres['isLive'] = 0
 
-                pass
+                    pass
 
             jsonArr.append(jres)
 
@@ -1240,7 +1264,7 @@ def getLiveFriends(userId):
                + app.config['DB_TABLE_HAS_USERS'] + "." +
                app.config['DB_USERS_HAS_USERS_ASKED']
                + " INNER JOIN " + app.config['DB_TABLE_LIVE_RECORDS'] + " ON "
-               +app.config['DB_TABLE_USERS'] + "." +
+               + app.config['DB_TABLE_USERS'] + "." +
                app.config['DB_USERS_ID'] + " = "
                + app.config['DB_TABLE_LIVE_RECORDS'] + "." +
                app.config['DB_LIVE_RECORD_USERS_ID_FK'] + " OR "
@@ -1651,6 +1675,7 @@ def removeFriend():
     else:
         return redirect("/login")
 
+
 @app.route("/getLiveRecord", methods=['POST'])
 def getLiveRecordWeb():
     friendId = request.form['friendId']
@@ -2043,10 +2068,11 @@ def synchronizeRecordsAPI():
             janswer['missingId'].append(jsn['id'])
         elif result[0] < timeStamp:
             # update Recordname
-            sql = 'UPDATE ' + app.config['DB_TABLE_RECORDS'] + \
-                ' SET  ' + app.config['DB_RECORD_NAME'] + " = %s;"
-            cursor.execute(sql, (jsn['name'],))
-            conn.commit()
+            # sql = 'UPDATE ' + app.config['DB_TABLE_RECORDS'] + \
+            #     ' SET  ' + app.config['DB_RECORD_NAME'] + " = %s;"
+            # cursor.execute(sql, (jsn['name'],))
+            # conn.commit()
+            updateRecordDB(jsn['id'], jsn['name'], jsn['timeStamp'])
         elif result[0] > timeStamp:
             jnewName = {}
             jnewName['id'] = jsn['id']
@@ -2394,6 +2420,7 @@ def getLiveRecordAPI():
     janswer = getLiveRecord(friendId, userId, index)
 
     return json.dumps(janswer)
+
 
 @app.route("/abortLiveRecordAPI", methods=['POST'])
 @requires_authorization
