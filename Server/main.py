@@ -963,7 +963,7 @@ def searchFriends(page, search, usrId, usrEmail):
 
             usrId = getUserId(usrEmail)
 
-            case = (", SUM((CASE WHEN " + app.config['DB_TABLE_HAS_USERS']
+            case = (", SUM((CASE WHEN (" + app.config['DB_TABLE_HAS_USERS']
                     + "." +
                     app.config['DB_USERS_HAS_USERS_ASKER'] +
                     " != " + str(usrId)
@@ -971,11 +971,15 @@ def searchFriends(page, search, usrId, usrEmail):
                     + "." +
                     app.config['DB_USERS_HAS_USERS_ASKED'] +
                     " != " + str(usrId)
+                    + ") OR (" + app.config['DB_TABLE_HAS_USERS']
+                    + "." + app.config['DB_USERS_HAS_USERS_ASKER'] + " is null AND "
+                    + app.config['DB_TABLE_HAS_USERS']
+                    + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + " is null)"
                     + " THEN 0 ELSE 1 END) ) AS tempSum"
 
 
                     )
-            join = (" INNER JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON ("
+            join = (" LEFT JOIN " + app.config['DB_TABLE_HAS_USERS'] + " ON ("
                     + app.config['DB_TABLE_USERS'] +
                     "." + app.config['DB_USERS_ID']
                     + " = " + app.config['DB_TABLE_HAS_USERS'] +
