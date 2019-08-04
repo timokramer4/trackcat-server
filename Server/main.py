@@ -921,7 +921,7 @@ def searchFriends(page, search, usrId, usrEmail):
         end = page * 10
 
         if page > 0:
-            limitter = ' LIMIT ' + str(start) + ', ' + str(end)
+            limitter = ' LIMIT ' + str(start) + ', ' + str(10)
         else:
             limitter = ''
 
