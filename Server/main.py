@@ -651,13 +651,16 @@ def getRecordsAmount(userId):
 
     return math.ceil(result/10)
 
+# Get friends amount
+
+
 def getFriendsAmount(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
     cursor.execute('SELECT count(*) FROM ' + app.config['DB_TABLE_HAS_USERS'] +
                    ' WHERE ' + app.config['DB_USERS_HAS_USERS_ASKER'] + ' = ' 
-                   + str(userId) + " = OR " +  + app.config['DB_USERS_HAS_USERS_ASKED'] 
+                   + str(userId) + " OR " + app.config['DB_USERS_HAS_USERS_ASKED'] 
                    + ' = ' 
                    + str(userId) +  ";")
     result = cursor.fetchone()[0]
@@ -989,9 +992,9 @@ def searchFriends(page, search, usrId, usrEmail):
                         + " = " + app.config['DB_TABLE_HAS_USERS'] + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + ") ")
 
             group = (" GROUP BY " + app.config['DB_TABLE_USERS']
-                       + "." + app.config['DB_USERS_ID']
+                     + "." + app.config['DB_USERS_ID']
                        + " HAVING tempSum = 0"
-                       )
+                     )
 
         sql = ('SELECT ' + app.config['DB_TABLE_USERS'] + "." + app.config['DB_USERS_ID']
                + ", " + app.config['DB_USERS_FIRSTNAME']
@@ -1488,7 +1491,7 @@ def friendsPage():
         if page == None:
             page = 1
         amount = getFriendsAmount(current_user.id)
-        friends = searchFriends(page, "", current_user.id, current_user.email)
+        friends = searchFriends(int(page), "", current_user.id, current_user.email)
         alertType = request.args.get('alert')
         return render_template("friends.html", user=current_user, site="friends", friends=friends, amount=amount, alert=alertType)
     else:
