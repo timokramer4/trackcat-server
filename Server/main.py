@@ -1394,7 +1394,7 @@ def resetUserPassword(email):
 
         # TODO Threading
 
-        thread = Thread(target = sendResetEmail, args=(email, firstname, baseUrl + token,))
+        thread = Thread(target = sendResetMail, args=(email, firstname, baseUrl + token,))
         thread.start()
         #sendResetMail(email, firstname, baseUrl + token)
         return 1
