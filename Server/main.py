@@ -1392,11 +1392,9 @@ def resetUserPassword(email):
         cursor.execute(sql, (token, userId,))
         conn.commit()
 
-        # TODO Threading
-
+        # Start mail sending thread
         thread = Thread(target = sendResetMail, args=(email, firstname, baseUrl + token,))
         thread.start()
-        #sendResetMail(email, firstname, baseUrl + token)
         return 1
         pass
     except Exception as identifier:
