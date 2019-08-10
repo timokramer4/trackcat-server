@@ -1364,21 +1364,31 @@ def deleteLiveRecord(userId):
 # request reset password
 
 
-def resetUserpasswort(firstname, lastname, email, userId):
+def resetUserPassword(email):
     conn = mysql.connect()
     cursor = conn.cursor()
 
     baseUrl = app.config['BASE_URL']+"/resetPassword?email="+email+"&token="
 
-    token = generateVerifyToken(
-        firstname, lastname, email)
-
-    sql = ('UPDATE ' + app.config['DB_TABLE_USERS']
-           + ' SET ' + app.config['DB_USERS_RESETTOKEN']
-           + ' = %s ' + ' WHERE ' + app.config['DB_USERS_ID']
-           + ' = %s;')
-
     try:
+        sql = ('SELECT' + app.config['DB_USERS_FIRSTNAME']
+               + ', ' + app.config['DB_USERS_ID'] + ' WHERE '
+               + app.config['DB_USERS_EMAIL'] + ' = %s;')
+
+        cursor.execute(sql)
+
+        result = cursor.fetchone()
+
+        firstname = result[0]
+        userId = result[1]
+
+        token = generateVerifyToken(
+            firstname, "", email)
+
+        sql = ('UPDATE ' + app.config['DB_TABLE_USERS']
+               + ' SET ' + app.config['DB_USERS_RESETTOKEN']
+               + ' = %s ' + ' WHERE ' + app.config['DB_USERS_ID']
+               + ' = %s;')
         cursor.execute(sql, (token, userId,))
         conn.commit()
 
@@ -1848,7 +1858,7 @@ def resetPassword():
         return "Return erfolg"
         pass
     except Exception as identifier:
-        
+
         return "Return ERROR"
         pass
     finally:
