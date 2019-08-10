@@ -1371,11 +1371,11 @@ def resetUserPassword(email):
     baseUrl = app.config['BASE_URL']+"/resetPassword?email="+email+"&token="
 
     try:
-        sql = ('SELECT' + app.config['DB_USERS_FIRSTNAME']
-               + ', ' + app.config['DB_USERS_ID'] + ' WHERE '
+        sql = ('SELECT ' + app.config['DB_USERS_FIRSTNAME']
+               + ', ' + app.config['DB_USERS_ID'] + ' FROM ' + app.config['DB_TABLE_USERS'] + ' WHERE '
                + app.config['DB_USERS_EMAIL'] + ' = %s;')
 
-        cursor.execute(sql)
+        cursor.execute(sql, (email,))
 
         result = cursor.fetchone()
 
@@ -1392,9 +1392,12 @@ def resetUserPassword(email):
         cursor.execute(sql, (token, userId,))
         conn.commit()
 
+        # TODO Threading
         sendResetMail(email, firstname, baseUrl + token)
+        return 1
         pass
     except Exception as identifier:
+        return 0
         pass
     finally:
         cursor.close()
@@ -1432,6 +1435,15 @@ def registerPage():
     else:
         alertType = request.args.get('alert')
         return render_template("register.html", alert=alertType)
+
+# Reset password
+@app.route("/reset", methods=['GET'])
+def resetPage():
+    if current_user.is_authenticated:
+        return redirect("/dashboard")
+    else:
+        alertType = request.args.get('alert')
+        return render_template("resetPassword.html", alert=alertType)
 
 # Profile page
 @app.route("/dashboard", methods=["GET"])
@@ -1603,6 +1615,16 @@ def login():
     else:
         flash('Ihre Anmeldedaten sind nicht korrekt!')
         return redirect("/login?alert=warning")
+
+# Reset password
+@app.route("/resetPassword", methods=['POST'])
+def resetPassword():
+    if resetUserPassword(request.form['email']):
+        flash('Die Email zum Zürücksetzen des Passworts wurde an "' + request.form['email'] + '" gesendet. Bitte überprüfen Sie Ihr Email-Postfach.')
+        return redirect("/reset?alert=success")
+    else:
+        flash('Die Email-Adresse "' + request.form['email'] + '" konnte keinem Konto zugeordnet werden!')
+        return redirect("/reset?alert=danger")  
 
 # Register a user
 @app.route("/registerUser", methods=['POST'])
@@ -1824,10 +1846,10 @@ def verifyEmail():
         cursor.close()
         conn.close()
         return render_template("verification.html", state=1)
-    pass
+        pass
     except Exception as identifier:
         return render_template("verification.html", state=0)
-    pass
+        pass
     finally:
         cursor.close()
         conn.close()
@@ -1836,7 +1858,7 @@ def verifyEmail():
 
 # reset Password
 @app.route("/resetPassword", methods=['GET'])
-def resetPassword():
+def resetPasswordFunction():
     email = request.args.get('email')
     token = request.args.get('token')
 
@@ -1855,11 +1877,11 @@ def resetPassword():
         cursor.close()
         conn.close()
 
-        return "Return erfolg"
+        return 1
         pass
     except Exception as identifier:
 
-        return "Return ERROR"
+        return 0
         pass
     finally:
         cursor.close()
