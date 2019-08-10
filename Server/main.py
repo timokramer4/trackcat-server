@@ -1393,7 +1393,10 @@ def resetUserPassword(email):
         conn.commit()
 
         # TODO Threading
-        sendResetMail(email, firstname, baseUrl + token)
+
+        thread = Thread(target = sendResetEmail, args=(email, firstname, baseUrl + token,))
+        thread.start()
+        #sendResetMail(email, firstname, baseUrl + token)
         return 1
         pass
     except Exception as identifier:
