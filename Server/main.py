@@ -9,7 +9,7 @@ import time
 import os
 import json
 import math
-from mailSend import sendVmail
+from mailSend import sendVmail, sendResetMail
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
 from datetime import datetime, timedelta
 from functools import wraps
@@ -62,6 +62,7 @@ app.config['DB_USERS_DATEOFREGISTRATION'] = "dateOfRegistration"
 app.config['DB_USERS_LASTLOGIN'] = "lastLogin"
 app.config['DB_USERS_TIMESTAMP'] = "timeStamp"
 app.config['DB_USERS_VERIFYTOKEN'] = "verifyToken"
+app.config['DB_USERS_RESETTOKEN'] = "resetToken"
 
 # COLUMN-NAMES: users_has_users (friends)
 app.config['DB_USERS_HAS_USERS_ASKER'] = "asker"
@@ -659,10 +660,11 @@ def getFriendsAmount(userId):
     cursor = conn.cursor()
 
     cursor.execute('SELECT count(*) FROM ' + app.config['DB_TABLE_HAS_USERS'] +
-                   ' WHERE ' + app.config['DB_USERS_HAS_USERS_ASKER'] + ' = ' 
-                   + str(userId) + " OR " + app.config['DB_USERS_HAS_USERS_ASKED'] 
-                   + ' = ' 
-                   + str(userId) +  ";")
+                   ' WHERE ' + app.config['DB_USERS_HAS_USERS_ASKER'] + ' = '
+                   + str(userId) + " OR " +
+                   app.config['DB_USERS_HAS_USERS_ASKED']
+                   + ' = '
+                   + str(userId) + ";")
     result = cursor.fetchone()[0]
 
     cursor.close()
@@ -975,9 +977,11 @@ def searchFriends(page, search, usrId, usrEmail):
                     app.config['DB_USERS_HAS_USERS_ASKED'] +
                     " != " + str(usrId)
                     + ") OR (" + app.config['DB_TABLE_HAS_USERS']
-                    + "." + app.config['DB_USERS_HAS_USERS_ASKER'] + " is null AND "
+                    + "." +
+                    app.config['DB_USERS_HAS_USERS_ASKER'] + " is null AND "
                     + app.config['DB_TABLE_HAS_USERS']
-                    + "." + app.config['DB_USERS_HAS_USERS_ASKED'] + " is null)"
+                    + "." +
+                    app.config['DB_USERS_HAS_USERS_ASKED'] + " is null)"
                     + " THEN 0 ELSE 1 END) ) AS tempSum"
 
 
@@ -1357,6 +1361,38 @@ def deleteLiveRecord(userId):
         pass
     return success
 
+# request reset password
+
+
+def resetUserpasswort(firstname, lastname, email, userId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    baseUrl = app.config['BASE_URL']+"/resetPassword?email="+email+"&token="
+
+    token = generateVerifyToken(
+        firstname, lastname, email)
+
+    sql = ('UPDATE ' + app.config['DB_TABLE_USERS']
+           + ' SET ' + app.config['DB_USERS_RESETTOKEN']
+           + ' = %s ' + ' WHERE ' + app.config['DB_USERS_ID']
+           + ' = %s;')
+
+    try:
+        cursor.execute(sql, (token, userId,))
+        conn.commit()
+
+        sendResetMail(email, firstname, baseUrl + token)
+        pass
+    except Exception as identifier:
+        pass
+    finally:
+        cursor.close()
+        conn.close()
+        pass
+
+    return baseUrl
+
 
 ###########################
 ###    WEB API-Pages    ###
@@ -1491,7 +1527,8 @@ def friendsPage():
         if page == None:
             page = 1
         amount = getFriendsAmount(current_user.id)
-        friends = searchFriends(int(page), "", current_user.id, current_user.email)
+        friends = searchFriends(
+            int(page), "", current_user.id, current_user.email)
         alertType = request.args.get('alert')
         return render_template("friends.html", user=current_user, site="friends", friends=friends, amount=amount, alert=alertType)
     else:
@@ -1766,9 +1803,9 @@ def verifyEmail():
     email = request.args.get('email')
     token = request.args.get('token')
 
+    conn = mysql.connect()
+    cursor = conn.cursor()
     try:
-        conn = mysql.connect()
-        cursor = conn.cursor()
 
         cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_VERIFYTOKEN']+' = NULL WHERE '+app.config['DB_USERS_EMAIL']+' = "' +
                        email + '" AND '+app.config['DB_USERS_VERIFYTOKEN']+' = "' + token + '";')
@@ -1776,12 +1813,49 @@ def verifyEmail():
         conn.commit()
         cursor.close()
         conn.close()
-
         return render_template("verification.html", state=1)
-        pass
+    pass
     except Exception as identifier:
         return render_template("verification.html", state=0)
+    pass
+    finally:
+        cursor.close()
+        conn.close()
         pass
+
+
+# reset Password
+@app.route("/resetPassword", methods=['GET'])
+def resetPassword():
+    email = request.args.get('email')
+    token = request.args.get('token')
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    try:
+        sql = ('UPDATE '+app.config['DB_TABLE_USERS']
+               + ' SET '+app.config['DB_USERS_VERIFYTOKEN']
+               + ' = NULL WHERE '+app.config['DB_USERS_EMAIL']+' = %s AND '
+               + app.config['DB_USERS_VERIFYTOKEN']+' = %s;')
+
+        cursor.execute(sql, (email, token,))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return "Return erfolg"
+        pass
+    except Exception as identifier:
+        
+        return "Return ERROR"
+        pass
+    finally:
+        cursor.close()
+        conn.close()
+        pass
+
 
 ###########################
 ###  REST API-Handler   ###
