@@ -184,7 +184,7 @@ The Trackcat Team
     server.quit()
 
   # send Reset password Email
-def sendResetMail(reciever, firstName, resetLink):
+def sendResetMail(reciever, firstName, resetLink, deleteLink):
 
       # Create the base text message.
       msg = EmailMessage()
@@ -200,7 +200,7 @@ Hi """+firstName+""",
 you have requested a new password. Below you have the option to set a new password for your personal access. If you have not made this request yourself, please let us know:
 
 Reset password: """+resetLink+"""\
-Cancel reset: """+ "#HIER MUSS DER CANCEL LINK REIN#" +"""\
+Cancel reset: """+ deleteLink +"""\
 
 Thanks,
 The Trackcat Team
@@ -259,7 +259,7 @@ The Trackcat Team
                                                         <br>
                                                         <table align="center" style="border-style:solid;border-color:#407fff;border-radius:3.6px;padding:8.5px 30px;-webkit-border-radius:3.6px;-moz-border-radius:3.6px;">
                                                             <tr align="center">
-                                                                <td><a href='"""+ "#HIER MUSS DER CANCEL LINK REIN#" +"""' style="display:inline-block;text-decoration:none;color:#407fff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">That wasn't me</a></td>
+                                                                <td><a href='"""+ deleteLink +"""' style="display:inline-block;text-decoration:none;color:#407fff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">That wasn't me</a></td>
                                                             </tr>
                                                           </table>
                                                     </td>

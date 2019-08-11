@@ -27,7 +27,7 @@ from threading import Thread
 app = Flask(__name__)
 mysql = MySQL()
 
-app.secret_key = "TOLLERSECRETKEY"#os.urandom(12)
+app.secret_key = "TOLLERSECRETKEY"  # os.urandom(12)
 app.config['MYSQL_DATABASE_USER'] = 'remRoot'
 app.config['MYSQL_DATABASE_PASSWORD'] = '1Qayse45&'
 app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
@@ -35,9 +35,8 @@ app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
 app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
 
-# "http://192.186.178.52:5000"#
-app.config['BASE_URL'] = "http://safe-harbour.de:4242"
-
+#app.config['BASE_URL'] = "http://safe-harbour.de:4242"
+app.config['BASE_URL'] = "http://192.168.178.46:5000"
 # TABLE-NAMES
 app.config['DB_TABLE_USERS'] = "users"
 app.config['DB_TABLE_HAS_USERS'] = "users_has_users"
@@ -1369,10 +1368,10 @@ def resetUserPassword(email):
     cursor = conn.cursor()
 
     baseUrl = app.config['BASE_URL']+"/resetPassword?email="+email+"&token="
-
     try:
         sql = ('SELECT ' + app.config['DB_USERS_FIRSTNAME']
-               + ', ' + app.config['DB_USERS_ID'] + ' FROM ' + app.config['DB_TABLE_USERS'] + ' WHERE '
+               + ', ' + app.config['DB_USERS_ID'] + ' FROM ' +
+               app.config['DB_TABLE_USERS'] + ' WHERE '
                + app.config['DB_USERS_EMAIL'] + ' = %s;')
 
         cursor.execute(sql, (email,))
@@ -1392,8 +1391,12 @@ def resetUserPassword(email):
         cursor.execute(sql, (token, userId,))
         conn.commit()
 
+        deleteLink = app.config['BASE_URL'] + \
+            "/deleteResetRequest?email="+email+"&token=" + token
+
         # Start mail sending thread
-        thread = Thread(target = sendResetMail, args=(email, firstname, baseUrl + token,))
+        thread = Thread(target=sendResetMail, args=(
+            email, firstname, baseUrl + token, deleteLink, ))
         thread.start()
         return 1
         pass
@@ -1621,11 +1624,13 @@ def login():
 @app.route("/resetPassword", methods=['POST'])
 def resetPassword():
     if resetUserPassword(request.form['email']):
-        flash('Die Email zum Zürücksetzen des Passworts wurde an "' + request.form['email'] + '" gesendet. Bitte überprüfen Sie Ihr Email-Postfach.')
+        flash('Die Email zum Zürücksetzen des Passworts wurde an "' +
+              request.form['email'] + '" gesendet. Bitte überprüfen Sie Ihr Email-Postfach.')
         return redirect("/reset?alert=success")
     else:
-        flash('Die Email-Adresse "' + request.form['email'] + '" konnte keinem Konto zugeordnet werden!')
-        return redirect("/reset?alert=danger")  
+        flash('Die Email-Adresse "' +
+              request.form['email'] + '" konnte keinem Konto zugeordnet werden!')
+        return redirect("/reset?alert=danger")
 
 # Register a user
 @app.route("/registerUser", methods=['POST'])
@@ -1867,27 +1872,98 @@ def resetPasswordFunction():
     cursor = conn.cursor()
 
     try:
-        sql = ('UPDATE '+app.config['DB_TABLE_USERS']
-               + ' SET '+app.config['DB_USERS_VERIFYTOKEN']
-               + ' = NULL WHERE '+app.config['DB_USERS_EMAIL']+' = %s AND '
-               + app.config['DB_USERS_VERIFYTOKEN']+' = %s;')
+        sql = ('SELECT ' + app.config['DB_USERS_ID']
+               + ' FROM '
+               + app.config['DB_TABLE_USERS']
+               + ' WHERE '+app.config['DB_USERS_EMAIL']+' = %s AND '
+               + app.config['DB_USERS_RESETTOKEN']+' = %s;')
+
+        cursor.execute(sql, (email, token,))
+
+        result = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if result != None:
+            return render_template("newPassword.html", token=token, email=email)
+        else:
+            return redirect("/")
+
+        pass
+    except Exception as identifier:
+
+        cursor.close()
+        conn.close()
+        return redirect("/")
+        pass
+
+
+# reset set new Password
+@app.route("/newPassword", methods=['POST'])
+def newPassword():
+    token = request.form['resetToken']
+    newPasswordOne = request.form['password1']
+    newPasswordTwo = request.form['password2']
+    email = request.form['email']
+
+    if newPasswordOne == newPasswordTwo:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        try:
+            sql = ('UPDATE ' + app.config['DB_TABLE_USERS']
+                   + ' SET ' + app.config['DB_USERS_RESETTOKEN'] + ' = NULL, '
+                   + app.config['DB_USERS_PASSWORD'] + ' = %s WHERE '
+                   + app.config['DB_USERS_EMAIL'] + ' = %s AND '
+                   + app.config['DB_USERS_RESETTOKEN'] + ' = %s;')
+
+            cursor.execute(sql, (newPasswordOne, email, token,))
+
+            conn.commit()
+            flash('Das Passwort wurde erfolgreich geändert!')
+            pass
+        except Exception as identifier:
+            flash('Das Passwort konnte nicht gändert werden. Versuchen Sie es erneut.')
+            pass
+        finally:
+            cursor.close()
+            conn.close()
+            pass
+        return redirect("/")
+
+    else:
+        flash('Die Eingaben müssen identisch sein!')
+        return render_template("newPassword.html", token=token, email=email)
+
+
+@app.route("/deleteResetRequest", methods=['GET'])
+def deleteResetRequest():
+    token = request.args.get('token')
+    email = request.args.get('email')
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    try:
+        sql = ('UPDATE ' + app.config['DB_TABLE_USERS']
+               + ' SET ' + app.config['DB_USERS_RESETTOKEN'] + ' = NULL WHERE '
+               + app.config['DB_USERS_EMAIL'] + ' = %s AND '
+               + app.config['DB_USERS_RESETTOKEN'] + ' = %s;')
 
         cursor.execute(sql, (email, token,))
 
         conn.commit()
-        cursor.close()
-        conn.close()
-
-        return 1
+        flash('Passwort-reset erfolgreich abgebrochen!')
         pass
     except Exception as identifier:
-
-        return 0
+        flash('Passwort-reset konnte nicht abgebrochen werden!')
         pass
     finally:
         cursor.close()
         conn.close()
         pass
+    return redirect("/")
 
 
 ###########################
