@@ -1492,13 +1492,19 @@ def profilePage():
         if userId:
             try:
                 userData = showFriendProfile(userId, current_user.id)
+                totalRecords = getRecordsAmount(userId)
+                totalDistance = getUserTotalDistance(userId)
+                totalTime = getTotalRecordTime(userId)
                 pass
             except Exception as identifier:
                 userData = None
                 pass
-            return render_template("profile.html", site="other_profile", user=userData, back=backOpt)
+            return render_template("profile.html", site="other_profile", user=userData, recordsAmount=totalRecords, totalDistance=totalDistance, totalTime=totalTime, back=backOpt)
         else:
-            return render_template("profile.html", site="profile", user=current_user, back=backOpt)
+            totalRecords = getRecordsAmount(current_user.id)
+            totalDistance = getUserTotalDistance(current_user.id)
+            totalTime = getTotalRecordTime(current_user.id)
+            return render_template("profile.html", site="profile", user=current_user, recordsAmount=totalRecords, totalDistance=totalDistance, totalTime=totalTime, back=backOpt)
     else:
         return redirect("/login")
 
