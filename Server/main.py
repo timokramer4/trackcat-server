@@ -649,7 +649,7 @@ def getRecordsAmount(userId):
     cursor.close()
     conn.close()
 
-    return math.ceil(result/10)
+    return result
 
 
 # get total Record time
