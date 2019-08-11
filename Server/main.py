@@ -27,7 +27,7 @@ from threading import Thread
 app = Flask(__name__)
 mysql = MySQL()
 
-app.secret_key = os.urandom(12)
+app.secret_key = "TOLLERSECRETKEY"#os.urandom(12)
 app.config['MYSQL_DATABASE_USER'] = 'remRoot'
 app.config['MYSQL_DATABASE_PASSWORD'] = '1Qayse45&'
 app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
