@@ -8,7 +8,7 @@ SERVER = "smtp.strato.de"
 FROM = "no-reply@trackcat.de"
 
 
-def sendVmail(reciever, firstName, vLink):
+def sendVmail(reciever, firstName, verificationLink):
 
     # Create the base text message.
     msg = EmailMessage()
@@ -26,9 +26,8 @@ Hi """+firstName+""",
 to get full access to all features, you'll need to verify your email address to make sure it really belongs to you.
 If you have not registered in the Trackcat app or on the website, you can ignore this mail. The account will not be activated and will be deleted automatically after 14 days.
 
-"""+vLink+"""\
+"""+verificationLink+"""\
 
-Verify email address
 Thanks,
 The Trackcat Team
   """)
@@ -80,7 +79,7 @@ The Trackcat Team
                                                 <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;width:100%;min-width:360px">
                                                     <table align="center" style="background-color:#407fff;border-radius:3.6px;padding:10px 30px;-webkit-border-radius:3.6px;-moz-border-radius:3.6px;">
                                                       <tr align="center">
-                                                          <td><a href='"""+vLink+"""' style="display:inline-block;text-decoration:none;color:#ffffff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">Verify email address</a></td>
+                                                          <td><a href='"""+verificationLink+"""' style="display:inline-block;text-decoration:none;color:#ffffff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">Verify email address</a></td>
                                                       </tr>
                                                     </table>
                                                 </td>
@@ -110,8 +109,7 @@ The Trackcat Team
                                   <td style="max-width:600px;padding:50px 40px 40px 40px;width:100%;background-color:#fbfbfc;padding:20px 0px 0px 0px;background-color:#e9ebee;">
                                       <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
                                         <tr align="center">
-                                            <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;color:#8f949b;font-size:12px;padding:0 20px;">This from Trackcat auto generated message was send to <a style="color:#3b5998;text-decoration:none;">"""+reciever+"""\
-                                            </a>. There is no active e-mail subscription that could be terminated.
+                                            <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;color:#8f949b;font-size:12px;padding:0 20px;">This from Trackcat auto generated message was send to <a style="color:#3b5998;text-decoration:none;">"""+reciever+"""</a>. There is no active e-mail subscription that could be terminated.
                                         </tr>
                                         <tr align="center">
                                             <td style="width:100%;height:15px;"></td>
@@ -186,7 +184,7 @@ The Trackcat Team
     server.quit()
 
   # send Reset password Email
-def sendResetMail(reciever, firstName, vLink):
+def sendResetMail(reciever, firstName, resetLink):
 
       # Create the base text message.
       msg = EmailMessage()
@@ -197,18 +195,15 @@ def sendResetMail(reciever, firstName, vLink):
       msg['To'] = ["finnjoana56@gmail.com", "timokramer1@me.com", reciever]
   
       msg.set_content("""\
-  Please verify your email address
-  
-  Hi """+firstName+""",
-  
-  to get full access to all features, you'll need to verify your email address to make sure it really belongs to you.
-  If you have not registered in the Trackcat app or on the website, you can ignore this mail. The account will not be activated and will be deleted automatically after 14 days.
-  
-  """+vLink+"""\
-  
-  Verify email address
-  Thanks,
-  The Trackcat Team
+Hi """+firstName+""",
+
+you have requested a new password. Below you have the option to set a new password for your personal access. If you have not made this request yourself, please let us know:
+
+Reset password: """+resetLink+"""\
+Cancel reset: """+ "#HIER MUSS DER CANCEL LINK REIN#" +"""\
+
+Thanks,
+The Trackcat Team
     """)
   
       # Add the html version.  This converts the message into a multipart/alternative
@@ -217,118 +212,123 @@ def sendResetMail(reciever, firstName, vLink):
       asparagus_cid = make_msgid()
   
       string = """\
-    <html>
-      <head>
-          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <meta name="x-apple-disable-message-reformatting" />
-          <title>Trackcat verification</title>
-      </head>
-      <body style="padding:0;margin:0;">
-          <table align="center" style="background-color:#e9ebee;width:100%;max-width:100%;min-width:100%;" border="0" cellpadding="0" cellspacing="0" width="100%">
-            <tr align="center">
-                <td style="width:100%;height:32px"></td>
-            </tr>
-            <tr align="center">
-                <td align="center">
-                  <table border="0" cellpadding="0" cellspacing="0" style="background-color:#e9ebee;min-width:360px;max-width:600px;width:100%;" width="100%">
-                      <table align="center" style="max-width:600px;width:100%;" cellpadding="0" cellspacing="0" border="0">
-                        <tr align="center">
-                            <td style="max-width:600px;padding:2em 40px 0em;width:100%;background-color:white;border-radius:5px 5px 0 0 ;overflow:hidden;"><a href="http://trackcat.de" style="color:#3b5998;text-decoration:none;"><img src="cid:{asparagus_cid}" style="border:0;max-width:50%;" title="Trackcat Logo" /></a></td>
-                        </tr>
-                      </table>
-                      <table align="center" style="max-width:600px;width:100%;" cellpadding="0" cellspacing="0" border="0">
-                        <tr align="center">
-                            <td style="max-width:600px;padding:50px 40px 40px 40px;width:100%;background-color:#fbfbfc;background-color:#ffffff;background-image:linear-gradient(#ffffff,#edf2fa);border-radius:0 0 5px 5px;">
-                              <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
-                                  <tr align="center">
-                                    <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;text-align:center;color:#333333;font-size:27px;font-family:ArialMT, Arial, sans-serif;font-weight:light;line-height:36px;">Please verify your email address</td>
-                                  </tr>
-                                  <tr align="center">
-                                    <td style="width:100%;height:30px;"></td>
-                                  </tr>
-                              </table>
-                              <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
-                                  <tr align="center">
-                                    <td style="text-align:left;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;line-height:24px;">
-                                        <p>Hi """+firstName+""",</p><p>to get full access to all features, you'll need to verify your email address to make sure it really belongs to you.</p><p>If you have not registered in the Trackcat app or on the website, you can ignore this mail. The account will not be activated and will be deleted automatically after 14 days.</p>
-                                        <br>
-                                        <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
-                                                <tr align="center">
-                                                  <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;width:100%;min-width:360px">
-                                                      <table align="center" style="background-color:#407fff;border-radius:3.6px;padding:10px 30px;-webkit-border-radius:3.6px;-moz-border-radius:3.6px;">
-                                                        <tr align="center">
-                                                            <td><a href='"""+vLink+"""' style="display:inline-block;text-decoration:none;color:#ffffff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">Verify email address</a></td>
-                                                        </tr>
-                                                      </table>
-                                                  </td>
-                                                </tr>
-                                                <tr align="center">
-                                                  <td style="width:100%;height:0px;"></td>
-                                                </tr>
-                                            </table>
-                                        <p> Thanks,<br /> The Trackcat Team </p>
-                                    </td>
-                                  </tr>
-                                  <tr align="center">
-                                    <td style="width:100%;height:30px;"></td>
-                                  </tr>
-                              </table>
-                            </td>
-                        </tr>
-                        <tr align="center">
-                            <td style="width:100%;height:5px;"></td>
-                        </tr>
-                      </table>
-                      <table style="width:100%;" align="center">
-                        <tr align="center">
-                            <td>
-                              <table align="center" style="max-width:600px;width:100%;" cellpadding="0" cellspacing="0" border="0">
-                                  <tr align="center">
-                                    <td style="max-width:600px;padding:50px 40px 40px 40px;width:100%;background-color:#fbfbfc;padding:20px 0px 0px 0px;background-color:#e9ebee;">
-                                        <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
-                                          <tr align="center">
-                                              <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;color:#8f949b;font-size:12px;padding:0 20px;">This from Trackcat auto generated message was send to <a style="color:#3b5998;text-decoration:none;">"""+reciever+"""\
-                                              </a>. There is no active e-mail subscription that could be terminated.
-                                          </tr>
-                                          <tr align="center">
-                                              <td style="width:100%;height:15px;"></td>
-                                          </tr>
-                                        </table>
-                                        <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
-                                          <tr align="center">
-                                              <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;background-color:#979797;width:100%;height:1px;"></td>
-                                          </tr>
-                                          <tr align="center">
-                                              <td style="width:100%;height:15px;"></td>
-                                          </tr>
-                                        </table>
-                                        <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
-                                          <tr align="center">
-                                              <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;color:#8f949b;font-size:12px;padding:0 64px;">Copyright &copy; Trackcat <script>document.write(new Date().getFullYear())</script><br>All rights reserved.</td>
-                                          </tr>
-                                          <tr align="center">
-                                              <td style="width:100%;height:0;"></td>
-                                          </tr>
-                                        </table>
-                                    </td>
-                                  </tr>
-                                  <tr align="center">
-                                    <td style="width:100%;height:5px;"></td>
-                                  </tr>
-                              </table>
-                            </td>
-                        </tr>
-                      </table>
-                  </table>
-                </td>
-            </tr>
-            <tr align="center">
-                <td style="width:100%;height:32px"></td>
-            </tr>
-          </table>
-      </body>
-    </html>
+        <html>
+        <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <meta name="x-apple-disable-message-reformatting" />
+            <title>Trackcat verification</title>
+        </head>
+        <body style="padding:0;margin:0;">
+            <table align="center" style="background-color:#e9ebee;width:100%;max-width:100%;min-width:100%;" border="0" cellpadding="0" cellspacing="0" width="100%">
+              <tr align="center">
+                  <td style="width:100%;height:32px"></td>
+              </tr>
+              <tr align="center">
+                  <td align="center">
+                    <table border="0" cellpadding="0" cellspacing="0" style="background-color:#e9ebee;min-width:360px;max-width:600px;width:100%;" width="100%">
+                        <table align="center" style="max-width:600px;width:100%;" cellpadding="0" cellspacing="0" border="0">
+                          <tr align="center">
+                              <td style="max-width:600px;padding:2em 40px 0em;width:100%;background-color:white;border-radius:5px 5px 0 0 ;overflow:hidden;"><a href="http://trackcat.de" style="color:#3b5998;text-decoration:none;"><img src="cid:{asparagus_cid}" style="border:0;max-width:50%;" title="Trackcat Logo" /></a></td>
+                          </tr>
+                        </table>
+                        <table align="center" style="max-width:600px;width:100%;" cellpadding="0" cellspacing="0" border="0">
+                          <tr align="center">
+                              <td style="max-width:600px;padding:50px 40px 40px 40px;width:100%;background-color:#fbfbfc;background-color:#ffffff;background-image:linear-gradient(#ffffff,#edf2fa);border-radius:0 0 5px 5px;">
+                                <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
+                                    <tr align="center">
+                                      <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;text-align:center;color:#333333;font-size:27px;font-family:ArialMT, Arial, sans-serif;font-weight:light;line-height:36px;">Reset password request</td>
+                                    </tr>
+                                    <tr align="center">
+                                      <td style="width:100%;height:30px;"></td>
+                                    </tr>
+                                </table>
+                                <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
+                                    <tr align="center">
+                                      <td style="text-align:left;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;line-height:24px;">
+                                          <p>Hi """+firstName+""",</p><p>you have requested a new password. Below you have the option to set a new password for your personal access. If you have not made this request yourself, please let us know:</p>
+                                          <br>
+                                          <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
+                                                  <tr align="center">
+                                                    <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;width:100%;min-width:360px">
+                                                        <table align="center" style="background-color:#407fff;border-radius:3.6px;padding:10px 30px;-webkit-border-radius:3.6px;-moz-border-radius:3.6px;">
+                                                          <tr align="center">
+                                                              <td><a href='"""+resetLink+"""' style="display:inline-block;text-decoration:none;color:#ffffff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">Reset password</a></td>
+                                                          </tr>
+                                                        </table>
+                                                        <br>
+                                                        <table align="center" style="border-style:solid;border-color:#407fff;border-radius:3.6px;padding:8.5px 30px;-webkit-border-radius:3.6px;-moz-border-radius:3.6px;">
+                                                            <tr align="center">
+                                                                <td><a href='"""+ "#HIER MUSS DER CANCEL LINK REIN#" +"""' style="display:inline-block;text-decoration:none;color:#407fff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">That wasn't me</a></td>
+                                                            </tr>
+                                                          </table>
+                                                    </td>
+                                                  </tr>
+                                                  <tr align="center">
+                                                    <td style="width:100%;height:0px;"></td>
+                                                  </tr>
+                                              </table>
+                                          <p> Thanks,<br /> The Trackcat Team </p>
+                                      </td>
+                                    </tr>
+                                    <tr align="center">
+                                      <td style="width:100%;height:30px;"></td>
+                                    </tr>
+                                </table>
+                              </td>
+                          </tr>
+                          <tr align="center">
+                              <td style="width:100%;height:5px;"></td>
+                          </tr>
+                        </table>
+                        <table style="width:100%;" align="center">
+                          <tr align="center">
+                              <td>
+                                <table align="center" style="max-width:600px;width:100%;" cellpadding="0" cellspacing="0" border="0">
+                                    <tr align="center">
+                                      <td style="max-width:600px;padding:50px 40px 40px 40px;width:100%;background-color:#fbfbfc;padding:20px 0px 0px 0px;background-color:#e9ebee;">
+                                          <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
+                                            <tr align="center">
+                                                <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;color:#8f949b;font-size:12px;padding:0 20px;">This from Trackcat auto generated message was send to <a style="color:#3b5998;text-decoration:none;">"""+reciever+"""</a>. There is no active e-mail subscription that could be terminated.
+                                            </tr>
+                                            <tr align="center">
+                                                <td style="width:100%;height:15px;"></td>
+                                            </tr>
+                                          </table>
+                                          <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
+                                            <tr align="center">
+                                                <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;background-color:#979797;width:100%;height:1px;"></td>
+                                            </tr>
+                                            <tr align="center">
+                                                <td style="width:100%;height:15px;"></td>
+                                            </tr>
+                                          </table>
+                                          <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
+                                            <tr align="center">
+                                                <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;color:#8f949b;font-size:12px;padding:0 64px;">Copyright &copy; Trackcat <script>document.write(new Date().getFullYear())</script><br>All rights reserved.</td>
+                                            </tr>
+                                            <tr align="center">
+                                                <td style="width:100%;height:0;"></td>
+                                            </tr>
+                                          </table>
+                                      </td>
+                                    </tr>
+                                    <tr align="center">
+                                      <td style="width:100%;height:5px;"></td>
+                                    </tr>
+                                </table>
+                              </td>
+                          </tr>
+                        </table>
+                    </table>
+                  </td>
+              </tr>
+              <tr align="center">
+                  <td style="width:100%;height:32px"></td>
+              </tr>
+            </table>
+        </body>
+      </html>
     """
   
       msg.add_alternative(string.format(
