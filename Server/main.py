@@ -1491,7 +1491,7 @@ def profilePage():
 
         if userId:
             try:
-                userData = showFriendProfile(userId, current_user.id)
+                profileData = showFriendProfile(userId, current_user.id)
                 totalRecords = getRecordsAmount(userId)
                 totalDistance = getUserTotalDistance(userId)
                 totalTime = getTotalRecordTime(userId)
@@ -1499,12 +1499,12 @@ def profilePage():
             except Exception as identifier:
                 userData = None
                 pass
-            return render_template("profile.html", site="other_profile", user=userData, recordsAmount=totalRecords, totalDistance=totalDistance, totalTime=totalTime, back=backOpt)
+            return render_template("profile.html", site="other_profile", user=current_user, profileData=profileData, recordsAmount=totalRecords, totalDistance=totalDistance, totalTime=totalTime, back=backOpt)
         else:
             totalRecords = getRecordsAmount(current_user.id)
             totalDistance = getUserTotalDistance(current_user.id)
             totalTime = getTotalRecordTime(current_user.id)
-            return render_template("profile.html", site="profile", user=current_user, recordsAmount=totalRecords, totalDistance=totalDistance, totalTime=totalTime, back=backOpt)
+            return render_template("profile.html", site="profile", user=current_user, profileData=current_user, recordsAmount=totalRecords, totalDistance=totalDistance, totalTime=totalTime, back=backOpt)
     else:
         return redirect("/login")
 
@@ -1534,7 +1534,7 @@ def recordsPage():
         page = request.args.get('page')
         if page == None:
             page = 1
-        amount = getRecordsAmount(current_user.id)
+        amount = math.ceil(getRecordsAmount(current_user.id)/10)
         records = getRecordsByID(current_user.id, int(page))
         alertType = request.args.get('alert')
         return render_template("records.html", user=current_user, site="records", records=records, amount=amount, alert=alertType)

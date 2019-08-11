@@ -1,12 +1,12 @@
 {% extends "model/logged.html" %}
 
-{% block title %}- Profil: {{user.firstName}} {{user.lastName}}{% endblock %}
+{% block title %}- Profil: {{profileData.firstName}} {{profileData.lastName}}{% endblock %}
 
 {% block subcontent %}
-<meta id="email-data" data-email="{{user.email}}">
+<meta id="email-data" data-email="{{profileData.email}}">
 <div class="container-fluid px-xl-5">
     <section class="py-5">
-        {% if user %}
+        {% if profileData %}
         <div class="row justify-content-md-center">
             <div class="col-lg-8 mb-5">
                 <div class="card">
@@ -16,15 +16,15 @@
                     <div class="card-body">
                         <div class="row align-items-center flex-row">
                             <div class="col-lg-4 text-center mb-4">
-                                <img src="/image?userID={{user.id}}" width="150px" height="150px !important"
+                                <img src="/image?userID={{profileData.id}}" width="150px" height="150px !important"
                                     class="img-fluid rounded-circle shadow">
                             </div>
                             <div class="col-lg-8">
                                 <h2 class="mb-0 d-flex align-items-center">
-                                    <span>{{user.firstName}} {{user.lastName}}</span>
+                                    <span>{{profileData.firstName}} {{profileData.lastName}}</span>
                                 </h2>
                                 <small class="text-muted"
-                                    id="settings_account_email">{% if user.id == current_user.id or user.areFriends == 1 %}{{user.email}}{% else %}
+                                    id="settings_account_email">{% if profileData.id == current_user.id or profileData.areFriends == 1 %}{{profileData.email}}{% else %}
                                     <script>document.write(cryptEmail($('#email-data').data('email')))</script>
                                     {% endif %}</small>
                                 <hr>
@@ -54,7 +54,7 @@
                             </div>
                             <div class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 text-black">
                                 <h5>
-                                    {{(user.dateOfBirth*1000)|formatDate('%d.%m.%Y')}}
+                                    {{(profileData.dateOfBirth*1000)|formatDate('%d.%m.%Y')}}
                                 </h5>
                             </div>
                         </div>
@@ -67,12 +67,12 @@
                                 </div>
                             </div>
                             <div
-                                class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 {% if user.gender == 0%}text-violet{% else %}text-blue{% endif %}">
-                                <h5>{% if user.gender == 0%}weiblich <i class="fas fa-venus"></i>{% else %}männlich <i
+                                class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 {% if profileData.gender == 0%}text-violet{% else %}text-blue{% endif %}">
+                                <h5>{% if profileData.gender == 0%}weiblich <i class="fas fa-venus"></i>{% else %}männlich <i
                                         class="fas fa-mars"></i>{% endif %}</h5>
                             </div>
                         </div>
-                        {% if user.id == current_user.id%}
+                        {% if profileData.id == current_user.id%}
                         <div
                             class="d-flex justify-content-between align-items-start align-items-sm-center mb-4 flex-column flex-sm-row">
                             <div class="left d-flex align-items-center">
@@ -82,7 +82,7 @@
                                 </div>
                             </div>
                             <div class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 text-black">
-                                <h5><span id="usr_size">{% if user.size != None %}{{user.size}}
+                                <h5><span id="usr_size">{% if profileData.size != None %}{{profileData.size}}
                                         cm{% else %}NaN{% endif %}</span></h5>
                             </div>
                         </div>
@@ -95,7 +95,7 @@
                                 </div>
                             </div>
                             <div class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 text-black">
-                                <h5><span id="usr_weight">{% if user.weight != None %}{{user.weight}}
+                                <h5><span id="usr_weight">{% if profileData.weight != None %}{{profileData.weight}}
                                         kg{% else %}NaN{% endif %}</span></h5>
                             </div>
                         </div>
@@ -129,7 +129,7 @@
                             </div>
                             <div class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 text-black">
                                 <h5>
-                                    {{(user.dateOfRegistration*1000)|formatDate('%d.%m.%Y')}}
+                                    {{(profileData.dateOfRegistration*1000)|formatDate('%d.%m.%Y')}}
                                 </h5>
                             </div>
                         </div>
@@ -138,7 +138,7 @@
             </div>
         </div>
         <div class="row justify-content-center">
-            {% if user.id == current_user.id or user.areFriends == 1 %}
+            {% if profileData.id == current_user.id or profileData.areFriends == 1 %}
             <div class="row col-lg-8 mb-5 p-0">
                 <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
                     <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
@@ -180,12 +180,12 @@
             <div class="col-sm-12 col-xl-4 col-lg-6 mb-4">
                 <div class="text-center">
                     <p>Der Bereich ist <u>nur für Freunde</u> sichtbar.<br>Du bist noch nicht mit <a
-                            href="/profile?id={{user.id}}">{{user.firstName}}</a> befreundet!</p>
+                            href="/profile?id={{profileData.id}}">{{profileData.firstName}}</a> befreundet!</p>
 
                     <form action="/addFriend" method="POST">
                         <input id="profileName" name="profileName" type="text" style="display:none;"
-                            value="{{user.firstName}} {{user.lastName}}">
-                        <input id="profileId" name="profileId" type="text" style="display:none;" value="{{user.id}}">
+                            value="{{profileData.firstName}} {{profileData.lastName}}">
+                        <input id="profileId" name="profileId" type="text" style="display:none;" value="{{profileData.id}}">
                         <button type="submit" id="addFriend" class="btn btn-primary shadow px-5">Freundschaftsanfrage senden</button>
                     </form>
                     
