@@ -35,8 +35,8 @@ app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
 app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
 
-#app.config['BASE_URL'] = "http://safe-harbour.de:4242"
-app.config['BASE_URL'] = "http://192.168.178.46:5000"
+app.config['BASE_URL'] = "http://safe-harbour.de:4242"
+#app.config['BASE_URL'] = "http://192.168.178.46:5000"
 # TABLE-NAMES
 app.config['DB_TABLE_USERS'] = "users"
 app.config['DB_TABLE_HAS_USERS'] = "users_has_users"
