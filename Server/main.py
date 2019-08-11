@@ -651,6 +651,31 @@ def getRecordsAmount(userId):
 
     return math.ceil(result/10)
 
+
+# get total Record time
+def getTotalRecordTime(userId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    sql = ('SELECT ' + app.config['DB_RECORD_RIDETIME']
+           + ' FROM ' + app.config['DB_TABLE_RECORDS']
+           + ' WHERE ' + app.config['DB_RECORD_USERS_ID']
+           + ' = %s;')
+
+    cursor.execute(sql, (userId,))
+
+    result = cursor.fetchall()
+
+    rideTimeAmount = 0
+
+    for res in result:
+        rideTimeAmount += res[0]
+
+    cursor.close()
+    conn.close()
+
+    return rideTimeAmount
+
 # Get friends amount
 
 
@@ -1935,7 +1960,7 @@ def newPassword():
             cursor.close()
             conn.close()
             pass
-        return redirect("/"+ success)
+        return redirect("/" + success)
 
     else:
         flash('Die Eingaben müssen identisch sein!')
