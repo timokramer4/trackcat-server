@@ -1911,6 +1911,8 @@ def newPassword():
         conn = mysql.connect()
         cursor = conn.cursor()
 
+        success = ""
+
         try:
             sql = ('UPDATE ' + app.config['DB_TABLE_USERS']
                    + ' SET ' + app.config['DB_USERS_RESETTOKEN'] + ' = NULL, '
@@ -1922,15 +1924,18 @@ def newPassword():
 
             conn.commit()
             flash('Das Passwort wurde erfolgreich geändert!')
+            success = "?alert=success"
             pass
         except Exception as identifier:
             flash('Das Passwort konnte nicht gändert werden. Versuchen Sie es erneut.')
+            success = "?alert=danger"
+
             pass
         finally:
             cursor.close()
             conn.close()
             pass
-        return redirect("/")
+        return redirect("/"+ success)
 
     else:
         flash('Die Eingaben müssen identisch sein!')
