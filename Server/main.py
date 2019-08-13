@@ -2028,7 +2028,10 @@ def loginAPI():
     else:
         jsonObj['success'] = 2
 
-    return json.dumps(jsonObj)
+    response = make_response(json.dumps(jsonObj))
+    response.mimetype = "application/json"
+
+    return response
 
 # Create new user in database
 @app.route("/registerAPI", methods=['POST'])
@@ -2039,19 +2042,26 @@ def registerAPI():
     jsonObj['success'] = registerUserDB(
         jsonRequest['firstName'], jsonRequest['lastName'], jsonRequest['email'], jsonRequest['password'],  jsonRequest['dateOfBirth'],  jsonRequest['gender'])
 
-    return json.dumps(jsonObj)
+    response = make_response(json.dumps(jsonObj))
+    response.mimetype = "application/json"
+
+    return response
 
 # Get all userdata with image by id
 @app.route("/getUserByIdAPI", methods=['POST'])
 @requires_authorization
 def getUserByIdAPI():
-    return json.dumps(getUserWithImageFromDB(request.json['id']))
+    response = make_response(json.dumps(getUserWithImageFromDB(request.json['id'])))
+    response.mimetype = "application/json"
+    return response
 
 # Get all Records by userId and Page
 @app.route("/getRecordsByIdAPI", methods=['POST'])
 @requires_authorization
 def getRecordsByIdAPI():
-    return json.dumps(getRecordsByID(request.json['id'], int(request.json['page'])))
+    response = make_response(json.dumps(getRecordsByID(request.json['id'], int(request.json['page']))))
+    response.mimetype = "application/json"
+    return response
 
 # Edit record name
 @app.route("/editRecordAPI", methods=['POST'])
@@ -2064,7 +2074,10 @@ def editRecordAPI():
     else:
         jsonSuccess['success'] = 1
 
-    return json.dumps(jsonSuccess)
+    response = make_response(json.dumps(jsonSuccess))
+    response.mimetype = "application/json"
+
+    return response
 
 # Update user data in database
 @app.route("/updateUserAPI", methods=['POST'])
@@ -2161,7 +2174,10 @@ def updateUserAPI():
     else:
         jsonSuccess['success'] = 1
 
-    return json.dumps(jsonSuccess)
+    response = make_response(json.dumps(jsonSuccess))
+    response.mimetype = "application/json"
+
+    return response
 
 # Change user password
 @app.route("/changeUserPasswordAPI", methods=['POST'])
@@ -2172,7 +2188,10 @@ def changeUserPasswordAPI():
     jsonSuccess['success'] = changeUserPasswordDB(request.authorization.username, request.authorization.password,
                                                   request.json['newPw'], request.json['timeStamp'])
 
-    return json.dumps(jsonSuccess)
+    response = make_response(json.dumps(jsonSuccess))
+    response.mimetype = "application/json"
+
+    return response
 
 
 # Synchronize user data with app database
@@ -2204,7 +2223,10 @@ def synchronizeDataAPI():
         jsonAnswer['state'] = 1
         jsonAnswer['user'] = None
 
-    return json.dumps(jsonAnswer)
+    response = make_response(json.dumps(jsonAnswer))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/deleteUserAPI", methods=['POST'])
@@ -2213,7 +2235,10 @@ def deleteUserAPI():
     jsonSuccess = {}
     jsonSuccess['success'] = deleteUserById(request.json['id'])
 
-    return json.dumps(jsonSuccess)
+    response = make_response(json.dumps(jsonSuccess))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/uploadTrackAPI", methods=['POST'])
@@ -2269,7 +2294,10 @@ def uploadTrackAPI():
     cursor.close()
     conn.close()
 
-    return json.dumps(jsonSuccess)
+    response = make_response(json.dumps(jsonSuccess))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/synchronizeRecordsAPI", methods=['POST'])
@@ -2397,7 +2425,10 @@ def synchronizeRecordsAPI():
     cursor.close()
     conn.close()
 
-    return json.dumps(janswer)
+    response = make_response(json.dumps(janswer))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/deleteRecordAPI", methods=['POST'])
@@ -2426,7 +2457,11 @@ def deleteRecordAPI():
 
     cursor.close()
     conn.close()
-    return json.dumps(jsonAnswer)
+
+    response = make_response(json.dumps(jsonAnswer))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/searchFriendsAPI", methods=['POST'])
@@ -2441,7 +2476,10 @@ def searchFriendsAPI():
 
     jsonArr = searchFriends(page, search, None, auth.username)
 
-    return json.dumps(jsonArr)
+    response = make_response(json.dumps(jsonArr))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/searchMyFriendsAPI", methods=['POST'])
@@ -2457,7 +2495,10 @@ def searchMyFriendsAPI():
 
     jsonArr = searchFriends(page, search, usrid, auth.username)
 
-    return json.dumps(jsonArr)
+    response = make_response(json.dumps(jsonArr))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/requestFriendAPI", methods=['POST'])
@@ -2474,7 +2515,10 @@ def requestFriendAPI():
 
     janswer['success'] = requestFriend(friendId, usrid)
 
-    return json.dumps(janswer)
+    response = make_response(json.dumps(janswer))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/showFriendRequestsAPI", methods=['POST'])
@@ -2483,7 +2527,10 @@ def showFriendRequestsAPI():
     auth = request.authorization
     usrid = getUserId(auth.username)
 
-    return json.dumps(getFriendRequests(usrid))
+    response = make_response(json.dumps(getFriendRequests(usrid)))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/showMyFriendRequestsAPI", methods=['POST'])
@@ -2492,7 +2539,10 @@ def showMyFriendRequestsAPI():
     auth = request.authorization
     usrid = getUserId(auth.username)
 
-    return json.dumps(showMyFriendRequests(usrid))
+    response = make_response(json.dumps(showMyFriendRequests(usrid)))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/showStrangerProfileAPI", methods=['POST'])
@@ -2507,7 +2557,10 @@ def showStrangerProfileAPI():
 
     jres = showFriendProfile(strangerId, usrid)
 
-    return json.dumps(jres)
+    response = make_response(json.dumps(jres))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/showFriendProfileAPI", methods=['POST'])
@@ -2522,7 +2575,10 @@ def showFriendProfileAPI():
 
     friend = showFriendProfile(friendId, usrid)
 
-    return json.dumps(friend)
+    response = make_response(json.dumps(friend))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/deleteFriendAPI", methods=['POST'])
@@ -2538,7 +2594,10 @@ def deleteFriendAPI():
     janswer = {}
     janswer['success'] = deleteFriend(friendId, usrid)
 
-    return json.dumps(janswer)
+    response = make_response(json.dumps(janswer))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/requestLiveRecordAPI", methods=['POST'])
@@ -2578,7 +2637,10 @@ def requestLiveRecordAPI():
     cursor.close()
     conn.close()
 
-    return json.dumps(janswer)
+    response = make_response(json.dumps(janswer))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/updateLiveRecordAPI", methods=['POST'])
@@ -2641,7 +2703,10 @@ def updateLiveRecordAPI():
     cursor.close()
     conn.close()
 
-    return json.dumps(jsonSuccess)
+    response = make_response(json.dumps(jsonSuccess))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/getLiveRecordAPI", methods=['POST'])
@@ -2657,7 +2722,10 @@ def getLiveRecordAPI():
 
     janswer = getLiveRecord(friendId, userId, index)
 
-    return json.dumps(janswer)
+    response = make_response(json.dumps(janswer))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/abortLiveRecordAPI", methods=['POST'])
@@ -2669,7 +2737,10 @@ def abortLiveRecordAPI():
     janswer = {}
     janswer['success'] = deleteLiveRecord(userId)
 
-    return json.dumps(janswer)
+    response = make_response(json.dumps(janswer))
+    response.mimetype = "application/json"
+
+    return response
 
 
 @app.route("/getLiveFriendsAPI", methods=['POST'])
@@ -2680,7 +2751,10 @@ def getLiveFriendsAPI():
 
     jArr = getLiveFriends(userId)
 
-    return json.dumps(jArr)
+    response = make_response(json.dumps(jArr))
+    response.mimetype = "application/json"
+
+    return response
 
 
 ###########################
