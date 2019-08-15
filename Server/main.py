@@ -18,6 +18,7 @@ import io
 from passlib.hash import pbkdf2_sha256
 import random
 from threading import Thread
+import hashlib
 
 
 ###########################
@@ -200,7 +201,7 @@ def validateLogin(email, password):
     cursor.close()
     conn.close()
 
-    return result is not None and password == result[0]
+    return result is not None and pbkdf2_sha256.verify(password, result[0])
 
 # okay
 # Basic Authentificate
@@ -250,7 +251,22 @@ def registerUserDB(firstName, lastName, email, password, birthday, gender):
 
         token = generateVerifyToken(firstName, lastName, email)
 
-        cursor.execute('INSERT INTO '+app.config['DB_TABLE_USERS'] + ' ('+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_PASSWORD']+', ' + app.config['DB_USERS_DATEOFBIRTH']+', ' + app.config['DB_USERS_GENDER']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_TIMESTAMP']+', '+app.config['DB_USERS_VERIFYTOKEN']+') VALUES ("' + firstName + '", "' + lastName + '", "' + email + '", "' + password + '", "' + birthday + '", "' + gender + '", ' + str(int(time.time())) + ', ' + str(int(time.time())) + ', 0, 1, '+str(int(time.time())) + ', "' + token + '");')
+        sql = ('INSERT INTO '+app.config['DB_TABLE_USERS'] + ' ('
+               + app.config['DB_USERS_FIRSTNAME']+', '
+               + app.config['DB_USERS_LASTNAME']+', '
+               + app.config['DB_USERS_EMAIL']+', '
+               + app.config['DB_USERS_PASSWORD']+', '
+               + app.config['DB_USERS_DATEOFBIRTH']+', '
+               + app.config['DB_USERS_GENDER']+', '
+               + app.config['DB_USERS_DATEOFREGISTRATION']+', '
+               + app.config['DB_USERS_LASTLOGIN']+', '
+               + app.config['DB_USERS_DARKTHEME']+', '
+               + app.config['DB_USERS_HINTS']+', '
+               + app.config['DB_USERS_TIMESTAMP']+', '
+               + app.config['DB_USERS_VERIFYTOKEN']+') VALUES (%s,%s,%s,%s,%s,%s,%s,%s, 0, 1,%s,%s);')
+
+        cursor.execute(sql, (firstName, lastName, email, pbkdf2_sha256.hash(password), birthday, gender, str(
+            int(time.time())), str(int(time.time())), str(int(time.time())), token,))
 
         conn.commit()
 
@@ -263,12 +279,19 @@ def registerUserDB(firstName, lastName, email, password, birthday, gender):
         if(identifier.args[0] == 1062):
             if('eMail_UNIQUE' in identifier.args[1]):
                 success = 3
-        success = 1
+        else:
+            success = 1
     pass
     cursor.close()
     conn.close()
 
     return success
+
+# sha256 hash password
+def hash256Password(password):
+    hash_object = hashlib.sha256(str.encode(password))
+
+    return hash_object.hexdigest()
 
 # okay
 # Generate verify token
@@ -297,7 +320,7 @@ def generateVerifyToken(firstName, lastName, email):
 def getUserFromDB(id):
     conn = mysql.connect()
     cursor = conn.cursor()
-    params = app.config['DB_USERS_ID']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_PASSWORD']+', '+app.config['DB_USERS_DATEOFBIRTH']+', '+app.config['DB_USERS_GENDER']+', ' + \
+    params = app.config['DB_USERS_ID']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_DATEOFBIRTH']+', '+app.config['DB_USERS_GENDER']+', ' + \
         app.config['DB_USERS_WEIGHT']+', '+app.config['DB_USERS_SIZE']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS'] + \
         ', '+app.config['DB_USERS_DATEOFREGISTRATION']+', ' + \
         app.config['DB_USERS_LASTLOGIN']+', ' + \
@@ -311,19 +334,18 @@ def getUserFromDB(id):
     jsonUser['email'] = result[1]
     jsonUser['firstName'] = result[2]
     jsonUser['lastName'] = result[3]
-    jsonUser['password'] = result[4]
-    jsonUser['dateOfBirth'] = result[5]
-    if result[6] == None:
+    jsonUser['dateOfBirth'] = result[4]
+    if result[5] == None:
         jsonUser['gender'] = 2
     else:
-        jsonUser['gender'] = result[6]
-    jsonUser['weight'] = result[7]
-    jsonUser['size'] = result[8]
-    jsonUser['darkTheme'] = result[9]
-    jsonUser['hints'] = result[10]
-    jsonUser['dateOfRegistration'] = result[11]
-    jsonUser['lastLogin'] = result[12]
-    jsonUser['timeStamp'] = result[13]
+        jsonUser['gender'] = result[5]
+    jsonUser['weight'] = result[6]
+    jsonUser['size'] = result[7]
+    jsonUser['darkTheme'] = result[8]
+    jsonUser['hints'] = result[9]
+    jsonUser['dateOfRegistration'] = result[10]
+    jsonUser['lastLogin'] = result[11]
+    jsonUser['timeStamp'] = result[12]
 
     # not saved statistics total ridetime amout of records and total distance
     cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + ", " + app.config['DB_RECORD_RIDETIME'] +
@@ -498,19 +520,27 @@ def getUserId(email):
 # Change user password in database
 
 
-def changeUserPasswordDB(email, password, newPw, timeStamp):
+def changeUserPasswordDB(id, password, newPw, timeStamp):
     result = 0
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
         params = app.config['DB_USERS_PASSWORD']
-        cursor.execute('SELECT ' + params +
-                       ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
+
+        sql = ('SELECT ' + params +
+               ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = %s;')
+
+        cursor.execute(sql, (id,))
         result = cursor.fetchone()
 
-        if result[0] == password:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_PASSWORD']+' = "' +
-                           newPw + '", '+app.config['DB_USERS_TIMESTAMP']+' = ' + timeStamp + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
+        if pbkdf2_sha256.verify(password, result[0]):
+
+            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
+                   + app.config['DB_USERS_PASSWORD']+' = %s, '
+                   + app.config['DB_USERS_TIMESTAMP']+' = %s WHERE '
+                   + app.config['DB_USERS_ID']+' = %s;')
+
+            cursor.execute(sql, (pbkdf2_sha256.hash(newPw), timeStamp, id,))
             result = 0
         else:
             result = 1
@@ -1624,7 +1654,7 @@ def livePage():
 def login():
     # get user from db instantiate user
 
-    if validateLogin(request.form['email'], request.form['password']):
+    if validateLogin(request.form['email'], hash256Password(request.form['password'])):
         user = user_loader(request.form['email'])
 
         conn = mysql.connect()
@@ -1721,7 +1751,7 @@ def changePassword():
         pw2 = request.form['newPass2']
         if pw1 == pw2:
             success = changeUserPasswordDB(
-                current_user.id, request.form['currentPass'], request.form['newPass'], str(int(time.time())))
+                current_user.id, hash256Password(request.form['currentPass']), hash256Password(request.form['newPass']), str(int(time.time())))
 
             if success == 0:
                 flash('Passwort wurde erfolgreich geändert.')
@@ -1888,7 +1918,6 @@ def verifyEmail():
         pass
 
 
-
 # reset Password
 @app.route("/resetPassword", methods=['GET'])
 def resetPasswordFunction():
@@ -1947,7 +1976,9 @@ def newPassword():
                    + app.config['DB_USERS_EMAIL'] + ' = %s AND '
                    + app.config['DB_USERS_RESETTOKEN'] + ' = %s;')
 
-            cursor.execute(sql, (newPasswordOne, email, token,))
+            password = hash256Password(newPasswordOne)
+
+            cursor.execute(sql, (pbkdf2_sha256.hash(password), email, token,))
 
             conn.commit()
             flash('Das Passwort wurde erfolgreich geändert!')
@@ -2049,7 +2080,8 @@ def registerAPI():
 @app.route("/getUserByIdAPI", methods=['POST'])
 @requires_authorization
 def getUserByIdAPI():
-    response = make_response(json.dumps(getUserWithImageFromDB(request.json['id'])))
+    response = make_response(json.dumps(
+        getUserWithImageFromDB(request.json['id'])))
     response.mimetype = "application/json"
     return response
 
@@ -2057,7 +2089,8 @@ def getUserByIdAPI():
 @app.route("/getRecordsByIdAPI", methods=['POST'])
 @requires_authorization
 def getRecordsByIdAPI():
-    response = make_response(json.dumps(getRecordsByID(request.json['id'], int(request.json['page']))))
+    response = make_response(json.dumps(getRecordsByID(
+        request.json['id'], int(request.json['page']))))
     response.mimetype = "application/json"
     return response
 
@@ -2183,7 +2216,9 @@ def updateUserAPI():
 def changeUserPasswordAPI():
     jsonSuccess = {}
 
-    jsonSuccess['success'] = changeUserPasswordDB(request.authorization.username, request.authorization.password,
+    usrId = getUserId(request.authorization.username)
+
+    jsonSuccess['success'] = changeUserPasswordDB(usrId, request.authorization.password,
                                                   request.json['newPw'], request.json['timeStamp'])
 
     response = make_response(json.dumps(jsonSuccess))

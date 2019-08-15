@@ -181,7 +181,7 @@ def sendResetMail(reciever, firstName, resetLink, deleteLink):
 
       # Create the base text message.
       msg = EmailMessage()
-      msg['Subject'] = "TrackCat Email Verification"
+      msg['Subject'] = "TrackCat Reset Password"
       msg['From'] = FROM
   
       # TODO remove MAils on release
