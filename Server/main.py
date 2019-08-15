@@ -1667,7 +1667,7 @@ def resetPassword():
 def registerUser():
     # Add validation
     success = registerUserDB(
-        request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'], request.form['birthday'], request.form['genderRadio'])
+        request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'], int(datetime.strptime(request.form['birthday'], "%Y-%m-%d").timestamp()), request.form['genderRadio'])
 
     if success == 0:
         flash('Ihr Konto wurde erfolgreich erstellt. Bitte überprüfen Sie Ihr E-Mail Postfach und bestätigen Sie Ihre Registrierung, '
