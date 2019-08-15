@@ -248,11 +248,9 @@ def registerUserDB(firstName, lastName, email, password, birthday, gender):
 
         baseUrl = app.config['BASE_URL']+"/verifyEmail?email="+email+"&token="
 
-        token = generateVerifyToken(
-            firstName, lastName, email)
+        token = generateVerifyToken(firstName, lastName, email)
 
-        cursor.execute('INSERT INTO '+app.config['DB_TABLE_USERS'] + ' ('+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_PASSWORD']+', ' + app.config['DB_USERS_DATEOFBIRTH']+', ' + app.config['DB_USERS_GENDER']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_TIMESTAMP']+', '+app.config['DB_USERS_VERIFYTOKEN']+') VALUES ("' +
-                       firstName + '", "' + lastName + '", "' + email + '", "' + password + '", "' + birthday + '", "' + gender + '", ' + str(int(time.time())) + ', ' + str(int(time.time())) + ', 0, 1, '+str(int(time.time())) + ',"' + token + '");')
+        cursor.execute('INSERT INTO '+app.config['DB_TABLE_USERS'] + ' ('+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_PASSWORD']+', ' + app.config['DB_USERS_DATEOFBIRTH']+', ' + app.config['DB_USERS_GENDER']+', '+app.config['DB_USERS_DATEOFREGISTRATION']+', '+app.config['DB_USERS_LASTLOGIN']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS']+', '+app.config['DB_USERS_TIMESTAMP']+', '+app.config['DB_USERS_VERIFYTOKEN']+') VALUES ("' + firstName + '", "' + lastName + '", "' + email + '", "' + password + '", "' + birthday + '", "' + gender + '", ' + str(int(time.time())) + ', ' + str(int(time.time())) + ', 0, 1, '+str(int(time.time())) + ', "' + token + '");')
 
         conn.commit()
 
