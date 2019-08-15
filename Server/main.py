@@ -18,6 +18,7 @@ import io
 from passlib.hash import pbkdf2_sha256
 import random
 from threading import Thread
+import hashlib
 
 
 ###########################
@@ -279,12 +280,19 @@ def registerUserDB(firstName, lastName, email, password, birthday, gender):
         if(identifier.args[0] == 1062):
             if('eMail_UNIQUE' in identifier.args[1]):
                 success = 3
-        success = 1
+        else:
+            success = 1
     pass
     cursor.close()
     conn.close()
 
     return success
+
+# sha256 hash password
+def hash256Password(password):
+    hash_object = hashlib.sha256(str.encode(password))
+
+    return hash_object.hexdigest()
 
 # okay
 # Generate verify token
@@ -313,7 +321,7 @@ def generateVerifyToken(firstName, lastName, email):
 def getUserFromDB(id):
     conn = mysql.connect()
     cursor = conn.cursor()
-    params = app.config['DB_USERS_ID']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_PASSWORD']+', '+app.config['DB_USERS_DATEOFBIRTH']+', '+app.config['DB_USERS_GENDER']+', ' + \
+    params = app.config['DB_USERS_ID']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_DATEOFBIRTH']+', '+app.config['DB_USERS_GENDER']+', ' + \
         app.config['DB_USERS_WEIGHT']+', '+app.config['DB_USERS_SIZE']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS'] + \
         ', '+app.config['DB_USERS_DATEOFREGISTRATION']+', ' + \
         app.config['DB_USERS_LASTLOGIN']+', ' + \
@@ -327,19 +335,18 @@ def getUserFromDB(id):
     jsonUser['email'] = result[1]
     jsonUser['firstName'] = result[2]
     jsonUser['lastName'] = result[3]
-    jsonUser['password'] = result[4]
-    jsonUser['dateOfBirth'] = result[5]
-    if result[6] == None:
+    jsonUser['dateOfBirth'] = result[4]
+    if result[5] == None:
         jsonUser['gender'] = 2
     else:
-        jsonUser['gender'] = result[6]
-    jsonUser['weight'] = result[7]
-    jsonUser['size'] = result[8]
-    jsonUser['darkTheme'] = result[9]
-    jsonUser['hints'] = result[10]
-    jsonUser['dateOfRegistration'] = result[11]
-    jsonUser['lastLogin'] = result[12]
-    jsonUser['timeStamp'] = result[13]
+        jsonUser['gender'] = result[5]
+    jsonUser['weight'] = result[6]
+    jsonUser['size'] = result[7]
+    jsonUser['darkTheme'] = result[8]
+    jsonUser['hints'] = result[9]
+    jsonUser['dateOfRegistration'] = result[10]
+    jsonUser['lastLogin'] = result[11]
+    jsonUser['timeStamp'] = result[12]
 
     # not saved statistics total ridetime amout of records and total distance
     cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + ", " + app.config['DB_RECORD_RIDETIME'] +
@@ -1648,7 +1655,7 @@ def livePage():
 def login():
     # get user from db instantiate user
 
-    if validateLogin(request.form['email'], request.form['password']):
+    if validateLogin(request.form['email'], hash256Password(request.form['password'])):
         user = user_loader(request.form['email'])
 
         conn = mysql.connect()
@@ -1745,7 +1752,7 @@ def changePassword():
         pw2 = request.form['newPass2']
         if pw1 == pw2:
             success = changeUserPasswordDB(
-                current_user.id, request.form['currentPass'], request.form['newPass'], str(int(time.time())))
+                current_user.id, hash256Password(request.form['currentPass']), hash256Password(request.form['newPass']), str(int(time.time())))
 
             if success == 0:
                 flash('Passwort wurde erfolgreich geändert.')
@@ -1970,7 +1977,9 @@ def newPassword():
                    + app.config['DB_USERS_EMAIL'] + ' = %s AND '
                    + app.config['DB_USERS_RESETTOKEN'] + ' = %s;')
 
-            cursor.execute(sql, (newPasswordOne, email, token,))
+            password = hash256Password(newPasswordOne)
+
+            cursor.execute(sql, (pbkdf2_sha256.hash(password), email, token,))
 
             conn.commit()
             flash('Das Passwort wurde erfolgreich geändert!')
