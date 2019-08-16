@@ -3,21 +3,22 @@
 ###########################
 
 from flask import Flask, flash, request, render_template, redirect, jsonify, session, make_response, send_file
+from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
+from mailSend import sendVmail, sendResetMail
+from datetime import datetime, timedelta
+from passlib.hash import pbkdf2_sha256
 from flaskext.mysql import MySQL
+from threading import Thread
+from functools import wraps
+
 import simplejson
 import time
 import os
 import json
 import math
-from mailSend import sendVmail, sendResetMail
-from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
-from datetime import datetime, timedelta
-from functools import wraps
 import base64
 import io
-from passlib.hash import pbkdf2_sha256
 import random
-from threading import Thread
 import hashlib
 
 
@@ -28,7 +29,7 @@ import hashlib
 app = Flask(__name__)
 mysql = MySQL()
 
-app.secret_key = "TOLLERSECRETKEY"  # os.urandom(12)
+app.secret_key = "TOLLERSECRETKEY"  # TODO generate Secret key
 app.config['MYSQL_DATABASE_USER'] = 'remRoot'
 app.config['MYSQL_DATABASE_PASSWORD'] = '1Qayse45&'
 app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
@@ -38,6 +39,8 @@ mysql.init_app(app)
 
 app.config['BASE_URL'] = "http://safe-harbour.de:4242"
 #app.config['BASE_URL'] = "http://192.168.178.46:5000"
+
+
 # TABLE-NAMES
 app.config['DB_TABLE_USERS'] = "users"
 app.config['DB_TABLE_HAS_USERS'] = "users_has_users"
@@ -111,9 +114,8 @@ login_manager.init_app(app)
 ###       Models        ###
 ###########################
 
+
 # Logged user model
-
-
 class User(UserMixin):
 
     def __init__(self, id, email, firstName, lastName, gender, weight, size, dateOfBirth, dateOfRegistration, lastLogin):
@@ -138,24 +140,28 @@ class User(UserMixin):
 ###      Functions      ###
 ###########################
 
-# okay
+
 @app.template_filter('formatSeconds')
 def formatSeconds(value):
     return str(timedelta(seconds=value))
 
-# okay
+
 @app.template_filter('formatDate')
 def formatDate(value, format='%d.%m.%Y %H:%M:%S'):
     return datetime.fromtimestamp(value/1000).strftime(format)
 
-# okay
+
 # Validate login data
 @login_manager.user_loader
 def user_loaderlmgr(id):
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.execute('SELECT ' + app.config['DB_USERS_ID'] +
-                   ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = "' + id + '";')
+
+    sql = ('SELECT ' + app.config['DB_USERS_ID']
+           + ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '
+           + app.config['DB_USERS_ID']+' = %s;')
+
+    cursor.execute(sql, (id,))
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -166,16 +172,19 @@ def user_loaderlmgr(id):
                 jsonUser['gender'], jsonUser['weight'], jsonUser['size'], jsonUser['dateOfBirth'],
                 jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
-
-# okay
 
 
 def user_loader(email):
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.execute('SELECT ' + app.config['DB_USERS_ID'] +
-                   ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
+
+    sql = ('SELECT ' + app.config['DB_USERS_ID']
+           + ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '
+           + app.config['DB_USERS_EMAIL']+' = %s;')
+
+    cursor.execute(sql, (email,))
     result = cursor.fetchone()
+
     cursor.close()
     conn.close()
 
@@ -186,27 +195,27 @@ def user_loader(email):
                 jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
     return user
 
-# okay
+
 # Validate user login
-
-
 def validateLogin(email, password):
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.execute('SELECT ' + app.config['DB_USERS_PASSWORD'] +
-                   ' FROM '+app.config['DB_TABLE_USERS'] +
-                   ' WHERE ' + app.config['DB_USERS_EMAIL']
-                   + ' = "' + email + '";')
+
+    sql = ('SELECT ' + app.config['DB_USERS_PASSWORD']
+           + ' FROM '+app.config['DB_TABLE_USERS']
+           + ' WHERE ' + app.config['DB_USERS_EMAIL']
+           + ' = %s;')
+
+    cursor.execute(sql, (email,))
+
     result = cursor.fetchone()
     cursor.close()
     conn.close()
 
     return result is not None and pbkdf2_sha256.verify(password, result[0])
 
-# okay
+
 # Basic Authentificate
-
-
 def authenticate():
     message = {'message': "Authenticate."}
     resp = jsonify(message)
@@ -221,8 +230,6 @@ def authenticate():
 
     return make_response("", 401)
 
-# okay
-
 
 def requires_authorization(f):
     @wraps(f)
@@ -234,7 +241,6 @@ def requires_authorization(f):
     return decorated
 
 
-# okay
 # Create new user in database
 def registerUserDB(firstName, lastName, email, password, birthday, gender):
     # 0 = Valid
@@ -287,24 +293,16 @@ def registerUserDB(firstName, lastName, email, password, birthday, gender):
 
     return success
 
+
 # sha256 hash password
 def hash256Password(password):
     hash_object = hashlib.sha256(str.encode(password))
 
     return hash_object.hexdigest()
 
-# okay
+
 # Generate verify token
-
-
 def generateVerifyToken(firstName, lastName, email):
-
-    # if want to use custom iterations instead of default 29000
-    #  custom_pbkdf2 = pbkdf2_sha256.using(rounds=123456)
-    #   custom_pbkdf2.default_rounds
-    # 123456
-
-    #  custom_pbkdf2.hash("password")
 
     userData = [firstName, lastName, email]
 
@@ -313,20 +311,30 @@ def generateVerifyToken(firstName, lastName, email):
 
     return token
 
-# okay
+
 # Get selected user data as JSON
-
-
 def getUserFromDB(id):
     conn = mysql.connect()
     cursor = conn.cursor()
-    params = app.config['DB_USERS_ID']+', '+app.config['DB_USERS_EMAIL']+', '+app.config['DB_USERS_FIRSTNAME']+', '+app.config['DB_USERS_LASTNAME']+', '+app.config['DB_USERS_DATEOFBIRTH']+', '+app.config['DB_USERS_GENDER']+', ' + \
-        app.config['DB_USERS_WEIGHT']+', '+app.config['DB_USERS_SIZE']+', '+app.config['DB_USERS_DARKTHEME']+', '+app.config['DB_USERS_HINTS'] + \
-        ', '+app.config['DB_USERS_DATEOFREGISTRATION']+', ' + \
-        app.config['DB_USERS_LASTLOGIN']+', ' + \
-        app.config['DB_USERS_TIMESTAMP']+''
-    cursor.execute('SELECT ' + params +
-                   ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = ' + str(id) + ';')
+    params = (app.config['DB_USERS_ID']+', '
+              + app.config['DB_USERS_EMAIL']+', '
+              + app.config['DB_USERS_FIRSTNAME']+', '
+              + app.config['DB_USERS_LASTNAME']+', '
+              + app.config['DB_USERS_DATEOFBIRTH']+', '
+              + app.config['DB_USERS_GENDER']+', '
+              + app.config['DB_USERS_WEIGHT']+', '
+              + app.config['DB_USERS_SIZE']+', '
+              + app.config['DB_USERS_DARKTHEME']+', '
+              + app.config['DB_USERS_HINTS'] + ', '
+              + app.config['DB_USERS_DATEOFREGISTRATION']+', '
+              + app.config['DB_USERS_LASTLOGIN']+', '
+              + app.config['DB_USERS_TIMESTAMP'])
+
+    sql = ('SELECT ' + params
+           + ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '
+           + app.config['DB_USERS_ID']+' = %s;')
+
+    cursor.execute(sql, (id,))
     result = cursor.fetchone()
 
     jsonUser = {}
@@ -348,8 +356,13 @@ def getUserFromDB(id):
     jsonUser['timeStamp'] = result[12]
 
     # not saved statistics total ridetime amout of records and total distance
-    cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + ", " + app.config['DB_RECORD_RIDETIME'] +
-                   " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(result[0]) + ";")
+
+    sql = ("SELECT " + app.config['DB_RECORD_DISTANCE'] + ", "
+           + app.config['DB_RECORD_RIDETIME']
+           + " FROM " + app.config['DB_TABLE_RECORDS']
+           + " WHERE users_id = %s;")
+
+    cursor.execute(sql, (result[0],))
 
     result = cursor.fetchall()
 
@@ -368,17 +381,19 @@ def getUserFromDB(id):
 
     return jsonUser
 
-# okay
+
 # Get user profile image
-
-
 def getUserWithImageFromDB(id):
     jsonUser = getUserFromDB(id)
 
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.execute('SELECT '+app.config['DB_USERS_IMAGE']+' FROM '+app.config['DB_TABLE_USERS'] +
-                   ' WHERE '+app.config['DB_USERS_ID']+' = "' + str(id) + '";')
+
+    sql = ('SELECT '+app.config['DB_USERS_IMAGE']+' FROM '
+           + app.config['DB_TABLE_USERS']
+           + ' WHERE '+app.config['DB_USERS_ID']+' = %s;')
+
+    cursor.execute(sql, (id,))
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -387,16 +402,18 @@ def getUserWithImageFromDB(id):
 
     return jsonUser
 
-# okay
+
 # Update last login in database
-
-
 def updateUserLastLogin(email):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.execute('UPDATE ' + app.config['DB_TABLE_USERS']+' SET '+app.config['DB_USERS_LASTLOGIN']+' = ' +
-                       str(int(time.time())) + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + email + '";')
+
+        sql = ('UPDATE ' + app.config['DB_TABLE_USERS']+' SET '
+               + app.config['DB_USERS_LASTLOGIN']+' = %s WHERE '
+               + app.config['DB_USERS_EMAIL']+' = %s;')
+
+        cursor.execute(sql, (int(time.time()), email,))
 
         conn.commit()
 
@@ -406,10 +423,8 @@ def updateUserLastLogin(email):
         pass
     return
 
-# okay
+
 # Update user informations in database
-
-
 def updateUserDB(userId, dateOfBirth, firstName, lastName,
                  gender, size, weight, image, timestamp, hints, darkTheme):
     try:
@@ -417,71 +432,101 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
         cursor = conn.cursor()
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_DATEOFBIRTH']+' =  "' + dateOfBirth
-                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
+            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
+                   + app.config['DB_USERS_DATEOFBIRTH']+' =  %s WHERE '
+                   + app.config['DB_USERS_ID']+' = %s;')
+
+            cursor.execute(sql, (dateOfBirth, userId,))
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_FIRSTNAME']+' = "' + firstName
-                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
+            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
+                   + app.config['DB_USERS_FIRSTNAME']+' = %s WHERE '
+                   + app.config['DB_USERS_ID']+' = %s;')
+
+            cursor.execute(sql, (firstName, userId,))
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '+app.config['DB_USERS_LASTNAME']+' = "' + lastName
-                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
+            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '
+                   + app.config['DB_USERS_LASTNAME']+' = %s WHERE '
+                   + app.config['DB_USERS_ID']+' = %s;')
+
+            cursor.execute(sql, (lastName, userId,))
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_GENDER']+' = "' + gender
-                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
+            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
+                   + app.config['DB_USERS_GENDER']+' = %s WHERE '
+                   + app.config['DB_USERS_ID']+' = %s;')
+
+            cursor.execute(sql, (gender, userId,))
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_SIZE']+' = "' + size
-                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
+            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
+                   + app.config['DB_USERS_SIZE']+' = %s WHERE '
+                   + app.config['DB_USERS_ID']+' = %s;')
+
+            cursor.execute(sql, (size, userId,))
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '+app.config['DB_USERS_WEIGHT']+' = "' + weight
-                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
+            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '
+                   + app.config['DB_USERS_WEIGHT']+' = %s WHERE '
+                   + app.config['DB_USERS_ID']+' = %s;')
+
+            cursor.execute(sql, (weight, userId,))
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_IMAGE']+' = "' + image
-                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
+            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
+                   + app.config['DB_USERS_IMAGE']+' = %s WHERE '
+                   + app.config['DB_USERS_ID']+' = %s;')
+
+            cursor.execute(sql, (image, userId,))
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_HINTS']+' = "' + hints
-                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
+            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
+                   + app.config['DB_USERS_HINTS']+' = %s WHERE '
+                   + app.config['DB_USERS_ID']+' = %s;')
+
+            cursor.execute(sql, (hints, userId,))
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_DARKTHEME']+' = "' + darkTheme
-                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
+            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
+                   + app.config['DB_USERS_DARKTHEME']+' = %s WHERE '
+                   + app.config['DB_USERS_ID']+' = %s;')
+
+            cursor.execute(sql, (darkTheme, userId,))
             pass
         except Exception as identifier:
             pass
 
         try:
-            cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_TIMESTAMP']+' = "' + timestamp
-                           + '" WHERE '+app.config['DB_USERS_ID']+' = "' + str(userId) + '";')
+            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
+                   + app.config['DB_USERS_TIMESTAMP']+' = %s WHERE '
+                   + app.config['DB_USERS_ID']+' = %s;')
+
+            cursor.execute(sql, (timestamp, userId,))
             pass
         except Exception as identifier:
             pass
@@ -496,10 +541,8 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
         return False
         pass
 
-# okay
+
 # gets user id by email
-
-
 def getUserId(email):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -516,10 +559,8 @@ def getUserId(email):
     conn.close()
     return result[0]
 
-# okay
+
 # Change user password in database
-
-
 def changeUserPasswordDB(id, password, newPw, timeStamp):
     result = 0
     try:
@@ -527,8 +568,9 @@ def changeUserPasswordDB(id, password, newPw, timeStamp):
         cursor = conn.cursor()
         params = app.config['DB_USERS_PASSWORD']
 
-        sql = ('SELECT ' + params +
-               ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = %s;')
+        sql = ('SELECT ' + params
+               + ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '
+               + app.config['DB_USERS_ID']+' = %s;')
 
         cursor.execute(sql, (id,))
         result = cursor.fetchone()
@@ -555,17 +597,18 @@ def changeUserPasswordDB(id, password, newPw, timeStamp):
         result = 2
         return result
 
-# okay
+
 # Delete user account by id
-
-
 def deleteUserById(id):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
 
-        cursor.execute('DELETE FROM ' + app.config['DB_TABLE_USERS'] +
-                       ' WHERE '+app.config['DB_USERS_ID']+' = "' + str(id) + '";')
+        sql = ('DELETE FROM ' + app.config['DB_TABLE_USERS']
+               + ' WHERE '+app.config['DB_USERS_ID']
+               + ' = %s;')
+
+        cursor.execute(sql, (id,))
 
         conn.commit()
         cursor.close()
@@ -574,18 +617,20 @@ def deleteUserById(id):
     except Exception as identifier:
         return 1
 
-# okay
+
 # Update record informations in database
-
-
 def updateRecordDB(recordId, newName, timestamp):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
 
         try:
-            cursor.execute('UPDATE ' + app.config['DB_TABLE_RECORDS'] + ' SET ' + app.config['DB_RECORD_NAME'] + ' = "' + newName + '", ' +
-                           app.config['DB_RECORD_TIMESTAMP'] + ' = "' + str(timestamp) + '" WHERE ' + app.config['DB_RECORD_ID']+' = "' + str(recordId) + '";')
+            sql = ('UPDATE ' + app.config['DB_TABLE_RECORDS'] + ' SET '
+                   + app.config['DB_RECORD_NAME'] + ' = %s, '
+                   + app.config['DB_RECORD_TIMESTAMP'] + ' = %s WHERE '
+                   + app.config['DB_RECORD_ID']+' = %s;')
+
+            cursor.execute(sql, (newName, timestamp, recordId,))
             pass
         except Exception as identifier:
             pass
@@ -599,17 +644,17 @@ def updateRecordDB(recordId, newName, timestamp):
         return False
         pass
 
-# okay
+
 # Delete record by id
-
-
 def deleteRecordById(id):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
 
-        cursor.execute('DELETE FROM ' + app.config['DB_TABLE_RECORDS'] +
-                       ' WHERE '+app.config['DB_RECORD_ID']+' = "' + str(id) + '";')
+        sql = ('DELETE FROM ' + app.config['DB_TABLE_RECORDS']
+               + ' WHERE ' + app.config['DB_RECORD_ID']+' = %s;')
+
+        cursor.execute(sql, (id,))
 
         conn.commit()
         cursor.close()
@@ -618,10 +663,8 @@ def deleteRecordById(id):
     except Exception as identifier:
         return 1
 
-# okay
+
 # Get all record from user (all or by paging)
-
-
 def getRecordsByID(userId, page):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -634,12 +677,21 @@ def getRecordsByID(userId, page):
     else:
         limitter = ''
 
-    params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + \
-        ', ' + app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + \
-        ', ' + app.config['DB_RECORD_TIMESTAMP'] + \
-        ', ' + app.config['DB_RECORD_LOCATION_DATA']
-    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_RECORDS'] +
-                   ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId) + limitter + ";")
+    params = (app.config['DB_RECORD_ID'] + ', '
+              + app.config['DB_RECORD_NAME'] + ', '
+              + app.config['DB_RECORD_TIME'] + ', '
+              + app.config['DB_RECORD_DATE'] + ', '
+              + app.config['DB_RECORD_TYPE'] + ', '
+              + app.config['DB_RECORD_RIDETIME'] + ', '
+              + app.config['DB_RECORD_DISTANCE'] + ', '
+              + app.config['DB_RECORD_TIMESTAMP'] + ', '
+              + app.config['DB_RECORD_LOCATION_DATA'])
+
+    sql = ('SELECT ' + params + ' FROM '
+           + app.config['DB_TABLE_RECORDS'] + ' WHERE '
+           + app.config['DB_RECORD_USERS_ID'] + ' = %s' + limitter + ";")
+
+    cursor.execute(sql, (userId,))
     result = cursor.fetchall()
 
     cursor.close()
@@ -669,8 +721,11 @@ def getRecordsAmount(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT count(*) FROM ' + app.config['DB_TABLE_RECORDS'] +
-                   ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId) + ";")
+    sql = ('SELECT count(*) FROM '
+           + app.config['DB_TABLE_RECORDS'] + ' WHERE '
+           + app.config['DB_RECORD_USERS_ID'] + ' = % s')
+
+    cursor.execute(sql, (userId,))
     result = cursor.fetchone()[0]
 
     cursor.close()
@@ -703,19 +758,19 @@ def getTotalRecordTime(userId):
 
     return rideTimeAmount
 
+
 # Get friends amount
-
-
 def getFriendsAmount(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT count(*) FROM ' + app.config['DB_TABLE_HAS_USERS'] +
-                   ' WHERE ' + app.config['DB_USERS_HAS_USERS_ASKER'] + ' = '
-                   + str(userId) + " OR " +
-                   app.config['DB_USERS_HAS_USERS_ASKED']
-                   + ' = '
-                   + str(userId) + ";")
+    sql = ('SELECT count(*) FROM '
+           + app.config['DB_TABLE_HAS_USERS'] + ' WHERE '
+           + app.config['DB_USERS_HAS_USERS_ASKER'] + ' = %s OR '
+           + app.config['DB_USERS_HAS_USERS_ASKED']
+           + ' = %s;')
+
+    cursor.execute(sql, (userId, userId,))
     result = cursor.fetchone()[0]
 
     cursor.close()
@@ -723,19 +778,28 @@ def getFriendsAmount(userId):
 
     return math.ceil(result/10)
 
+
 # Get single record by id
-
-
 def getSingleRecordByID(recordId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    params = app.config['DB_RECORD_ID'] + ', ' + app.config['DB_RECORD_NAME'] + ', ' + app.config['DB_RECORD_TIME'] + ', ' + app.config['DB_RECORD_DATE'] + ', ' + app.config['DB_RECORD_TYPE'] + ', ' + \
-        app.config['DB_RECORD_RIDETIME'] + ', ' + app.config['DB_RECORD_DISTANCE'] + ', ' + app.config['DB_RECORD_TIMESTAMP'] + \
-        ', ' + app.config['DB_RECORD_USERS_ID'] + \
-        ', ' + app.config['DB_RECORD_LOCATION_DATA']
-    cursor.execute('SELECT ' + params + ' FROM ' +
-                   app.config['DB_TABLE_RECORDS'] + ' WHERE ' + app.config['DB_RECORD_ID'] + ' = ' + str(recordId) + ';')
+    params = (app.config['DB_RECORD_ID'] + ', '
+              + app.config['DB_RECORD_NAME'] + ', '
+              + app.config['DB_RECORD_TIME'] + ', '
+              + app.config['DB_RECORD_DATE'] + ', '
+              + app.config['DB_RECORD_TYPE'] + ', '
+              + app.config['DB_RECORD_RIDETIME'] + ', '
+              + app.config['DB_RECORD_DISTANCE'] + ', '
+              + app.config['DB_RECORD_TIMESTAMP'] + ', '
+              + app.config['DB_RECORD_USERS_ID'] + ', '
+              + app.config['DB_RECORD_LOCATION_DATA'])
+
+    sql = ('SELECT ' + params + ' FROM '
+           + app.config['DB_TABLE_RECORDS'] + ' WHERE '
+           + app.config['DB_RECORD_ID'] + ' = %s;')
+
+    cursor.execute(sql, (recordId,))
     result = cursor.fetchall()
 
     cursor.close()
@@ -758,51 +822,48 @@ def getSingleRecordByID(recordId):
 
     return jsonRecord
 
-# UNUSED maybe usefull in future
+
+# UNUSED maybe usefull in future TODO remove maybe
 # Get all locations from user (and from specific route)
+# def getLocationsByID(userId, recordId):
+#     conn = mysql.connect()
+#     cursor = conn.cursor()
+
+#     if recordId is not None:
+#         selection = app.config['DB_TABLE_RECORDS'] + '.' + \
+#             app.config['DB_RECORD_ID'] + ' = ' + str(recordId)
+#     else:
+#         selection = app.config['DB_TABLE_RECORDS'] + '.' + \
+#             app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId)
+
+#     params = app.config['DB_LOCATION_LATITUDE'] + ', ' + app.config['DB_LOCATION_LONGITUDE'] + ', ' + app.config['DB_LOCATION_ALTITUDE'] + ', ' + \
+#         app.config['DB_TABLE_LOCATIONS'] + '.' + app.config['DB_LOCATION_TIME'] + ', ' + \
+#         app.config['DB_LOCATION_SPEED'] + ', ' + \
+#         app.config['DB_LOCATION_RECORD_ID']
+#     cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_LOCATIONS'] + ' INNER JOIN ' + app.config['DB_TABLE_RECORDS'] + ' ON ' + app.config['DB_TABLE_LOCATIONS'] +
+#                    '.' + app.config['DB_LOCATION_RECORD_ID'] + ' = ' + app.config['DB_TABLE_RECORDS'] + '.' + app.config['DB_RECORD_ID'] + ' AND ' + selection + ';')
+#     result = cursor.fetchall()
+
+#     cursor.close()
+#     conn.close()
+
+#     jsonLocations = []
+
+#     for res in result:
+#         jsonLocation = {}
+#         jsonLocation['lat'] = res[0]
+#         jsonLocation['lng'] = res[1]
+#         jsonLocation['altitude'] = res[2]
+#         jsonLocation['time'] = res[3]
+#         jsonLocation['speed'] = res[4]
+#         jsonLocation['record_id'] = res[5]
+
+#         jsonLocations.append(jsonLocation)
+
+#     return jsonLocations
 
 
-def getLocationsByID(userId, recordId):
-    conn = mysql.connect()
-    cursor = conn.cursor()
-
-    if recordId is not None:
-        selection = app.config['DB_TABLE_RECORDS'] + '.' + \
-            app.config['DB_RECORD_ID'] + ' = ' + str(recordId)
-    else:
-        selection = app.config['DB_TABLE_RECORDS'] + '.' + \
-            app.config['DB_RECORD_USERS_ID'] + ' = ' + str(userId)
-
-    params = app.config['DB_LOCATION_LATITUDE'] + ', ' + app.config['DB_LOCATION_LONGITUDE'] + ', ' + app.config['DB_LOCATION_ALTITUDE'] + ', ' + \
-        app.config['DB_TABLE_LOCATIONS'] + '.' + app.config['DB_LOCATION_TIME'] + ', ' + \
-        app.config['DB_LOCATION_SPEED'] + ', ' + \
-        app.config['DB_LOCATION_RECORD_ID']
-    cursor.execute('SELECT ' + params + ' FROM ' + app.config['DB_TABLE_LOCATIONS'] + ' INNER JOIN ' + app.config['DB_TABLE_RECORDS'] + ' ON ' + app.config['DB_TABLE_LOCATIONS'] +
-                   '.' + app.config['DB_LOCATION_RECORD_ID'] + ' = ' + app.config['DB_TABLE_RECORDS'] + '.' + app.config['DB_RECORD_ID'] + ' AND ' + selection + ';')
-    result = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    jsonLocations = []
-
-    for res in result:
-        jsonLocation = {}
-        jsonLocation['lat'] = res[0]
-        jsonLocation['lng'] = res[1]
-        jsonLocation['altitude'] = res[2]
-        jsonLocation['time'] = res[3]
-        jsonLocation['speed'] = res[4]
-        jsonLocation['record_id'] = res[5]
-
-        jsonLocations.append(jsonLocation)
-
-    return jsonLocations
-
-# okay
 # deletes Friendship or Request
-
-
 def deleteFriend(friendId, usrId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -810,12 +871,11 @@ def deleteFriend(friendId, usrId):
     try:
         sql = ("DELETE FROM " + app.config['DB_TABLE_HAS_USERS']
                + " WHERE "
-               + app.config['DB_USERS_HAS_USERS_ASKER'] +
-               " IN (" + str(friendId) + ", " + str(usrId) + ")"
-               + " AND " + app.config['DB_USERS_HAS_USERS_ASKED'] + " IN ("
-               + str(friendId) + ", " + str(usrId) + ");")
+               + app.config['DB_USERS_HAS_USERS_ASKER']
+               + " IN (%s, %s)" + " AND "
+               + app.config['DB_USERS_HAS_USERS_ASKED'] + " IN (%s, %s);")
 
-        cursor.execute(sql)
+        cursor.execute(sql, (friendId, usrId, friendId, usrId,))
         conn.commit()
 
         success = 0
@@ -830,9 +890,8 @@ def deleteFriend(friendId, usrId):
 
     return success
 
+
 # TODO
-
-
 def showFriendProfile(friendID, userId):
     janswer = {}
 
@@ -842,13 +901,12 @@ def showFriendProfile(friendID, userId):
     try:
         sql = ("SELECT " + app.config['DB_USERS_HAS_USERS_DOF'] + " FROM "
                + app.config['DB_TABLE_HAS_USERS'] + " WHERE "
-               + app.config['DB_USERS_HAS_USERS_ASKER'] +
-               " IN (" + str(friendID) + ", " + str(userId) + ")"
-               + " AND " + app.config['DB_USERS_HAS_USERS_ASKED'] + " IN ("
-               + str(friendID) + ", " + str(userId) + ") AND "
+               + app.config['DB_USERS_HAS_USERS_ASKER']
+               + " IN (%s, %s)" + " AND "
+               + app.config['DB_USERS_HAS_USERS_ASKED'] + " IN (%s,%s) AND "
                + app.config['DB_USERS_HAS_USERS_AF'] + " = 1;")
 
-        cursor.execute(sql)
+        cursor.execute(sql, (friendID, userId, friendID, userId,))
 
         result = cursor.fetchone()
 
@@ -872,10 +930,9 @@ def showFriendProfile(friendID, userId):
                    + app.config['DB_USERS_EMAIL']
                    + " FROM "
                    + app.config['DB_TABLE_USERS'] + " WHERE "
-                   + app.config['DB_USERS_ID'] + " = "
-                   + str(friendID) + ";")
+                   + app.config['DB_USERS_ID'] + " = %s;")
 
-            cursor.execute(sql)
+            cursor.execute(sql, (friendID,))
 
             result = cursor.fetchone()
 
@@ -891,18 +948,19 @@ def showFriendProfile(friendID, userId):
     conn.close()
     return janswer
 
-# okay
+
 # calculates total distance by userID
-
-
 def getUserTotalDistance(usrId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
     totDist = 0
     try:
-        cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
-                       app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(usrId) + ";")
+        sql = ("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM "
+               + app.config['DB_TABLE_RECORDS']
+               + " WHERE users_id = %s;")
+
+        cursor.execute(sql, (usrId,))
 
         resultDist = cursor.fetchall()
 
@@ -917,10 +975,9 @@ def getUserTotalDistance(usrId):
 
     return totDist
 
+
 # TODO
-
-
-def getFriendById(firendId):
+def getFriendById(friendId):
     conn = mysql.connect()
     cursor = conn.cursor()
 
@@ -933,22 +990,20 @@ def getFriendById(firendId):
                + ", " + app.config['DB_USERS_IMAGE']
                + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
                + " FROM " + app.config['DB_TABLE_USERS']
-               + " WHERE " + app.config['DB_USERS_ID'] + " = "
-               + str(firendId) + ";"
-               )
+               + " WHERE " + app.config['DB_USERS_ID'] + " = %s;")
 
-        cursor.execute(sql)
+        cursor.execute(sql, (friendId,))
 
         res = cursor.fetchone()
 
         jres = {}
-        jres['id'] = firendId
+        jres['id'] = friendId
         jres['firstName'] = res[0]
         jres['lastName'] = res[1]
         jres['email'] = res[2]
         jres['image'] = res[3]
         jres['dateOfRegistration'] = res[4]
-        jres['totalDistance'] = getUserTotalDistance(firendId)
+        jres['totalDistance'] = getUserTotalDistance(friendId)
         pass
     except Exception as identifier:
         pass
@@ -957,12 +1012,10 @@ def getFriendById(firendId):
 
     return jres
 
-# okay
+
 # list friend by parameters
 # if usrId is Null serach for new Friends
 # else search in friends
-
-
 def searchFriends(page, search, usrId, usrEmail):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -1120,10 +1173,8 @@ def searchFriends(page, search, usrId, usrEmail):
 
     return jsonArr
 
-# okay
+
 # gets all friend requests the user got from other users
-
-
 def getFriendRequests(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -1135,10 +1186,10 @@ def getFriendRequests(userId):
                + " FROM " + app.config['DB_TABLE_HAS_USERS']
                + " WHERE "
                + app.config['DB_USERS_HAS_USERS_ASKED']
-               + " = " + str(userId) + " AND "
+               + " = %s AND "
                + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;")
 
-        cursor.execute(sql)
+        cursor.execute(sql, (userId,))
 
         result = cursor.fetchall()
 
@@ -1152,10 +1203,8 @@ def getFriendRequests(userId):
 
     return janswerArr
 
-# okay
+
 # gets all friend requests the user has sent
-
-
 def showMyFriendRequests(userId):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -1167,10 +1216,10 @@ def showMyFriendRequests(userId):
                + " FROM " + app.config['DB_TABLE_HAS_USERS']
                + " WHERE "
                + app.config['DB_USERS_HAS_USERS_ASKER']
-               + " = " + str(userId) + " AND "
+               + " = %s AND "
                + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;")
 
-        cursor.execute(sql)
+        cursor.execute(sql, (userId,))
 
         result = cursor.fetchall()
 
@@ -1185,7 +1234,6 @@ def showMyFriendRequests(userId):
     return janswerArr
 
 
-# okay
 # request friendship, if already arequest exists create friendship
 def requestFriend(friendId, userId):
     conn = mysql.connect()
@@ -1195,14 +1243,12 @@ def requestFriend(friendId, userId):
 
     try:
         sql = ("SELECT * FROM " + app.config['DB_TABLE_HAS_USERS']
-               + " WHERE " + app.config['DB_USERS_HAS_USERS_ASKER'] + " = "
-               + str(friendId) + " AND "
-               + app.config['DB_USERS_HAS_USERS_ASKED'] + " = "
-               + str(userId) + " AND "
-               + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;"
-               )
+               + " WHERE "
+               + app.config['DB_USERS_HAS_USERS_ASKER'] + " = %s AND "
+               + app.config['DB_USERS_HAS_USERS_ASKED'] + " = %s AND "
+               + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;")
 
-        cursor.execute(sql)
+        cursor.execute(sql, (friendId, userId,))
 
         result = cursor.fetchone()
 
@@ -1210,24 +1256,21 @@ def requestFriend(friendId, userId):
             sql = ("UPDATE " + app.config['DB_TABLE_HAS_USERS']
                    + " SET " + app.config['DB_USERS_HAS_USERS_AF'] + " = 1, "
                    + app.config['DB_USERS_HAS_USERS_DOF']
-                   + " = " + str(int(time.time()))
-                   + " WHERE " + app.config['DB_USERS_HAS_USERS_ASKER'] + " = "
-                   + str(friendId) + " AND "
-                   + app.config['DB_USERS_HAS_USERS_ASKED'] + " = "
-                   + str(userId) + " AND "
+                   + " = %s WHERE "
+                   + app.config['DB_USERS_HAS_USERS_ASKER'] + " = %s AND "
+                   + app.config['DB_USERS_HAS_USERS_ASKED'] + " = %s AND "
                    + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;"
                    )
             success = 2
+            cursor.execute(sql, (int(time.time()), friendId, userId,))
 
         else:
             sql = ("INSERT INTO " + app.config['DB_TABLE_HAS_USERS'] + " ("
                    + app.config['DB_USERS_HAS_USERS_ASKER'] + ", "
-                   + app.config['DB_USERS_HAS_USERS_ASKED'] + ") VALUES ("
-                   + str(userId) + ", " + str(friendId) + ");")
+                   + app.config['DB_USERS_HAS_USERS_ASKED'] + ") VALUES (%s, %s);")
 
             success = 0
-
-        cursor.execute(sql)
+            cursor.execute(sql, (userId, friendId,))
 
         conn.commit()
 
@@ -1260,9 +1303,9 @@ def getLiveRecord(friendId, userId, index):
                    + app.config['DB_LIVE_RECORD_DISTANCE']
                    + " FROM " + app.config['DB_TABLE_LIVE_RECORDS']
                    + " WHERE " + app.config['DB_LIVE_RECORD_USERS_ID_FK']
-                   + " = " + str(friendId) + ";")
+                   + " = %s;")
 
-            cursor.execute(sql)
+            cursor.execute(sql, (friendId,))
 
             result = cursor.fetchone()
 
@@ -1283,12 +1326,11 @@ def getLiveRecord(friendId, userId, index):
                    + app.config['DB_LOCATION_SPEED'] + ", "
                    + app.config['DB_LOCATION_ID']
                    + " FROM " + app.config['DB_TABLE_LOCATIONS']
-                   + " WHERE " +
-                   app.config['DB_LOCATION_ID'] + " > " + str(index)
-                   + " AND " + app.config['DB_LOCATION_RECORD_ID'] + " = "
-                   + str(result[0]))
+                   + " WHERE "
+                   + app.config['DB_LOCATION_ID'] + " > %s AND "
+                   + app.config['DB_LOCATION_RECORD_ID'] + " = %s;")
 
-            cursor.execute(sql)
+            cursor.execute(sql, (index, result[0],))
 
             locations = cursor.fetchall()
 
@@ -1352,17 +1394,16 @@ def getLiveFriends(userId):
                app.config['DB_LIVE_RECORD_USERS_ID_FK']
                + " WHERE " + app.config['DB_TABLE_USERS'] +
                "." + app.config['DB_USERS_ID']
-               + " != " + str(userId) + " AND " +
+               + " != %s AND " +
                app.config['DB_TABLE_HAS_USERS'] + "." +
                app.config['DB_USERS_HAS_USERS_AF']
                + " = 1 AND (" + app.config['DB_TABLE_HAS_USERS'] +
                "." + app.config['DB_USERS_HAS_USERS_ASKED']
-               + " = " + str(userId) + " OR "
+               + " = %s OR "
                + app.config['DB_TABLE_HAS_USERS'] + "." +
-               app.config['DB_USERS_HAS_USERS_ASKER'] + " = " + str(userId)
-               + ");"
+               app.config['DB_USERS_HAS_USERS_ASKER'] + " = %s);"
                )
-        cursor.execute(sql)
+        cursor.execute(sql, (userId, userId, userId,))
 
         result = cursor.fetchall()
 
@@ -1397,9 +1438,9 @@ def deleteLiveRecord(userId):
         cursor = conn.cursor()
         sql = ("DELETE FROM " + app.config['DB_TABLE_LIVE_RECORDS']
                + " WHERE " + app.config['DB_LIVE_RECORD_USERS_ID_FK']
-               + " = " + str(userId) + ";")
+               + " = %s;")
 
-        cursor.execute(sql)
+        cursor.execute(sql, (userId,))
         conn.commit()
         success = 0
         pass
@@ -1412,9 +1453,8 @@ def deleteLiveRecord(userId):
         pass
     return success
 
+
 # request reset password
-
-
 def resetUserPassword(email):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -1659,10 +1699,14 @@ def login():
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.execute('SELECT ' + app.config['DB_USERS_VERIFYTOKEN'] +
-                       ' FROM '+app.config['DB_TABLE_USERS'] +
-                       ' WHERE ' + app.config['DB_USERS_ID']
-                       + ' = ' + str(user.id) + ';')
+
+        sql = ('SELECT ' + app.config['DB_USERS_VERIFYTOKEN']
+               + ' FROM '+app.config['DB_TABLE_USERS']
+               + ' WHERE ' + app.config['DB_USERS_ID']
+               + ' = %s;')
+
+        cursor.execute(sql, (user.id,))
+
         result = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -1695,7 +1739,10 @@ def resetPassword():
 def registerUser():
     # Add validation
     success = registerUserDB(
-        request.form['firstName'], request.form['lastName'], request.form['email'], request.form['password1'], int(datetime.strptime(request.form['birthday'], "%Y-%m-%d").timestamp()), request.form['genderRadio'])
+        request.form['firstName'], request.form['lastName'],
+        request.form['email'], request.form['password1'],
+        int(datetime.strptime(request.form['birthday'],
+                              "%Y-%m-%d").timestamp()), request.form['genderRadio'])
 
     if success == 0:
         flash('Ihr Konto wurde erfolgreich erstellt. Bitte überprüfen Sie Ihr E-Mail Postfach und bestätigen Sie Ihre Registrierung, '
@@ -1715,7 +1762,9 @@ def updateUser():
         birthday = int(datetime.strptime(
             request.form['birthday'], "%Y-%m-%d").timestamp())
         success = updateUserDB(current_user.id, str(birthday),
-                               request.form['firstName'], request.form['lastName'], request.form['genderRadio'], request.form['size'], request.form['weight'], None, str(int(time.time())), None, None)
+                               request.form['firstName'], request.form['lastName'],
+                               request.form['genderRadio'], request.form['size'],
+                               request.form['weight'], None, str(int(time.time())), None, None)
 
         if success:
             flash('Profil erflogreich gespeichert.')
@@ -1751,7 +1800,8 @@ def changePassword():
         pw2 = request.form['newPass2']
         if pw1 == pw2:
             success = changeUserPasswordDB(
-                current_user.id, hash256Password(request.form['currentPass']), hash256Password(request.form['newPass']), str(int(time.time())))
+                current_user.id, hash256Password(request.form['currentPass']),
+                hash256Password(request.form['newPass']), str(int(time.time())))
 
             if success == 0:
                 flash('Passwort wurde erfolgreich geändert.')
@@ -1861,8 +1911,13 @@ def getImage():
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.execute(
-            'SELECT '+app.config['DB_USERS_IMAGE']+' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = "' + userID + '";')
+
+        sql = ('SELECT '+app.config['DB_USERS_IMAGE']+' FROM '
+               + app.config['DB_TABLE_USERS'] + ' WHERE '
+               + app.config['DB_USERS_ID']+' = %s;')
+
+        cursor.execute(sql, (userID,))
+
         result = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -1903,8 +1958,12 @@ def verifyEmail():
     cursor = conn.cursor()
     try:
 
-        cursor.execute('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '+app.config['DB_USERS_VERIFYTOKEN']+' = NULL WHERE '+app.config['DB_USERS_EMAIL']+' = "' +
-                       email + '" AND '+app.config['DB_USERS_VERIFYTOKEN']+' = "' + token + '";')
+        sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
+               + app.config['DB_USERS_VERIFYTOKEN']+' = NULL WHERE '
+               + app.config['DB_USERS_EMAIL']+' = %s AND '
+               + app.config['DB_USERS_VERIFYTOKEN']+' = %s;')
+
+        cursor.execute(sql, (email, token,))
 
         conn.commit()
         cursor.close()
@@ -2041,8 +2100,13 @@ def loginAPI():
 
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.execute('SELECT ' + app.config['DB_USERS_ID'] +
-                   ', ' + app.config['DB_USERS_VERIFYTOKEN'] + ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_EMAIL']+' = "' + request.authorization.username + '";')
+
+    sql = ('SELECT ' + app.config['DB_USERS_ID'] + ', '
+           + app.config['DB_USERS_VERIFYTOKEN'] + ' FROM '
+           + app.config['DB_TABLE_USERS'] + ' WHERE '
+           + app.config['DB_USERS_EMAIL']+' = %s;')
+
+    cursor.execute(sql, (request.authorization.username,))
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -2050,8 +2114,7 @@ def loginAPI():
     jsonObj = {}
     jsonObj['userData'] = getUserWithImageFromDB(result[0])
     jsonObj['records'] = getRecordsByID(result[0], 0)
-  #  jsonObj['locations'] = getLocationsByID(result[0], None)
-    # TODO: Übertragung aller Locations des Nutzers
+
     if result[1] == None:
         jsonObj['success'] = 0
     else:
@@ -2069,7 +2132,8 @@ def registerAPI():
 
     jsonObj = {}
     jsonObj['success'] = registerUserDB(
-        jsonRequest['firstName'], jsonRequest['lastName'], jsonRequest['email'], jsonRequest['password'],  jsonRequest['dateOfBirth'],  jsonRequest['gender'])
+        jsonRequest['firstName'], jsonRequest['lastName'], jsonRequest['email'],
+        jsonRequest['password'],  jsonRequest['dateOfBirth'],  jsonRequest['gender'])
 
     response = make_response(json.dumps(jsonObj))
     response.mimetype = "application/json"
@@ -2238,8 +2302,12 @@ def synchronizeDataAPI():
     usrid = getUserId(auth.username)
 
     params = "timeStamp"
-    cursor.execute('SELECT ' + params +
-                   ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '+app.config['DB_USERS_ID']+' = ' + str(usrid) + ';')
+
+    sql = ('SELECT ' + params + ' FROM '
+           + app.config['DB_TABLE_USERS'] + ' WHERE '
+           + app.config['DB_USERS_ID']+' = %s;')
+
+    cursor.execute(sql, (usrid,))
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -2297,20 +2365,20 @@ def uploadTrackAPI():
                + app.config['DB_RECORD_DISTANCE'] + ','
                + app.config['DB_RECORD_TIMESTAMP'] + ','
                + app.config['DB_RECORD_USERS_ID'] + ','
-               + app.config['DB_RECORD_LOCATION_DATA'] + ') VALUES ("'
-               + jsonTrack['name'] + '", '
-               + str(jsonTrack['time']) + ', '
-               + str(jsonTrack['date']) + ', '
-               + str(jsonTrack['type']) + ', '
-               + str(jsonTrack['rideTime']) + ', '
-               + str(jsonTrack['distance']) + ', '
-               + str(jsonTrack['timeStamp']) + ', '
-               + str(jsonTrack['userId']) + ', %s);')
+               + app.config['DB_RECORD_LOCATION_DATA'] + ') VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);')
 
         for loc in jsonTrack['locations']:
             del loc[app.config['ANDROID_LOCATION_RECORD_ID']]
 
-        cursor.execute(sql, (str(json.dumps(jsonTrack['locations'])),))
+        cursor.execute(sql, (jsonTrack['name'],
+                             jsonTrack['time'],
+                             jsonTrack['date'],
+                             jsonTrack['type'],
+                             jsonTrack['rideTime'],
+                             jsonTrack['distance'],
+                             jsonTrack['timeStamp'],
+                             jsonTrack['userId'],
+                             json.dumps(jsonTrack['locations']),))
 
         conn.commit()
 
@@ -2356,8 +2424,12 @@ def synchronizeRecordsAPI():
     for jsn in jarr:
         ids.append(int(jsn['id']))
 
-        cursor.execute('SELECT ' + app.config['DB_RECORD_TIMESTAMP'] + ", " + app.config['DB_RECORD_NAME'] +
-                       ' FROM '+app.config['DB_TABLE_RECORDS'] + ' WHERE '+app.config['DB_RECORD_ID']+' = "' + jsn['id'] + '";')
+        sql = ('SELECT ' + app.config['DB_RECORD_TIMESTAMP'] + ", "
+               + app.config['DB_RECORD_NAME'] + ' FROM '
+               + app.config['DB_TABLE_RECORDS'] + ' WHERE '
+               + app.config['DB_RECORD_ID']+' = %s;')
+
+        cursor.execute(sql, (jsn['id'],))
         result = cursor.fetchone()
 
         timeStamp = int(jsn['timeStamp'])
@@ -2367,10 +2439,6 @@ def synchronizeRecordsAPI():
             janswer['missingId'].append(jsn['id'])
         elif result[0] < timeStamp:
             # update Recordname
-            # sql = 'UPDATE ' + app.config['DB_TABLE_RECORDS'] + \
-            #     ' SET  ' + app.config['DB_RECORD_NAME'] + " = %s;"
-            # cursor.execute(sql, (jsn['name'],))
-            # conn.commit()
             updateRecordDB(jsn['id'], jsn['name'], jsn['timeStamp'])
         elif result[0] > timeStamp:
             jnewName = {}
@@ -2399,9 +2467,9 @@ def synchronizeRecordsAPI():
             sql = ("SELECT " + app.config['DB_RECORD_ID']
                    + " FROM " + app.config['DB_TABLE_RECORDS']
                    + " WHERE " + app.config['DB_RECORD_USERS_ID']
-                   + " = " + str(usrid) + ";")
+                   + " = %s;")
 
-            cursor.execute(sql)
+            cursor.execute(sql, (usrid,))
 
             result = cursor.fetchall()
 
@@ -2418,10 +2486,9 @@ def synchronizeRecordsAPI():
 
         sql = ("SELECT " + app.config['DB_RECORD_ID'] + " FROM "
                + app.config['DB_TABLE_RECORDS'] + " WHERE "
-               + app.config['DB_RECORD_USERS_ID'] + " = " + str(usrid) + ";"
-               )
+               + app.config['DB_RECORD_USERS_ID'] + " = %s;")
 
-        cursor.execute(sql)
+        cursor.execute(sql, (usrid,))
 
         idsInDB = []
 
@@ -2436,19 +2503,6 @@ def synchronizeRecordsAPI():
             jid = {}
             jid['id'] = delID
             janswer['deletedOnServer'].append(jid)
-
-        # if len(ids) > 0:
-        #     placeholders = ', '.join(['%s']*len(ids))  # "%s, %s, %s, ... %s"
-        #     sql = "SELECT " + app.config['DB_RECORD_ID'] + " FROM " + app.config['DB_TABLE_RECORDS'] + " WHERE " + app.config['DB_RECORD_ID'] + " IN ({});".format(placeholders)
-
-        #     cursor.execute(sql, tuple(ids))
-
-        #     result = cursor.fetchall()
-
-        #     for res in result:
-        #         jid={}
-        #         jid['id'] = res[0]
-        #         janswer['deletedOnServer'].append(jid)
 
         pass
     except Exception as identifier:
@@ -2476,11 +2530,12 @@ def deleteRecordAPI():
         auth = request.authorization
         usrid = getUserId(auth.username)
 
-        sql = 'DELETE FROM ' + app.config['DB_TABLE_RECORDS'] + " WHERE " + app.config['DB_RECORD_ID'] + \
-            " = " + jrequest['recordId'] + " AND " + \
-            app.config['DB_RECORD_USERS_ID'] + " = " + str(usrid) + ";"
+        sql = ('DELETE FROM ' + app.config['DB_TABLE_RECORDS'] + " WHERE "
+               + app.config['DB_RECORD_ID']
+               + " = " + jrequest['recordId'] + " AND "
+               + app.config['DB_RECORD_USERS_ID'] + " = %s;")
 
-        cursor.execute(sql)
+        cursor.execute(sql, (usrid,))
         conn.commit()
         jsonAnswer['success'] = 0
         pass
@@ -2647,18 +2702,17 @@ def requestLiveRecordAPI():
     try:
         sql = ("DELETE FROM " + app.config['DB_TABLE_LIVE_RECORDS']
                + " WHERE " + app.config['DB_LIVE_RECORD_USERS_ID_FK']
-               + " = " + str(usrid) + ";")
+               + " = %s;")
 
-        cursor.execute(sql)
+        cursor.execute(sql, (usrid,))
 
         conn.commit()
 
         sql = ("INSERT INTO " + app.config['DB_TABLE_LIVE_RECORDS']
-               + "(" + app.config['DB_LIVE_RECORD_USERS_ID_FK'] + ") VALUES ("
-               + str(usrid) + ");"
-               )
+               + "(" + app.config['DB_LIVE_RECORD_USERS_ID_FK']
+               + ") VALUES (%s);")
 
-        cursor.execute(sql)
+        cursor.execute(sql, (usrid,))
         conn.commit()
 
         janswer['liveRecordId'] = cursor.lastrowid
@@ -2697,14 +2751,13 @@ def updateLiveRecordAPI():
     try:
 
         sql = ("UPDATE " + app.config['DB_TABLE_LIVE_RECORDS'] + " SET "
-               + app.config['DB_LIVE_RECORD_TIME'] + " = " + str(time) + ", "
-               + app.config['DB_LIVE_RECORD_TYPE'] + " = " + str(typeLr) + ", "
-               + app.config['DB_LIVE_RECORD_RIDETIME'] +
-               " = " + str(rideTime) + ", "
-               + app.config['DB_LIVE_RECORD_DISTANCE'] + " = " + str(distance)
-               + " WHERE " + app.config['DB_LIVE_RECORD_ID'] + " = " + str(lrId) + ";")
+               + app.config['DB_LIVE_RECORD_TIME'] + " = %s, "
+               + app.config['DB_LIVE_RECORD_TYPE'] + " = %s, "
+               + app.config['DB_LIVE_RECORD_RIDETIME'] + " = %s, "
+               + app.config['DB_LIVE_RECORD_DISTANCE'] + " = %s WHERE "
+               + app.config['DB_LIVE_RECORD_ID'] + " = %s;")
 
-        cursor.execute(sql)
+        cursor.execute(sql, (time, typeLr, rideTime, distance, lrId,))
         conn.commit()
 
         for location in locations:
@@ -2714,15 +2767,11 @@ def updateLiveRecordAPI():
                    + app.config['DB_LOCATION_ALTITUDE'] + ", "
                    + app.config['DB_LOCATION_TIME'] + ", "
                    + app.config['DB_LOCATION_SPEED'] + ", "
-                   + app.config['DB_LOCATION_RECORD_ID'] + ") VALUES ("
-                   + str(location['latitude']) + ", "
-                   + str(location['longitude']) + ", "
-                   + str(location['altitude']) + ", "
-                   + str(location['time']) + ", "
-                   + str(location['speed']) + ", "
-                   + str(lrId) + ");")
+                   + app.config['DB_LOCATION_RECORD_ID'] + ") VALUES (%s, %s, %s, %s, %s, %s);")
 
-            cursor.execute(sql)
+            cursor.execute(sql, (location['latitude'], location['longitude'],
+                                 location['altitude'], location['time'],
+                                 location['speed'], lrId,))
 
         conn.commit()
         jsonSuccess['success'] = 0
