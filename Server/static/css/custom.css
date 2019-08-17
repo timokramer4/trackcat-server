@@ -4,15 +4,22 @@
 }
 
 a {
-    color: #4680ff; 
+    color: #4680ff;
 }
 
-a:hover, a:focus {
+a:hover,
+a:focus {
     color: #004ef9;
 }
 
 /* Define word breaks */
-h1, h2, h3, h4, h5, h6, p {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
     -ms-word-break: break-all;
     word-break: break-all;
 
@@ -31,7 +38,8 @@ h1, h2, h3, h4, h5, h6, p {
     border-color: #7952b3;
 }
 
-.btn-bd-primary:hover, .btn-bd-primary:active {
+.btn-bd-primary:hover,
+.btn-bd-primary:active {
     color: #fff;
     background-color: #7952b3;
     border-color: #7952b3;
@@ -43,7 +51,8 @@ h1, h2, h3, h4, h5, h6, p {
     border-color: #ffe484;
 }
 
-.btn-bd-download:hover, .btn-bd-download:active {
+.btn-bd-download:hover,
+.btn-bd-download:active {
     color: #2a2730;
     background-color: #ffe484;
     border-color: #ffe484;
@@ -71,7 +80,7 @@ h1, h2, h3, h4, h5, h6, p {
     border-radius: .25rem;
 }
 
-.bd-callout + .bd-callout {
+.bd-callout+.bd-callout {
     margin-top: -.25rem;
 }
 
@@ -97,4 +106,27 @@ h1, h2, h3, h4, h5, h6, p {
 
 .bd-callout-danger h4 {
     color: #d9534f !important;
+}
+
+/* Custom background colors */
+.bg-yellow {
+    background-color: rgb(255, 242, 126) !important;
+}
+
+a.bg-yellow:hover,
+a.bg-yellow:focus,
+button.bg-yellow:hover,
+button.bg-yellow:focus {
+    background-color: rgb(255, 245, 152) !important;
+}
+
+.bg-orange {
+    background-color: rgb(255, 98, 36) !important;
+}
+
+a.bg-orange:hover,
+a.bg-orange:focus,
+button.bg-orange:hover,
+button.bg-orange:focus {
+    background-color: rgb(255, 132, 83) !important;
 }

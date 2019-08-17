@@ -7,23 +7,12 @@
       <div class="col-xl-3 col-lg-6 mb-4 mb-xl-0">
         <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
           <div class="flex-grow-1 d-flex align-items-center">
-            <div class="dot mr-3 bg-violet"></div>
+            <div class="dot mr-3 bg-red"></div>
             <div class="text">
-              <h6 class="mb-0">Data consumed</h6><span class="text-gray">145,14 GB</span>
+              <h6 class="mb-0">Trainings</h6><span class="text-gray">{{recordsAmount}}</span>
             </div>
           </div>
-          <div class="icon text-white bg-violet"><i class="fas fa-server"></i></div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-lg-6 mb-4 mb-xl-0">
-        <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
-          <div class="flex-grow-1 d-flex align-items-center">
-            <div class="dot mr-3 bg-green"></div>
-            <div class="text">
-              <h6 class="mb-0">Open cases</h6><span class="text-gray">32</span>
-            </div>
-          </div>
-          <div class="icon text-white bg-green"><i class="far fa-clipboard"></i></div>
+          <div class="icon text-white bg-red"><i class="fas fa-dumbbell"></i></div>
         </div>
       </div>
       <div class="col-xl-3 col-lg-6 mb-4 mb-xl-0">
@@ -31,21 +20,35 @@
           <div class="flex-grow-1 d-flex align-items-center">
             <div class="dot mr-3 bg-blue"></div>
             <div class="text">
-              <h6 class="mb-0">Work orders</h6><span class="text-gray">400</span>
+              <h6 class="mb-0">Strecke</h6><span
+                class="text-gray">{% if totalDistance / 1000 >= 1 %}{{'%0.2f'| format(totalDistance/1000|float)}}
+                km{% else %}{{'%0.2f'| format(totalDistance|float)}}
+                m{% endif %}</span>
             </div>
           </div>
-          <div class="icon text-white bg-blue"><i class="fa fa-dolly-flatbed"></i></div>
+          <div class="icon text-white bg-blue"><i class="fas fa-fire"></i></div>
         </div>
       </div>
       <div class="col-xl-3 col-lg-6 mb-4 mb-xl-0">
         <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
           <div class="flex-grow-1 d-flex align-items-center">
-            <div class="dot mr-3 bg-red"></div>
+            <div class="dot mr-3 bg-green"></div>
             <div class="text">
-              <h6 class="mb-0">New invoices</h6><span class="text-gray">123</span>
+              <h6 class="mb-0">Trainingszeit</h6><span class="text-gray">{{(totalTime)|formatSeconds}}</span>
             </div>
           </div>
-          <div class="icon text-white bg-red"><i class="fas fa-receipt"></i></div>
+          <div class="icon text-white bg-green"><i class="fas fa-stopwatch"></i></div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-lg-6 mb-4 mb-xl-0">
+        <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
+          <div class="flex-grow-1 d-flex align-items-center">
+            <div class="dot mr-3 bg-orange"></div>
+            <div class="text">
+              <h6 class="mb-0">Pausezeit</h6><span class="text-gray">{{(totalPauseTime)|formatSeconds}}</span>
+            </div>
+          </div>
+          <div class="icon text-white bg-orange"><i class="fas fa-stopwatch"></i></div>
         </div>
       </div>
     </div>
@@ -301,7 +304,8 @@
           <div class="row">
             <div class="col-lg-3 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
               <strong class="h5 mb-0">24<sup class="smaller text-gray font-weight-normal">Apr</sup></strong><img
-                src="{{ url_for('static', filename='img/defaultUser.jpg')}}" alt="..." style="max-width: 3rem" class="rounded-circle mx-3 my-2 my-lg-0">
+                src="{{ url_for('static', filename='img/defaultUser.jpg')}}" alt="..." style="max-width: 3rem"
+                class="rounded-circle mx-3 my-2 my-lg-0">
               <h6 class="mb-0">Jason Maxwell</h6>
             </div>
             <div class="col-lg-9 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
@@ -316,7 +320,8 @@
           <div class="row">
             <div class="col-lg-3 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
               <strong class="h5 mb-0">24<sup class="smaller text-gray font-weight-normal">Nov</sup></strong><img
-                src="{{ url_for('static', filename='img/defaultUser.jpg')}}" alt="..." style="max-width: 3rem" class="rounded-circle mx-3 my-2 my-lg-0">
+                src="{{ url_for('static', filename='img/defaultUser.jpg')}}" alt="..." style="max-width: 3rem"
+                class="rounded-circle mx-3 my-2 my-lg-0">
               <h6 class="mb-0">Sam Andy</h6>
             </div>
             <div class="col-lg-9 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
@@ -330,7 +335,8 @@
           <div class="row">
             <div class="col-lg-3 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
               <strong class="h5 mb-0">17<sup class="smaller text-gray font-weight-normal">Aug</sup></strong><img
-                src="{{ url_for('static', filename='img/defaultUser.jpg')}}" alt="..." style="max-width: 3rem" class="rounded-circle mx-3 my-2 my-lg-0">
+                src="{{ url_for('static', filename='img/defaultUser.jpg')}}" alt="..." style="max-width: 3rem"
+                class="rounded-circle mx-3 my-2 my-lg-0">
               <h6 class="mb-0">Margret Peter</h6>
             </div>
             <div class="col-lg-9 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
@@ -344,7 +350,8 @@
           <div class="row">
             <div class="col-lg-3 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
               <strong class="h5 mb-0">15<sup class="smaller text-gray font-weight-normal">Sep</sup></strong><img
-                src="{{ url_for('static', filename='img/defaultUser.jpg')}}" alt="..." style="max-width: 3rem" class="rounded-circle mx-3 my-2 my-lg-0">
+                src="{{ url_for('static', filename='img/defaultUser.jpg')}}" alt="..." style="max-width: 3rem"
+                class="rounded-circle mx-3 my-2 my-lg-0">
               <h6 class="mb-0">Jason Doe</h6>
             </div>
             <div class="col-lg-9 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">

@@ -759,6 +759,32 @@ def getTotalRecordTime(userId):
     return rideTimeAmount
 
 
+# get total Record time
+def getTotalPauseTime(userId):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    sql = ('SELECT ' + app.config['DB_RECORD_TIME']
+           + ', ' + app.config['DB_RECORD_RIDETIME']
+           + ' FROM ' + app.config['DB_TABLE_RECORDS']
+           + ' WHERE ' + app.config['DB_RECORD_USERS_ID']
+           + ' = %s;')
+
+    cursor.execute(sql, (userId,))
+
+    result = cursor.fetchall()
+
+    rideTimeAmount = 0
+
+    for res in result:
+        rideTimeAmount += (res[0]-res[1])
+
+    cursor.close()
+    conn.close()
+
+    return rideTimeAmount
+
+
 # Get friends amount
 def getFriendsAmount(userId):
     conn = mysql.connect()
@@ -1545,7 +1571,11 @@ def resetPage():
 @app.route("/dashboard", methods=["GET"])
 def dashboardPage():
     if current_user.is_authenticated:
-        return render_template("dashboard.html", user=current_user, site="dashboard")
+        totalRecords = getRecordsAmount(current_user.id)
+        totalDistance = getUserTotalDistance(current_user.id)
+        totalTime = getTotalRecordTime(current_user.id)
+        totalPauseTime = getTotalPauseTime(current_user.id)
+        return render_template("dashboard.html", user=current_user, site="dashboard", recordsAmount=totalRecords, totalDistance=totalDistance, totalTime=totalTime, totalPauseTime=totalPauseTime)
     else:
         return redirect("/login")
 
