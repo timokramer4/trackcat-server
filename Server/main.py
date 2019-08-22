@@ -431,105 +431,85 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
         conn = mysql.connect()
         cursor = conn.cursor()
 
-        try:
+        if dateOfBirth is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_DATEOFBIRTH']+' =  %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (dateOfBirth, userId,))
-            pass
-        except Exception as identifier:
-            pass
+          
 
-        try:
+        if firstName is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_FIRSTNAME']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (firstName, userId,))
-            pass
-        except Exception as identifier:
-            pass
+         
 
-        try:
+        if lastName is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '
                    + app.config['DB_USERS_LASTNAME']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (lastName, userId,))
-            pass
-        except Exception as identifier:
-            pass
 
-        try:
+
+        if gender is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_GENDER']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (gender, userId,))
-            pass
-        except Exception as identifier:
-            pass
 
-        try:
+
+        if size is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_SIZE']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (size, userId,))
-            pass
-        except Exception as identifier:
-            pass
+         
 
-        try:
+        if weight is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '
                    + app.config['DB_USERS_WEIGHT']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (weight, userId,))
-            pass
-        except Exception as identifier:
-            pass
+        
 
-        try:
+        if image is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_IMAGE']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (image, userId,))
-            pass
-        except Exception as identifier:
-            pass
+            
 
-        try:
+        if hints is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_HINTS']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (hints, userId,))
-            pass
-        except Exception as identifier:
-            pass
+            
 
-        try:
+        if darkTheme is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_DARKTHEME']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (darkTheme, userId,))
-            pass
-        except Exception as identifier:
-            pass
+        
 
-        try:
+        if timestamp is not None:        
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_TIMESTAMP']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (timestamp, userId,))
-            pass
-        except Exception as identifier:
-            pass
+          
 
         conn.commit()
 
