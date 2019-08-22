@@ -55,7 +55,7 @@
                         class="col-lg-4 mb-3 mb-lg-0 d-flex align-items-center flex-column flex-lg-row text-center text-md-left">
                         <span class="mb-2 mr-lg-3 mb-lg-0">
                             <img src="/image?userID={{friend.id}}" alt="{{friend.firstName}} {{friend.lastName}}"
-                                style="max-width: 2.5rem; {% if friend.isLive %}border-style: solid!important; border: 3px; border-color: #2ECC71;{% endif %}" class="img-fluid rounded-circle shadow">
+                                style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow {% if friend.isLive %}img-rb-green{% endif %}">
                         </span>
                         <h6 class="mb-0">{{friend.firstName}} {{friend.lastName}}</h6>
                     </div>

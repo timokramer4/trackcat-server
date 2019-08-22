@@ -20,6 +20,7 @@ import base64
 import io
 import random
 import hashlib
+import calendar
 
 
 ###########################
@@ -148,8 +149,7 @@ def formatSeconds(value):
 
 @app.template_filter('formatDate')
 def formatDate(value, format='%d.%m.%Y %H:%M:%S'):
-    return datetime.fromtimestamp(value/1000).strftime(format)
-
+    return (datetime(1970, 1, 1) + timedelta(seconds=(value/1000))).strftime(format)
 
 # Validate login data
 @login_manager.user_loader
@@ -1769,10 +1769,12 @@ def resetPassword():
 def registerUser():
     # Add validation
     success = registerUserDB(
-        request.form['firstName'], request.form['lastName'],
-        request.form['email'], request.form['password1'],
-        int(datetime.strptime(request.form['birthday'],
-                              "%Y-%m-%d").timestamp()), request.form['genderRadio'])
+        request.form['firstName'],
+        request.form['lastName'],
+        request.form['email'],
+        request.form['password1'],
+        int(calendar.timegm(datetime.strptime(request.form['birthday'], '%Y-%m-%d').utctimetuple())),
+        request.form['genderRadio'])
 
     if success == 0:
         flash('Ihr Konto wurde erfolgreich erstellt. Bitte überprüfen Sie Ihr E-Mail Postfach und bestätigen Sie Ihre Registrierung, '
@@ -1789,9 +1791,8 @@ def registerUser():
 @app.route("/updateUser", methods=['POST'])
 def updateUser():
     if current_user.is_authenticated:
-        birthday = int(datetime.strptime(
-            request.form['birthday'], "%Y-%m-%d").timestamp())
-        success = updateUserDB(current_user.id, str(birthday),
+        birthday = int(calendar.timegm(datetime.strptime(request.form['birthday'], '%Y-%m-%d').utctimetuple()))
+        success = updateUserDB(current_user.id, birthday,
                                request.form['firstName'], request.form['lastName'],
                                request.form['genderRadio'], request.form['size'],
                                request.form['weight'], None, str(int(time.time())), None, None)

@@ -108,6 +108,33 @@ p {
     color: #d9534f !important;
 }
 
+/* Bordered image */
+.img-rb-red {
+    border-style: solid !important;
+    border: 3px;
+    border-color: #F0404C;
+}
+
+.img-rb-green {
+    border-style: solid !important;
+    border: 3px;
+    border-color: #2ECC71;
+}
+
+/* State icon */
+.usr-profile {
+    position: relative;
+    width: 150px;
+    height: 150px;
+}
+
+.state-icon {
+    position: absolute;
+    right: 0em;
+    bottom: 0em;
+    background-color: white;
+}
+
 /* Custom background colors */
 .bg-yellow {
     background-color: rgb(255, 242, 126) !important;
