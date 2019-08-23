@@ -16,8 +16,16 @@
                     <div class="card-body">
                         <div class="row align-items-center flex-row">
                             <div class="col-lg-4 text-center mb-4">
-                                <img src="/image?userID={{profileData.id}}" width="150px" height="150px !important"
-                                    class="img-fluid rounded-circle shadow">
+                                <div class="usr-profile">
+                                    <img src="/image?userID={{profileData.id}}" width="150px" height="150px !important"
+                                        class="img-fluid rounded-circle shadow">
+                                    <img src="{% if totalDistance/1000 >= 0 and totalDistance/1000 < 5 %}{{ url_for('static', filename='img/lvl/lvl1.png')}}
+                                    {% elif totalDistance/1000 >= 5 and totalDistance/1000 < 20 %}{{ url_for('static', filename='img/lvl/lvl2.png')}}
+                                    {% elif totalDistance/1000 >= 20 and totalDistance/1000 < 40 %}{{ url_for('static', filename='img/lvl/lvl3.png')}}
+                                    {% elif totalDistance/1000 >= 40 and totalDistance/1000 < 80 %}{{ url_for('static', filename='img/lvl/lvl4.png')}}
+                                    {% elif totalDistance/1000 >= 80 %}{{ url_for('static', filename='img/lvl/lvl5.png')}}
+                                    {% endif %}" width="45px" height="45px !important" class="img-fluid rounded-circle shadow img-rb-red state-icon">
+                                </div>
                             </div>
                             <div class="col-lg-8">
                                 <h2 class="mb-0 d-flex align-items-center">
@@ -129,7 +137,7 @@
                             </div>
                             <div class="right ml-lg-5 ml-sm-0 pl-3 pl-sm-0 text-black">
                                 <h5>
-                                    {{(profileData.dateOfRegistration*1000)|formatDate('%d.%m.%Y')}}
+                                    {{(profileData.dateOfRegistration*1000)|formatDate()}}
                                 </h5>
                             </div>
                         </div>
