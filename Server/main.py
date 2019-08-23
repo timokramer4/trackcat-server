@@ -824,7 +824,7 @@ def getSingleRecordByID(recordId):
     jsonRecord['timestamp'] = res[7]
     jsonRecord['owner'] = res[8]
 
-    jsonRecord['locations'] = json.loads(res[9])
+    jsonRecord['locations'] = res[9]
 
     return jsonRecord
 
@@ -919,7 +919,6 @@ def showFriendProfile(friendID, userId):
         if result != None:
             janswer = getUserWithImageFromDB(friendID)
 
-            del janswer['password']
             del janswer['weight']
             del janswer['size']
             del janswer['hints']
