@@ -104,7 +104,6 @@ app.config['DB_LOCATION_TIME'] = "time"
 app.config['DB_LOCATION_SPEED'] = "speed"
 app.config['DB_LOCATION_RECORD_ID'] = "record_id"
 
-
 # Android
 app.config['ANDROID_LOCATION_RECORD_ID'] = "recordId"
 
@@ -141,12 +140,19 @@ class User(UserMixin):
 ###      Functions      ###
 ###########################
 
+# Clear cache after request
+@app.after_request
+def add_header(response):
+    response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
+    response.headers['Cache-Control'] = 'public, max-age=0'
+    return response
 
+# Format time
 @app.template_filter('formatSeconds')
 def formatSeconds(value):
     return str(timedelta(seconds=value))
 
-
+# Format date
 @app.template_filter('formatDate')
 def formatDate(value, format='%d.%m.%Y %H:%M:%S'):
     return (datetime(1970, 1, 1) + timedelta(seconds=(value/1000))).strftime(format)
@@ -437,7 +443,6 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (dateOfBirth, userId,))
-          
 
         if firstName is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
@@ -445,7 +450,6 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (firstName, userId,))
-         
 
         if lastName is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '
@@ -454,7 +458,6 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
 
             cursor.execute(sql, (lastName, userId,))
 
-
         if gender is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_GENDER']+' = %s WHERE '
@@ -462,14 +465,12 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
 
             cursor.execute(sql, (gender, userId,))
 
-
         if size is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_SIZE']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (size, userId,))
-         
 
         if weight is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '
@@ -477,7 +478,6 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (weight, userId,))
-        
 
         if image is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
@@ -485,7 +485,6 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (image, userId,))
-            
 
         if hints is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
@@ -493,7 +492,6 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (hints, userId,))
-            
 
         if darkTheme is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
@@ -501,15 +499,13 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (darkTheme, userId,))
-        
 
-        if timestamp is not None:        
+        if timestamp is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_TIMESTAMP']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
 
             cursor.execute(sql, (timestamp, userId,))
-          
 
         conn.commit()
 
@@ -1752,7 +1748,8 @@ def registerUser():
         request.form['lastName'],
         request.form['email'],
         request.form['password1'],
-        int(calendar.timegm(datetime.strptime(request.form['birthday'], '%Y-%m-%d').utctimetuple())),
+        int(calendar.timegm(datetime.strptime(
+            request.form['birthday'], '%Y-%m-%d').utctimetuple())),
         request.form['genderRadio'])
 
     if success == 0:
@@ -1770,7 +1767,8 @@ def registerUser():
 @app.route("/updateUser", methods=['POST'])
 def updateUser():
     if current_user.is_authenticated:
-        birthday = int(calendar.timegm(datetime.strptime(request.form['birthday'], '%Y-%m-%d').utctimetuple()))
+        birthday = int(calendar.timegm(datetime.strptime(
+            request.form['birthday'], '%Y-%m-%d').utctimetuple()))
         success = updateUserDB(current_user.id, birthday,
                                request.form['firstName'], request.form['lastName'],
                                request.form['genderRadio'], request.form['size'],
