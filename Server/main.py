@@ -1792,7 +1792,7 @@ def changeProfileImg():
     if current_user.is_authenticated:
         image = request.form["base64Img"]
         success = updateUserDB(current_user.id, None, None,
-                               None, None, None, None, None, image, None, None)
+                               None, None, None, None, image, None, None, None)
 
         if success:
             flash('Profilbild erfolgreich aktualisiert.')
