@@ -157,3 +157,20 @@ button.bg-orange:hover,
 button.bg-orange:focus {
     background-color: rgb(255, 132, 83) !important;
 }
+
+/* Timout badge */
+.timeout {
+    margin: 0em;
+    padding: 0.5em;
+    width: 75px;
+    color: white;
+    border-radius: 7em;
+    background-color: #F0404C;
+    text-align: center;
+    display: inline-block;
+    cursor: pointer;
+}
+
+#timeout-time {
+    margin: 0em;
+}

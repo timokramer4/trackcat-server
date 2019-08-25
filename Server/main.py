@@ -109,6 +109,7 @@ app.config['ANDROID_LOCATION_RECORD_ID'] = "recordId"
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.login_view = "register"
 
 ###########################
 ###       Models        ###
@@ -139,6 +140,12 @@ class User(UserMixin):
 ###########################
 ###      Functions      ###
 ###########################
+
+# Refresh session timeout every reload
+@app.before_request
+def before_request():
+    session.permanent = True
+    app.permanent_session_lifetime = timedelta(minutes=5)
 
 # Clear cache after request
 @app.after_request
