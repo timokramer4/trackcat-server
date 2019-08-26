@@ -157,7 +157,7 @@
     });
 
     /* Create a red polyline from an array of LatLng points */
-    var locations = JSON.parse('{{recordData.locations|tojson|safe}}');
+    var locations = JSON.parse('{{recordData.locations|safe}}');
     var latlngs = [];
     var altPos = 0, altNeg = 0, maxSpeed = 0, avgSpeed = 0;
 
