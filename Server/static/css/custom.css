@@ -1,4 +1,5 @@
 /* Custom link */
+
 .hint {
     color: #f11313 !important;
 }
@@ -12,7 +13,9 @@ a:focus {
     color: #004ef9;
 }
 
+
 /* Define word breaks */
+
 h1,
 h2,
 h3,
@@ -22,16 +25,16 @@ h6,
 p {
     -ms-word-break: break-all;
     word-break: break-all;
-
     /* Non standard for webkit */
     word-break: break-word;
-
     -webkit-hyphens: auto;
     -moz-hyphens: auto;
     hyphens: auto;
 }
 
+
 /* Badges */
+
 .btn-bd-primary {
     font-weight: 500;
     color: #7952b3;
@@ -108,7 +111,9 @@ p {
     color: #d9534f !important;
 }
 
+
 /* Bordered image */
+
 .img-rb-red {
     border-style: solid !important;
     border: 3px;
@@ -121,7 +126,9 @@ p {
     border-color: #2ECC71;
 }
 
+
 /* State icon */
+
 .usr-profile {
     position: relative;
     width: 150px;
@@ -135,7 +142,9 @@ p {
     background-color: white;
 }
 
+
 /* Custom background colors */
+
 .bg-yellow {
     background-color: rgb(255, 242, 126) !important;
 }
@@ -158,7 +167,9 @@ button.bg-orange:focus {
     background-color: rgb(255, 132, 83) !important;
 }
 
+
 /* Timout badge */
+
 .timeout {
     margin: 0em;
     padding: 0.5em;
@@ -172,5 +183,24 @@ button.bg-orange:focus {
 }
 
 #timeout-time {
-    margin: 0em;
+    margin-left: 0.2em;
+}
+
+.spinner {
+    -webkit-transition-duration: 0.8s;
+    -moz-transition-duration: 0.8s;
+    -o-transition-duration: 0.8s;
+    transition-duration: 0.8s;
+
+    -webkit-transition-property: -webkit-transform;
+    -moz-transition-property: -moz-transform;
+    -o-transition-property: -o-transform;
+    transition-property: transform;
+}
+
+.spinner.hovered,
+.spinner:hover {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
 }
