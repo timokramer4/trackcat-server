@@ -827,7 +827,7 @@ def getSingleRecordByID(recordId):
     jsonRecord['timestamp'] = res[7]
     jsonRecord['owner'] = res[8]
 
-    jsonRecord['locations'] = res[9]
+    jsonRecord['locations'] = json.loads(res[9])
 
     return jsonRecord
 
