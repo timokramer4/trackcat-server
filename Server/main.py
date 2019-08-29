@@ -4,6 +4,7 @@
 
 from flask import Flask, flash, request, render_template, redirect, jsonify, session, make_response, send_file
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
+from dateutil.relativedelta import relativedelta
 from mailSend import sendVmail, sendResetMail
 from datetime import datetime, timedelta
 from passlib.hash import pbkdf2_sha256
@@ -932,9 +933,10 @@ def showFriendProfile(friendID, userId):
         else:
             janswer = getFriendById(friendID)
 
-            sql = ("SELECT " + app.config['DB_USERS_GENDER'] + ", "
-                   + app.config['DB_USERS_DATEOFBIRTH'] + ", "
-                   + app.config['DB_USERS_EMAIL']
+            del janswer['email']
+            del janswer['totalDistance']
+
+            sql = ("SELECT " + app.config['DB_USERS_DATEOFBIRTH']
                    + " FROM "
                    + app.config['DB_TABLE_USERS'] + " WHERE "
                    + app.config['DB_USERS_ID'] + " = %s;")
@@ -943,9 +945,8 @@ def showFriendProfile(friendID, userId):
 
             result = cursor.fetchone()
 
-            janswer['gender'] = result[0]
-            janswer['dateOfBirth'] = result[1]
-            janswer['email'] = result[2]
+            janswer['age'] = relativedelta(datetime.fromtimestamp(result[1]), datetime.fromtimestamp(time.time())).years
+
             janswer['areFriends'] = False
         pass
     except Exception as identifier:
@@ -1146,18 +1147,18 @@ def searchFriends(page, search, usrId, usrEmail):
             jres['image'] = res[3]
             jres['dateOfRegistration'] = res[4]
 
-            cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
-                           app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + ";")
-
-            resultDist = cursor.fetchall()
-
-            totDist = 0
-            for record in resultDist:
-                totDist += record[0]
-
-            jres['totalDistance'] = totDist
-
             if isFriend:
+                cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
+                               app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + ";")
+
+                resultDist = cursor.fetchall()
+
+                totDist = 0
+                for record in resultDist:
+                    totDist += record[0]
+
+                jres['totalDistance'] = totDist
+
                 try:
                     jres['email'] = res[5]
                     jres['isLive'] = res[6]
