@@ -938,7 +938,6 @@ def showFriendProfile(friendID, userId):
             janswer = getFriendById(friendID)
 
             del janswer['email']
-            del janswer['totalDistance']
 
             sql = ("SELECT " + app.config['DB_USERS_DATEOFBIRTH']
                    + " FROM "
@@ -1001,6 +1000,7 @@ def getFriendById(friendId):
                + ", " + app.config['DB_USERS_EMAIL']
                + ", " + app.config['DB_USERS_IMAGE']
                + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
+               + ", " + app.config['DB_USERS_DATEOFBIRTH']
                + " FROM " + app.config['DB_TABLE_USERS']
                + " WHERE " + app.config['DB_USERS_ID'] + " = %s;")
 
@@ -1016,6 +1016,7 @@ def getFriendById(friendId):
         jres['image'] = res[3]
         jres['dateOfRegistration'] = res[4]
         jres['totalDistance'] = getUserTotalDistance(friendId)
+        jres['age'] = relativedelta(datetime.fromtimestamp(time.time()), datetime.fromtimestamp(res[5])).years
         pass
     except Exception as identifier:
         pass
@@ -1121,6 +1122,7 @@ def searchFriends(page, search, usrId, usrEmail):
                + ", " + app.config['DB_USERS_LASTNAME']
                + ", " + app.config['DB_USERS_IMAGE']
                + ", " + app.config['DB_USERS_DATEOFREGISTRATION']
+               + ", " + app.config['DB_USERS_DATEOFBIRTH']
                + email
                + case
                + " FROM " + app.config['DB_TABLE_USERS']
@@ -1150,8 +1152,13 @@ def searchFriends(page, search, usrId, usrEmail):
             jres['lastName'] = res[2]
             jres['image'] = res[3]
             jres['dateOfRegistration'] = res[4]
+            jres['areFriends'] = isFriend
 
             if isFriend:
+
+                jres['dateOfBirth'] = res[5]
+    
+
                 cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
                                app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + ";")
 
@@ -1164,14 +1171,16 @@ def searchFriends(page, search, usrId, usrEmail):
                 jres['totalDistance'] = totDist
 
                 try:
-                    jres['email'] = res[5]
-                    jres['isLive'] = res[6]
+                    jres['email'] = res[6]
+                    jres['isLive'] = res[7]
 
                     pass
                 except Exception as identifier:
                     jres['isLive'] = 0
 
                     pass
+            else:
+                jres['age'] = relativedelta(datetime.fromtimestamp(time.time()), datetime.fromtimestamp(res[5])).years
 
             jsonArr.append(jres)
 
@@ -1206,7 +1215,10 @@ def getFriendRequests(userId):
         result = cursor.fetchall()
 
         for res in result:
-            janswerArr.append(getFriendById(res[0]))
+            jfriend = getFriendById(res[0])
+            del jfriend['email']
+            jfriend['areFriends'] = False
+            janswerArr.append(jfriend)
     except Exception as identifier:
         pass
 
@@ -1236,7 +1248,10 @@ def showMyFriendRequests(userId):
         result = cursor.fetchall()
 
         for res in result:
-            janswerArr.append(getFriendById(res[0]))
+            jfriend = getFriendById(res[0])
+            del jfriend['email']
+            jfriend['areFriends'] = False
+            janswerArr.append(jfriend)
     except Exception as identifier:
         pass
 
