@@ -30,6 +30,7 @@ import calendar
 
 app = Flask(__name__)
 mysql = MySQL()
+app.config['SESSION_LIFETIME'] = False
 
 app.secret_key = "TOLLERSECRETKEY"  # TODO generate Secret key
 app.config['MYSQL_DATABASE_USER'] = 'remRoot'
@@ -110,7 +111,6 @@ app.config['ANDROID_LOCATION_RECORD_ID'] = "recordId"
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "register"
 
 ###########################
 ###       Models        ###
@@ -145,8 +145,12 @@ class User(UserMixin):
 # Refresh session timeout every reload
 @app.before_request
 def before_request():
-    session.permanent = True
-    app.permanent_session_lifetime = timedelta(minutes=5)
+    if app.config['SESSION_LIFETIME'] == True:
+        session.permanent = True
+        app.permanent_session_lifetime = timedelta(days=7)
+    else:
+        session.permanent = False
+        app.permanent_session_lifetime = timedelta(seconds=5)
 
 # Clear cache after request
 @app.after_request
@@ -1708,6 +1712,12 @@ def login():
 
     if validateLogin(request.form['email'], hash256Password(request.form['password'])):
         user = user_loader(request.form['email'])
+
+        # Set lifetime session
+        if request.form.get('lifetime') == 'on':
+            app.config['SESSION_LIFETIME'] = True
+        else:
+            app.config['SESSION_LIFETIME'] = False
 
         conn = mysql.connect()
         cursor = conn.cursor()
