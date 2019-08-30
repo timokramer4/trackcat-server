@@ -949,7 +949,7 @@ def showFriendProfile(friendID, userId):
 
             result = cursor.fetchone()
 
-            janswer['age'] = relativedelta(datetime.fromtimestamp(result[1]), datetime.fromtimestamp(time.time())).years
+            janswer['age'] = relativedelta(datetime.fromtimestamp(time.time()), datetime.fromtimestamp(result[0])).years
 
             janswer['areFriends'] = False
         pass
