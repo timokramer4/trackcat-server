@@ -75,11 +75,13 @@
                     title="Automatische Abmeldung"
                     data-content="Zur Sicherheit Ihrer Daten werden Sie nach der o.g. Zeit automatisch abgemeldet. Sie können die Zeit jederzeit durch Klicken verlängern."
                 >
+                    <input type="hidden" id="timeout" name="timeout" value="{{ user.sessionTime }}" />
                     <i class="fas fa-sync spinner"></i>
                     <span id="timeout-time"></span>
                 </div>
                 <script>
-                    var seconds = 10;
+                    var seconds = $("#timeout").val();
+                    console.log(seconds);
                     var time, interval, timeout;
                     setTime();
 
@@ -107,7 +109,7 @@
                         $.ajax({
                             url: "/dashboard",
                             success: function(result) {
-                                console.log("SUCCESS");
+                                console.log("!! Session was succefully refreshed !!");
                             }
                         });
                     });
@@ -130,9 +132,9 @@
                         }, 1000);
 
                         /* Redirect after timeout */
-                        // timeout = setTimeout(function() {
-                        //     window.location = "/logout";
-                        // }, seconds * 1000);
+                        timeout = setTimeout(function() {
+                            window.location = "/logout";
+                        }, seconds * 1000);
                     }
 
                     /* Calculate the countdown and print remaining time */

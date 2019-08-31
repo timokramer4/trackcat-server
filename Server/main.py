@@ -131,6 +131,7 @@ class User(UserMixin):
         self.dateOfBirth = dateOfBirth
         self.dateOfRegistration = dateOfRegistration
         self.lastLogin = lastLogin
+        self.sessionTime = 300
 
 
 ###########################
@@ -142,22 +143,16 @@ class User(UserMixin):
 ###      Functions      ###
 ###########################
 
-# Refresh session timeout every reload
-@app.before_request
-def before_request():
-    if app.config['SESSION_LIFETIME'] == True:
-        session.permanent = True
-        app.permanent_session_lifetime = timedelta(days=7)
-    else:
-        session.permanent = False
-        app.permanent_session_lifetime = timedelta(seconds=10)
-
 # Clear cache after request
 @app.after_request
 def add_header(response):
     response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
     response.headers['Cache-Control'] = 'public, max-age=0'
     return response
+
+    if current_user.is_authenticated:
+        session.permanent = False
+        app.permanent_session_lifetime = timedelta(seconds=current_user.sessionTime)
 
 # Format time
 @app.template_filter('formatSeconds')
@@ -1731,9 +1726,9 @@ def login():
 
         # Set lifetime session
         if request.form.get('lifetime') == 'on':
-            app.config['SESSION_LIFETIME'] = True
+            current_user.sessionTime = 3600 * 7
         else:
-            app.config['SESSION_LIFETIME'] = False
+            current_user.sessionTime = 300
 
         conn = mysql.connect()
         cursor = conn.cursor()
