@@ -173,7 +173,7 @@ button.bg-orange:focus {
 .timeout {
     margin: 0em;
     padding: 0.5em;
-    width: 75px;
+    width: auto;
     color: white;
     border-radius: 7em;
     background-color: #F0404C;

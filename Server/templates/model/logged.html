@@ -2,10 +2,29 @@
 <header class="header">
     <nav class="navbar navbar-expand-lg px-4 py-2 bg-white shadow">
         {% block topNav %}
-        <a {% if site !="profile" and site !="settings" %}id="backBtn" {% else %}href="/dashboard" {% endif %} style="cursor: pointer;" class="sidebar-toggler text-gray-500 mr-4 mr-lg-5 lead"><i class="fas fa-chevron-circle-left"></i
-        ></a> {% endblock %}
+        <a
+            {%
+            if
+            site
+            !="profile"
+            and
+            site
+            !="settings"
+            %}id="backBtn"
+            {%
+            else
+            %}href="/dashboard"
+            {%
+            endif
+            %}
+            style="cursor: pointer;"
+            class="sidebar-toggler text-gray-500 mr-4 mr-lg-5 lead"
+            ><i class="fas fa-chevron-circle-left"></i
+        ></a>
+        {% endblock %}
 
-        <a href="/dashboard" class="navbar-brand font-weight-bold text-uppercase text-base text-red">Trackcat Dashboard</a
+        <a href="/dashboard" class="navbar-brand font-weight-bold text-uppercase text-base text-red"
+            >Trackcat Dashboard</a
         >
         <ul class="ml-auto d-flex align-items-center list-unstyled mb-0">
             <li class="nav-item dropdown mr-3">
@@ -18,93 +37,149 @@
                     class="nav-link dropdown-toggle text-gray-400 px-1"
                     ><i class="fa fa-bell"></i><span class="notification-icon"></span
                 ></a>
-        <div aria-labelledby="notifications" class="dropdown-menu">
-            {% block notifications %}
-            <a href="#" class="dropdown-item">
-                <div class="d-flex align-items-center">
-                    <div class="icon icon-sm bg-blue text-white">
-                        <img src="{{ url_for('static', filename='img/defaultUser.jpg')}}" alt="Jason Doe" style="max-width: 1.7rem;" class="img-fluid rounded-circle shadow" />
-                    </div>
-                    <div class="text ml-2">
-                        <p class="mb-0">Finn Lenz hat eine neue Route mit dir geteilt!</p>
-                    </div>
+                <div aria-labelledby="notifications" class="dropdown-menu">
+                    {% block notifications %}
+                    <a href="#" class="dropdown-item">
+                        <div class="d-flex align-items-center">
+                            <div class="icon icon-sm bg-blue text-white">
+                                <img
+                                    src="{{ url_for('static', filename='img/defaultUser.jpg')}}"
+                                    alt="Jason Doe"
+                                    style="max-width: 1.7rem;"
+                                    class="img-fluid rounded-circle shadow"
+                                />
+                            </div>
+                            <div class="text ml-2">
+                                <p class="mb-0">Finn Lenz hat eine neue Route mit dir geteilt!</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <div class="d-flex align-items-center">
+                            <div class="icon icon-sm bg-blue text-white">
+                                <i class="fas fa-map-marked-alt"></i>
+                            </div>
+                            <div class="text ml-2">
+                                <p class="mb-0">Neue Route online verfügbar!</p>
+                            </div>
+                        </div>
+                    </a>
+                    {% endblock %}
                 </div>
-            </a>
-            <a href="#" class="dropdown-item">
-                <div class="d-flex align-items-center">
-                    <div class="icon icon-sm bg-blue text-white">
-                        <i class="fas fa-map-marked-alt"></i>
-                    </div>
-                    <div class="text ml-2">
-                        <p class="mb-0">Neue Route online verfügbar!</p>
-                    </div>
+            </li>
+            <li class="nav-item dropdown mr-3">
+                <div
+                    class="timeout"
+                    data-toggle="popover"
+                    data-placement="bottom"
+                    title="Automatische Abmeldung"
+                    data-content="Zur Sicherheit Ihrer Daten werden Sie nach der o.g. Zeit automatisch abgemeldet. Sie können die Zeit jederzeit durch Klicken verlängern."
+                >
+                    <i class="fas fa-sync spinner"></i>
+                    <span id="timeout-time"></span>
                 </div>
-            </a>
-            {% endblock %}
-        </div>
-        </li>
-        <li class="nav-item dropdown mr-3">
-            <div class="timeout" data-toggle="popover" data-placement="bottom" title="Automatische Abmeldung" data-content="Zur Sicherheit Ihrer Daten werden Sie nach der o.g. Zeit automatisch abgemeldet. Sie können die Zeit jederzeit durch Klicken verlängern.">
-                <i class="fas fa-sync spinner"></i>
-                <span id="timeout-time"></span>
-            </div>
-            <script>
-                var seconds = 300;
-                var time, interval, timeout;
-                setTime();
-
-                /* Fill time integers with zeros */
-                function fillZero(v) {
-                    return v < 10 ? "0" + v : v;
-                }
-
-                /* Hover effects */
-                $(".timeout").hover(function() {
-                    $(".spinner").toggleClass("hovered");
-                });
-
-                $(".timeout").mouseover(function(){
-                    $(".timeout").popover('show');
-                });
-
-                $(".timeout").mouseout(function(){
-                    $(".timeout").popover('hide');
-                });
-
-                /* Restart counter and refresh session */
-                $(".timeout").on("click", function() {
+                <script>
+                    var seconds = 10;
+                    var time, interval, timeout;
                     setTime();
-                });
 
-                function setTime() {
-                    clearInterval(interval);
-                    clearTimeout(timeout);
+                    /* Fill time integers with zeros */
+                    function fillZero(v) {
+                        return v < 10 ? "0" + v : v;
+                    }
 
-                    time = new Date(seconds * 1000);
-                    $("#timeout-time").text(`${fillZero(time.getMinutes(), 2)}:${fillZero(time.getSeconds(), 2)}`);
+                    /* Hover effects */
+                    $(".timeout").hover(function() {
+                        $(".spinner").toggleClass("hovered");
+                    });
 
-                    interval = setInterval(function() {
-                        time.setSeconds(time.getSeconds() - 1);
-                        $("#timeout-time").text(
-                            `${fillZero(time.getMinutes(), 2)}:${fillZero(time.getSeconds(), 2)}`
-                        );
-                        if (time.getTime() == 0) {
-                            clearInterval(interval);
+                    $(".timeout").mouseover(function() {
+                        $(".timeout").popover("show");
+                    });
+
+                    $(".timeout").mouseout(function() {
+                        $(".timeout").popover("hide");
+                    });
+
+                    /* Restart counter and refresh session */
+                    $(".timeout").on("click", function() {
+                        setTime();
+                        $.ajax({
+                            url: "/dashboard",
+                            success: function(result) {
+                                console.log("SUCCESS");
+                            }
+                        });
+                    });
+
+                    /* Initialize timer interation */
+                    function setTime() {
+                        clearInterval(interval);
+                        clearTimeout(timeout);
+
+                        var endDate = new Date().getTime() + seconds * 1000;
+                        var difference = countdown("#timeout-time", endDate);
+
+                        /* Refresh every second */
+                        interval = setInterval(function() {
+                            difference = countdown("#timeout-time", endDate);
+                            console.log(difference);
+                            if (difference == 0) {
+                                clearInterval(interval);
+                            }
+                        }, 1000);
+
+                        /* Redirect after timeout */
+                        // timeout = setTimeout(function() {
+                        //     window.location = "/logout";
+                        // }, seconds * 1000);
+                    }
+
+                    /* Calculate the countdown and print remaining time */
+                    function countdown(element, endDate) {
+                        /* Get today's date and time */
+                        var now = new Date().getTime();
+
+                        /* Find the difference between now and the countdown date */
+                        var difference = endDate - now;
+
+                        /* Time calculations for days, hours, minutes and seconds */
+                        var days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                        var hours = fillZero(Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+                        var minutes = fillZero(Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)));
+                        var seconds = fillZero(Math.floor((difference % (1000 * 60)) / 1000));
+
+                        /* Display the result in the selected element */
+                        if (hours <= 0 && days <= 0) {
+                            $(element).text(`${minutes}:${seconds}`);
+                        } else if (days <= 0) {
+                            $(element).text(`${hours}:${minutes}:${seconds}`);
+                        } else {
+                            $(element).text(`${days}T ${hours}:${minutes}:${seconds}`);
                         }
-                    }, 1000);
+                        return Math.floor((difference % (1000 * 60)) / 1000);
+                    }
+                </script>
+            </li>
+            <li class="nav-item dropdown ml-auto">
+                <a
+                    id="userInfo"
+                    href="trackcat.de"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    class="nav-link dropdown-toggle"
+                    ><img
+                        src="/image?userID={{ user.id }}"
+                        alt="{{ user.firstName }} {{ user.lastName }}"
+                        style="max-width: 2.5rem;"
+                        class="img-fluid rounded-circle shadow"
+                /></a>
 
-                    timeout = setTimeout(function() {
-                        window.location = "/logout";
-                    }, seconds * 1000);
-                }
-            </script>
-        </li>
-        <li class="nav-item dropdown ml-auto">
-            <a id="userInfo" href="trackcat.de" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle"><img src="/image?userID={{ user.id }}" alt="{{ user.firstName }} {{ user.lastName }}" style="max-width: 2.5rem;" class="img-fluid rounded-circle shadow" /></a>
-
-            <div aria-labelledby="userInfo" class="dropdown-menu">
-                <a href="/profile" class="dropdown-item">
-                    <strong id="account_name" class="d-block text-uppercase headings-font-family">{{ user.firstName }} {{ user.lastName }}</strong
+                <div aria-labelledby="userInfo" class="dropdown-menu">
+                    <a href="/profile" class="dropdown-item">
+                        <strong id="account_name" class="d-block text-uppercase headings-font-family"
+                            >{{ user.firstName }} {{ user.lastName }}</strong
                         >
                         <small id="account_email">{{ user.email }}</small></a
                     >

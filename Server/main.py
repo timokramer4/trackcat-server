@@ -150,7 +150,7 @@ def before_request():
         app.permanent_session_lifetime = timedelta(days=7)
     else:
         session.permanent = False
-        app.permanent_session_lifetime = timedelta(seconds=5)
+        app.permanent_session_lifetime = timedelta(seconds=10)
 
 # Clear cache after request
 @app.after_request
