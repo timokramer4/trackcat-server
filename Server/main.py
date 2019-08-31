@@ -1154,21 +1154,22 @@ def searchFriends(page, search, usrId, usrEmail):
             jres['dateOfRegistration'] = res[4]
             jres['areFriends'] = isFriend
 
-            if isFriend:
 
-                jres['dateOfBirth'] = res[5]
-    
-
-                cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
+            cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
                                app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + ";")
 
-                resultDist = cursor.fetchall()
+            resultDist = cursor.fetchall()
 
-                totDist = 0
-                for record in resultDist:
-                    totDist += record[0]
+            totDist = 0
+            for record in resultDist:
+                totDist += record[0]
 
-                jres['totalDistance'] = totDist
+            jres['totalDistance'] = totDist
+
+
+            if isFriend:
+
+                jres['dateOfBirth'] = res[5]               
 
                 try:
                     jres['email'] = res[6]
