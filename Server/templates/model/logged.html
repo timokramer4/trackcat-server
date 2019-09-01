@@ -81,7 +81,6 @@
                 </div>
                 <script>
                     var seconds = $("#timeout").val();
-                    console.log(seconds);
                     var time, interval, timeout;
                     setTime();
 
@@ -120,7 +119,6 @@
                         clearTimeout(timeout);
 
                         var endDate = new Date().getTime() + seconds * 1000;
-                        console.log(endDate);
                         var difference = countdown("#timeout-time", endDate);
 
                         /* Refresh every second */
