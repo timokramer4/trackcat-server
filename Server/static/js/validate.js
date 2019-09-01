@@ -177,7 +177,7 @@ function markField(field, value) {
 /* Set hint message if invalid input */
 function setHint(field, show, msg) {
     var hintName = "hint_" + field.id;
-    if (field.parentNode.childElementCount > 1) {
+    while (!field.classList.contains("form-group")) {
         field = field.parentNode;
     }
     if (show) {
@@ -186,7 +186,7 @@ function setHint(field, show, msg) {
         hint.className = "form-text text-muted ml-3 hint";
         hint.innerText = msg;
         if (document.getElementById(hint.id) == null) {
-            field.parentNode.appendChild(hint);
+            field.appendChild(hint);
         }
     } else {
         if (document.getElementById(hintName) != null) {

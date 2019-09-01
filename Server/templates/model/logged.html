@@ -120,12 +120,12 @@
                         clearTimeout(timeout);
 
                         var endDate = new Date().getTime() + seconds * 1000;
+                        console.log(endDate);
                         var difference = countdown("#timeout-time", endDate);
 
                         /* Refresh every second */
                         interval = setInterval(function() {
                             difference = countdown("#timeout-time", endDate);
-                            console.log(difference);
                             if (difference == 0) {
                                 clearInterval(interval);
                             }
@@ -159,7 +159,7 @@
                         } else {
                             $(element).text(`${days}T ${hours}:${minutes}:${seconds}`);
                         }
-                        return Math.floor((difference % (1000 * 60)) / 1000);
+                        return Math.floor(difference % 1000);
                     }
                 </script>
             </li>
