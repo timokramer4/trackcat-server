@@ -1396,6 +1396,8 @@ def getLiveFriends(userId):
                app.config['DB_USERS_DATEOFREGISTRATION'] + ", "
                + app.config['DB_TABLE_USERS'] +
                "." + app.config['DB_USERS_EMAIL']
+               + app.config['DB_TABLE_USERS'] +
+               "." + app.config['DB_USERS_DATEOFBIRTH']
                + " FROM " + app.config['DB_TABLE_USERS'] + " INNER JOIN "
                + app.config['DB_TABLE_HAS_USERS'] + " ON "
                + app.config['DB_TABLE_USERS'] + "." +
@@ -1438,6 +1440,9 @@ def getLiveFriends(userId):
             jres['image'] = res[3]
             jres['dateOfRegistration'] = res[4]
             jres['email'] = res[5]
+            jres['dateOfBirth'] = res[6]
+
+            jres['areFriends'] = True
 
             jres['distance'] = getUserTotalDistance(res[0])
 
