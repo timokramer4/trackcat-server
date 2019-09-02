@@ -2284,6 +2284,11 @@ def updateUserAPI():
 
     try:
         hints = j['hints']
+
+        if j['hints'] == 'true':
+            hints = 1
+        elif j['hints'] == 'false':
+            hints = 0
         pass
     except Exception as identifier:
         hints = None
@@ -2291,6 +2296,11 @@ def updateUserAPI():
 
     try:
         darkTheme = j['darkTheme']
+
+        if j['darkTheme'] == 'true':
+            darkTheme = 1
+        elif j['darkTheme'] == 'false':
+            darkTheme = 0
         pass
     except Exception as identifier:
         darkTheme = None
