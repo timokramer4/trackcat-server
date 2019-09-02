@@ -1395,7 +1395,7 @@ def getLiveFriends(userId):
                + app.config['DB_TABLE_USERS'] + "." +
                app.config['DB_USERS_DATEOFREGISTRATION'] + ", "
                + app.config['DB_TABLE_USERS'] +
-               "." + app.config['DB_USERS_EMAIL']
+               "." + app.config['DB_USERS_EMAIL'] + ", "
                + app.config['DB_TABLE_USERS'] +
                "." + app.config['DB_USERS_DATEOFBIRTH']
                + " FROM " + app.config['DB_TABLE_USERS'] + " INNER JOIN "
