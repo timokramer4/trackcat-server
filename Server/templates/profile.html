@@ -30,7 +30,7 @@
                             <div class="col-lg-8">
                                 <h2 class="mb-0 d-flex align-items-center">
                                     <span>{{profileData.firstName}} {{profileData.lastName}} 
-                                    {% if profileData.areFriends != 1 %}<span class="lead">&nbsp;({{(profileData.age)}})</span>{% endif %}
+                                    {% if profileData.id != current_user.id and profileData.areFriends != 1 %}<span class="lead">&nbsp;({{(profileData.age)}})</span>{% endif %}
                                     </span>
                                 </h2>
                                 <small class="text-muted"
