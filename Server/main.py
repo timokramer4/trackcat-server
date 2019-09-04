@@ -22,6 +22,7 @@ import io
 import random
 import hashlib
 import calendar
+import sys
 
 
 ###########################
@@ -826,6 +827,7 @@ def getSingleRecordByID(recordId):
     jsonRecord['distance'] = res[6]
     jsonRecord['timestamp'] = res[7]
     jsonRecord['owner'] = res[8]
+    jsonRecord['userId'] = res[8]
     jsonRecord['locations'] = res[9]
 
     return jsonRecord
@@ -2418,8 +2420,11 @@ def uploadTrackAPI():
                + app.config['DB_RECORD_USERS_ID'] + ','
                + app.config['DB_RECORD_LOCATION_DATA'] + ') VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);')
 
-        for loc in jsonTrack['locations']:
-            del loc[app.config['ANDROID_LOCATION_RECORD_ID']]
+        if isinstance(jsonTrack['locations'], str):
+            jsonTrack['locations'] = json.loads(jsonTrack['locations'])
+        else:
+            for loc in jsonTrack['locations']:
+                del loc[app.config['ANDROID_LOCATION_RECORD_ID']]
 
         cursor.execute(sql, (jsonTrack['name'],
                              jsonTrack['time'],
@@ -2441,6 +2446,7 @@ def uploadTrackAPI():
 
         pass
     except Exception as identifier:
+        print(identifier)
         jsonSuccess['success'] = 1
         pass
     cursor.close()
@@ -2798,6 +2804,9 @@ def updateLiveRecordAPI():
     rideTime = jrequest['rideTime']
     distance = jrequest['distance']
     locations = jrequest['locations']
+
+    if isinstance(locations, str):
+            locations = json.loads(locations)
 
     try:
 
