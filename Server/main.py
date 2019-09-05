@@ -22,7 +22,6 @@ import io
 import random
 import hashlib
 import calendar
-import sys
 
 
 ###########################
@@ -153,7 +152,8 @@ def add_header(response):
 
     if current_user.is_authenticated:
         session.permanent = False
-        app.permanent_session_lifetime = timedelta(seconds=current_user.sessionTime)
+        app.permanent_session_lifetime = timedelta(
+            seconds=current_user.sessionTime)
 
 # Format time
 @app.template_filter('formatSeconds')
@@ -589,7 +589,7 @@ def deleteUserById(id):
         cursor = conn.cursor()
 
         sql = ('DELETE FROM ' + app.config['DB_TABLE_USERS']
-               + ' WHERE '+app.config['DB_USERS_ID']
+               + ' WHERE ' + app.config['DB_USERS_ID']
                + ' = %s;')
 
         cursor.execute(sql, (id,))
@@ -599,6 +599,7 @@ def deleteUserById(id):
         conn.close()
         return 0
     except Exception as identifier:
+        print(identifier)
         return 1
 
 
@@ -945,7 +946,8 @@ def showFriendProfile(friendID, userId):
 
             result = cursor.fetchone()
 
-            janswer['age'] = relativedelta(datetime.fromtimestamp(time.time()), datetime.fromtimestamp(result[0]/1000.0)).years
+            janswer['age'] = relativedelta(datetime.fromtimestamp(
+                time.time()), datetime.fromtimestamp(result[0]/1000.0)).years
 
             janswer['areFriends'] = False
         pass
@@ -1013,7 +1015,8 @@ def getFriendById(friendId):
         jres['image'] = res[3]
         jres['dateOfRegistration'] = res[4]
         jres['totalDistance'] = getUserTotalDistance(friendId)
-        jres['age'] = relativedelta(datetime.fromtimestamp(time.time()), datetime.fromtimestamp(res[5]/1000.0)).years
+        jres['age'] = relativedelta(datetime.fromtimestamp(
+            time.time()), datetime.fromtimestamp(res[5]/1000.0)).years
         pass
     except Exception as identifier:
         pass
@@ -1151,9 +1154,8 @@ def searchFriends(page, search, usrId, usrEmail):
             jres['dateOfRegistration'] = res[4]
             jres['areFriends'] = isFriend
 
-
             cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
-                               app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + ";")
+                           app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + ";")
 
             resultDist = cursor.fetchall()
 
@@ -1163,10 +1165,9 @@ def searchFriends(page, search, usrId, usrEmail):
 
             jres['totalDistance'] = totDist
 
-
             if isFriend:
 
-                jres['dateOfBirth'] = res[5]               
+                jres['dateOfBirth'] = res[5]
 
                 try:
                     jres['email'] = res[6]
@@ -1178,7 +1179,8 @@ def searchFriends(page, search, usrId, usrEmail):
 
                     pass
             else:
-                jres['age'] = relativedelta(datetime.fromtimestamp(time.time()), datetime.fromtimestamp(res[5]/1000.0)).years
+                jres['age'] = relativedelta(datetime.fromtimestamp(
+                    time.time()), datetime.fromtimestamp(res[5]/1000.0)).years
 
             jsonArr.append(jres)
 
@@ -1287,7 +1289,8 @@ def requestFriend(friendId, userId):
                    + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;"
                    )
             success = 2
-            cursor.execute(sql, (int(round(time.time() * 1000)), friendId, userId,))
+            cursor.execute(
+                sql, (int(round(time.time() * 1000)), friendId, userId,))
 
         else:
             sql = ("INSERT INTO " + app.config['DB_TABLE_HAS_USERS'] + " ("
@@ -2806,7 +2809,7 @@ def updateLiveRecordAPI():
     locations = jrequest['locations']
 
     if isinstance(locations, str):
-            locations = json.loads(locations)
+        locations = json.loads(locations)
 
     try:
 
