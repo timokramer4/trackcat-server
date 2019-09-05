@@ -105,11 +105,11 @@
 
                     /* Restart counter and refresh session */
                     $(".timeout").on("click", function() {
-                        setTime();
                         $.ajax({
-                            url: "/dashboard",
+                            url: "/sessionrefresh",
                             success: function(result) {
-                                console.log("!! Session was succefully refreshed !!");
+                                console.log(result);
+                                setTime();
                             }
                         });
                     });
@@ -158,7 +158,7 @@
                         } else {
                             $(element).text(`${days}T ${hours}:${minutes}:${seconds}`);
                         }
-                        return Math.floor(difference % 1000);
+                        return Math.ceil(difference / 1000);
                     }
                 </script>
             </li>

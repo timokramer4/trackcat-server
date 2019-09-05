@@ -1540,6 +1540,13 @@ def resetUserPassword(email):
 ###    WEB API-Pages    ###
 ###########################
 
+@app.route("/sessionrefresh", methods=['GET'])
+def sessionRefresh():
+    if current_user.is_authenticated:
+        return "Session refreshed successfully!"
+    else:
+        return "Not authorized!"
+
 # Start and login page
 @app.route("/", methods=['GET'])
 @app.route("/login", methods=['GET'])
