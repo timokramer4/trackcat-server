@@ -152,7 +152,8 @@ def add_header(response):
 
     if current_user.is_authenticated:
         session.permanent = False
-        app.permanent_session_lifetime = timedelta(seconds=current_user.sessionTime)
+        app.permanent_session_lifetime = timedelta(
+            seconds=current_user.sessionTime)
 
 # Format time
 @app.template_filter('formatSeconds')
@@ -285,7 +286,7 @@ def registerUserDB(firstName, lastName, email, password, birthday, gender):
                + app.config['DB_USERS_VERIFYTOKEN']+') VALUES (%s,%s,%s,%s,%s,%s,%s,%s, 0, 1,%s,%s);')
 
         cursor.execute(sql, (firstName, lastName, email, pbkdf2_sha256.hash(password), birthday, gender, str(
-            int(time.time())), str(int(time.time())), str(int(time.time())), token,))
+            int(round(time.time() * 1000))), str(int(round(time.time() * 1000))), str(int(round(time.time() * 1000))), token,))
 
         conn.commit()
 
@@ -426,7 +427,7 @@ def updateUserLastLogin(email):
                + app.config['DB_USERS_LASTLOGIN']+' = %s WHERE '
                + app.config['DB_USERS_EMAIL']+' = %s;')
 
-        cursor.execute(sql, (int(time.time()), email,))
+        cursor.execute(sql, (int(round(time.time() * 1000)), email,))
 
         conn.commit()
 
@@ -588,7 +589,7 @@ def deleteUserById(id):
         cursor = conn.cursor()
 
         sql = ('DELETE FROM ' + app.config['DB_TABLE_USERS']
-               + ' WHERE '+app.config['DB_USERS_ID']
+               + ' WHERE ' + app.config['DB_USERS_ID']
                + ' = %s;')
 
         cursor.execute(sql, (id,))
@@ -598,6 +599,7 @@ def deleteUserById(id):
         conn.close()
         return 0
     except Exception as identifier:
+        print(identifier)
         return 1
 
 
@@ -826,6 +828,7 @@ def getSingleRecordByID(recordId):
     jsonRecord['distance'] = res[6]
     jsonRecord['timestamp'] = res[7]
     jsonRecord['owner'] = res[8]
+    jsonRecord['userId'] = res[8]
     jsonRecord['locations'] = res[9]
 
     return jsonRecord
@@ -943,7 +946,8 @@ def showFriendProfile(friendID, userId):
 
             result = cursor.fetchone()
 
-            janswer['age'] = relativedelta(datetime.fromtimestamp(time.time()), datetime.fromtimestamp(result[0])).years
+            janswer['age'] = relativedelta(datetime.fromtimestamp(
+                time.time()), datetime.fromtimestamp(result[0]/1000.0)).years
 
             janswer['areFriends'] = False
         pass
@@ -1011,7 +1015,8 @@ def getFriendById(friendId):
         jres['image'] = res[3]
         jres['dateOfRegistration'] = res[4]
         jres['totalDistance'] = getUserTotalDistance(friendId)
-        jres['age'] = relativedelta(datetime.fromtimestamp(time.time()), datetime.fromtimestamp(res[5])).years
+        jres['age'] = relativedelta(datetime.fromtimestamp(
+            time.time()), datetime.fromtimestamp(res[5]/1000.0)).years
         pass
     except Exception as identifier:
         pass
@@ -1149,9 +1154,8 @@ def searchFriends(page, search, usrId, usrEmail):
             jres['dateOfRegistration'] = res[4]
             jres['areFriends'] = isFriend
 
-
             cursor.execute("SELECT " + app.config['DB_RECORD_DISTANCE'] + " FROM " +
-                               app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + ";")
+                           app.config['DB_TABLE_RECORDS'] + " WHERE users_id = " + str(res[0]) + ";")
 
             resultDist = cursor.fetchall()
 
@@ -1161,10 +1165,9 @@ def searchFriends(page, search, usrId, usrEmail):
 
             jres['totalDistance'] = totDist
 
-
             if isFriend:
 
-                jres['dateOfBirth'] = res[5]               
+                jres['dateOfBirth'] = res[5]
 
                 try:
                     jres['email'] = res[6]
@@ -1176,7 +1179,8 @@ def searchFriends(page, search, usrId, usrEmail):
 
                     pass
             else:
-                jres['age'] = relativedelta(datetime.fromtimestamp(time.time()), datetime.fromtimestamp(res[5])).years
+                jres['age'] = relativedelta(datetime.fromtimestamp(
+                    time.time()), datetime.fromtimestamp(res[5]/1000.0)).years
 
             jsonArr.append(jres)
 
@@ -1285,7 +1289,8 @@ def requestFriend(friendId, userId):
                    + app.config['DB_USERS_HAS_USERS_AF'] + " = 0;"
                    )
             success = 2
-            cursor.execute(sql, (int(time.time()), friendId, userId,))
+            cursor.execute(
+                sql, (int(round(time.time() * 1000)), friendId, userId,))
 
         else:
             sql = ("INSERT INTO " + app.config['DB_TABLE_HAS_USERS'] + " ("
@@ -1806,7 +1811,7 @@ def updateUser():
         success = updateUserDB(current_user.id, birthday,
                                request.form['firstName'], request.form['lastName'],
                                request.form['genderRadio'], request.form['size'],
-                               request.form['weight'], None, str(int(time.time())), None, None)
+                               request.form['weight'], None, str(int(round(time.time() * 1000))), None, None)
 
         if success:
             flash('Profil erflogreich gespeichert.')
@@ -1843,7 +1848,7 @@ def changePassword():
         if pw1 == pw2:
             success = changeUserPasswordDB(
                 current_user.id, hash256Password(request.form['currentPass']),
-                hash256Password(request.form['newPass']), str(int(time.time())))
+                hash256Password(request.form['newPass']), str(int(round(time.time() * 1000))))
 
             if success == 0:
                 flash('Passwort wurde erfolgreich geändert.')
@@ -1979,7 +1984,7 @@ def getImage():
 def editRecord():
     if current_user.is_authenticated:
         success = updateRecordDB(
-            request.form['recordId'], request.form['recordName'], str(int(time.time())))
+            request.form['recordId'], request.form['recordName'], str(int(round(time.time() * 1000))))
 
         if success:
             flash('Die Aufzeichnung wurde erfolgreich editiert.')
@@ -2419,8 +2424,11 @@ def uploadTrackAPI():
                + app.config['DB_RECORD_USERS_ID'] + ','
                + app.config['DB_RECORD_LOCATION_DATA'] + ') VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);')
 
-        for loc in jsonTrack['locations']:
-            del loc[app.config['ANDROID_LOCATION_RECORD_ID']]
+        if isinstance(jsonTrack['locations'], str):
+            jsonTrack['locations'] = json.loads(jsonTrack['locations'])
+        else:
+            for loc in jsonTrack['locations']:
+                del loc[app.config['ANDROID_LOCATION_RECORD_ID']]
 
         cursor.execute(sql, (jsonTrack['name'],
                              jsonTrack['time'],
@@ -2442,6 +2450,7 @@ def uploadTrackAPI():
 
         pass
     except Exception as identifier:
+        print(identifier)
         jsonSuccess['success'] = 1
         pass
     cursor.close()
@@ -2799,6 +2808,9 @@ def updateLiveRecordAPI():
     rideTime = jrequest['rideTime']
     distance = jrequest['distance']
     locations = jrequest['locations']
+
+    if isinstance(locations, str):
+        locations = json.loads(locations)
 
     try:
 
