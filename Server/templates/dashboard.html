@@ -66,7 +66,6 @@
             <script>
               var totalProcent = Math.floor($("#procentProductivity").val()*100)/100;
               var pauseProcent = Math.floor((100 - totalProcent)*100)/100;
-              console.log(`${totalProcent} - ${pauseProcent}`);
 
               var options = {
                 chart: {
@@ -77,9 +76,6 @@
                 responsive: [{
                   breakpoint: 480,
                   options: {
-                    chart: {
-                      width: 200
-                    },
                     legend: {
                       position: 'bottom'
                     }
