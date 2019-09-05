@@ -1795,7 +1795,7 @@ def registerUser():
         request.form['email'],
         request.form['password1'],
         int(calendar.timegm(datetime.strptime(
-            request.form['birthday'], '%Y-%m-%d').utctimetuple())),
+            request.form['birthday'], '%Y-%m-%d').utctimetuple())*1000.0),
         request.form['genderRadio'])
 
     if success == 0:
@@ -1814,7 +1814,7 @@ def registerUser():
 def updateUser():
     if current_user.is_authenticated:
         birthday = int(calendar.timegm(datetime.strptime(
-            request.form['birthday'], '%Y-%m-%d').utctimetuple()))
+            request.form['birthday'], '%Y-%m-%d').utctimetuple()) * 1000.0)
         success = updateUserDB(current_user.id, birthday,
                                request.form['firstName'], request.form['lastName'],
                                request.form['genderRadio'], request.form['size'],
