@@ -2451,7 +2451,7 @@ def uploadTrackAPI():
 
         jsonSuccess['success'] = 0
         jsonSuccess['record'] = getSingleRecordByID(cursor.lastrowid)
-        jsonSuccess['oldId'] = jsonTrack['id']
+        jsonSuccess['oldId'] = int(jsonTrack['id'])
 
         deleteLiveRecord(userid)
 
