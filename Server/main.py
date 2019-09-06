@@ -2148,23 +2148,11 @@ def deleteResetRequest():
     return redirect("/")
 
 
-# TODO clean
-@app.route("/getProductivityLastWeeks")
 def getProductivityLastWeeks(userId):
-
     today = datetime.now().date()
     start = today - timedelta(days=today.weekday())
     start = today - timedelta(days=6)
-    end = start + timedelta(days=14)
-    print("Today: " + str(today))
-    print("Start: " + str(start))
-    print("End: " + str(end))
-
-    startTs = datetime.timestamp(
-        datetime(start.year, start.month, start.day, 0, 0, 0, 0)) * 1000
-    endTs = datetime.timestamp(
-        datetime(end.year, end.month, end.day, 0, 0, 0, 0)) * 1000
-
+   
     conn = mysql.connect()
     cursor = conn.cursor()
 
@@ -2190,11 +2178,7 @@ def getProductivityLastWeeks(userId):
         cursor.execute(sql, (userId, currentStartTs, currentEndTs,))
 
         result = cursor.fetchall()
-        print(result)
-        print(i)
-
         
-
         if result[0][0] is not None:
             time = int(result[0][1])
             rtime = int(result[0][0])
@@ -2209,24 +2193,18 @@ def getProductivityLastWeeks(userId):
                 answer[1].append(percent)
 
         else:
-            answer[0].append(0)
-            answer[1].append(0)
+            if i < 7:
+                answer[0].append(0)
+            else:
+                answer[1].append(0)
 
     cursor.close()
     conn.close()
-
-    print("Today: " + str(datetime.timestamp(datetime(today.year,
-                                                      today.month, today.day, 0, 0, 0, 0))))
-    print("Start: " + str(datetime.timestamp(datetime(start.year,
-                                                      start.month, start.day, 0, 0, 0, 0)) * 1000))
-    print("End: " + str(datetime.timestamp(datetime(end.year,
-                                                    end.month, end.day, 0, 0, 0, 0)) * 1000))
 
     return answer
 
 
 def getAmountRecordsLastWeeks(userId):
-
     today = datetime.now().date()
     start = today - timedelta(days=6)
 
