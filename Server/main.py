@@ -41,7 +41,7 @@ app.config['MYSQL_DATABASE_PORT'] = 42042
 mysql.init_app(app)
 
 app.config['BASE_URL'] = "http://safe-harbour.de:4242"
-#app.config['BASE_URL'] = "http://192.168.178.46:5000"
+# app.config['BASE_URL'] = "http://192.168.178.46:5000"
 
 
 # TABLE-NAMES
@@ -2210,20 +2210,64 @@ def getProductivityLastWeeks(userId):
 
     return answer
 
+
+
+def getAmountRecordsLastWeeks(userId):
+
+    today = datetime.now().date()
+    start = today - timedelta(days=today.weekday())
+    start = start - timedelta(days=7)
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    answer = [[], []]
+
+    for i in range(14):
+        currentStart = start + timedelta(days=i)
+        currentEnd = start + timedelta(days=i+1)
+
+        currentStartTs = datetime.timestamp(
+            datetime(currentStart.year, currentStart.month, currentStart.day, 0, 0, 0, 0)) * 1000
+
+        currentEndTs = datetime.timestamp(
+            datetime(currentEnd.year, currentEnd.month, currentEnd.day, 0, 0, 0, 0)) * 1000
+
+        sql = ('SELECT COUNT(' + app.config['DB_RECORD_ID'] + ') '
+               + ' FROM ' + app.config['DB_TABLE_RECORDS']
+               + ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' =  %s AND '
+               + app.config['DB_RECORD_TIMESTAMP'] + ' > %s AND '
+               + app.config['DB_RECORD_TIMESTAMP'] + ' < %s;')
+
+        cursor.execute(sql, (userId, currentStartTs, currentEndTs,))
+
+        result=cursor.fetchone()
+
+        if i < 7:
+            answer[0].append(int(result[0]))
+        else:
+            answer[1].append(int(result[0]))
+
+
+    cursor.close()
+    conn.close()
+
+    return answer
+
 ###########################
 ###  REST API-Handler   ###
 ###########################
 
 # Check user login
-@app.route("/loginAPI", methods=['POST'])
+@app.route("/loginAPI", methods = ['POST'])
 @requires_authorization
 def loginAPI():
     updateUserLastLogin(request.authorization.username)
 
-    conn = mysql.connect()
-    cursor = conn.cursor()
+    conn=mysql.connect()
+    cursor=conn.cursor()
 
-    sql = ('SELECT ' + app.config['DB_USERS_ID'] + ', '
+    sql=('SELECT ' + app.config['DB_USERS_ID'] + ', '
            + app.config['DB_USERS_VERIFYTOKEN'] + ' FROM '
            + app.config['DB_TABLE_USERS'] + ' WHERE '
            + app.config['DB_USERS_EMAIL']+' = %s;')
