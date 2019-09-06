@@ -16,28 +16,32 @@
               var totalProcent = Math.floor($("#procentProductivityTotal").val() * 100) / 100;
               var pauseProcent = Math.floor((100 - totalProcent) * 100) / 100;
 
-              var options = {
-                chart: {
-                  type: 'donut',
-                },
-                series: [totalProcent, pauseProcent],
-                labels: ["Aktivitätsphase", "Pausezeit"],
-                responsive: [{
-                  breakpoint: 480,
-                  options: {
-                    legend: {
-                      position: 'bottom'
+              if (totalProcent == -1) {
+                document.write("Nicht genug Aufzeichnungen!");
+              } else {
+                var options = {
+                  chart: {
+                    type: 'donut',
+                  },
+                  series: [totalProcent, pauseProcent],
+                  labels: ["Aktivitätsphase", "Pausezeit"],
+                  responsive: [{
+                    breakpoint: 480,
+                    options: {
+                      legend: {
+                        position: 'bottom'
+                      }
                     }
-                  }
-                }]
+                  }]
+                }
+
+                var chart = new ApexCharts(
+                  document.querySelector("#chartProductivityTotal"),
+                  options
+                );
+
+                chart.render();
               }
-
-              var chart = new ApexCharts(
-                document.querySelector("#chartProductivityTotal"),
-                options
-              );
-
-              chart.render();
             </script>
           </div>
         </div>
@@ -68,7 +72,7 @@
           <div class="flex-grow-1 d-flex align-items-center">
             <div class="dot mr-3 bg-green"></div>
             <div class="text">
-              <h6 class="mb-0">Trainingszeit</h6><span class="text-gray">{{(totalTime)|formatSeconds}}</span>
+              <h6 class="mb-0">Trainingszeit</h6><span class="text-gray">{{(totalActivityTime)|formatSeconds}}</span>
             </div>
           </div>
           <div class="icon text-white bg-green"><i class="fas fa-stopwatch"></i></div>

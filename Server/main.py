@@ -1587,10 +1587,14 @@ def dashboardPage():
     if current_user.is_authenticated:
         totalRecords = getRecordsAmount(current_user.id)
         totalDistance = getUserTotalDistance(current_user.id)
-        totalTime = getTotalRecordTime(current_user.id)
+        totalActivityTime = getTotalRecordTime(current_user.id)
         totalPauseTime = getTotalPauseTime(current_user.id)
-        procentProductivity = (totalTime/(totalTime + totalPauseTime)) * 100
-        return render_template("dashboard.html", user=current_user, site="dashboard", recordsAmount=totalRecords, totalDistance=totalDistance, totalTime=totalTime, totalPauseTime=totalPauseTime, procentProductivity=procentProductivity)
+        totalTime = totalActivityTime + totalPauseTime
+        if totalTime > 0:
+            procentProductivity = (totalActivityTime/totalTime) * 100
+        else:
+            procentProductivity = -1
+        return render_template("dashboard.html", user=current_user, site="dashboard", recordsAmount=totalRecords, totalDistance=totalDistance, totalActivityTime=totalActivityTime, totalPauseTime=totalPauseTime, procentProductivity=procentProductivity)
     else:
         return redirect("/login")
 
