@@ -1590,11 +1590,13 @@ def dashboardPage():
         totalActivityTime = getTotalRecordTime(current_user.id)
         totalPauseTime = getTotalPauseTime(current_user.id)
         totalTime = totalActivityTime + totalPauseTime
+        weeksProductivity = getProductivityLastWeeks(current_user.id)
+        weeksRecords = getAmountRecordsLastWeeks(current_user.id)
         if totalTime > 0:
             procentProductivity = (totalActivityTime/totalTime) * 100
         else:
             procentProductivity = -1
-        return render_template("dashboard.html", user=current_user, site="dashboard", recordsAmount=totalRecords, totalDistance=totalDistance, totalActivityTime=totalActivityTime, totalPauseTime=totalPauseTime, procentProductivity=procentProductivity)
+        return render_template("dashboard.html", user=current_user, site="dashboard", recordsAmount=totalRecords, totalDistance=totalDistance, totalActivityTime=totalActivityTime, totalPauseTime=totalPauseTime, procentProductivity=procentProductivity, weeksProductivity = json.dumps(weeksProductivity), weeksRecords = json.dumps(weeksRecords))
     else:
         return redirect("/login")
 
