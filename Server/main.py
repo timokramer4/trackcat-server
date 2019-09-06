@@ -2148,7 +2148,7 @@ def deleteResetRequest():
 
 # TODO clean
 @app.route("/getProductivityLastWeeks")
-def getProductivityLastWeeks():
+def getProductivityLastWeeks(userId):
 
     today = datetime.now().date()
     start = today - timedelta(days=today.weekday())
@@ -2166,7 +2166,7 @@ def getProductivityLastWeeks():
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    answer = []
+    answer = [[], []]
 
     for i in range(14):
         currentStart = start + timedelta(days=i)
@@ -2185,22 +2185,21 @@ def getProductivityLastWeeks():
                + app.config['DB_RECORD_TIMESTAMP'] + ' > %s AND '
                + app.config['DB_RECORD_TIMESTAMP'] + ' < %s;')
 
-        cursor.execute(sql, (1, currentStartTs, currentEndTs,))
+        cursor.execute(sql, (userId, currentStartTs, currentEndTs,))
 
         result = cursor.fetchall()
         print(result)
         print(i)
 
         if result[0][0] is not None:
-            answer.append([int(result[0][0]), int(result[0][1])])
+            answer[0].append(int(result[0][0]))
+            answer[1].append(int(result[0][1]))
         else:
-            answer.append([0,0])
+            answer[0].append(0)
+            answer[1].append(0)
 
     cursor.close()
     conn.close()
-
-
-        
 
     print("Today: " + str(datetime.timestamp(datetime(today.year,
                                                       today.month, today.day, 0, 0, 0, 0))))
