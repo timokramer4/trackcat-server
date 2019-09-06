@@ -2191,9 +2191,21 @@ def getProductivityLastWeeks(userId):
         print(result)
         print(i)
 
+        
+
         if result[0][0] is not None:
-            answer[0].append(int(result[0][0]))
-            answer[1].append(int(result[0][1]))
+            time = int(result[0][1])
+            rtime = int(result[0][0])
+
+            temp = 100 / time
+
+            percent = rtime * temp
+
+            if i < 7:
+                answer[0].append(percent)
+            else:
+                answer[1].append(percent)
+
         else:
             answer[0].append(0)
             answer[1].append(0)
@@ -2211,16 +2223,15 @@ def getProductivityLastWeeks(userId):
     return answer
 
 
-
 def getAmountRecordsLastWeeks(userId):
 
     today = datetime.now().date()
     start = today - timedelta(days=7)
 
+    answer = [[], []]
+
     conn = mysql.connect()
     cursor = conn.cursor()
-
-    answer = [[], []]
 
     for i in range(14):
         currentStart = start + timedelta(days=i)
@@ -2240,13 +2251,12 @@ def getAmountRecordsLastWeeks(userId):
 
         cursor.execute(sql, (userId, currentStartTs, currentEndTs,))
 
-        result=cursor.fetchone()
+        result = cursor.fetchone()
 
         if i < 7:
             answer[0].append(int(result[0]))
         else:
             answer[1].append(int(result[0]))
-
 
     cursor.close()
     conn.close()
@@ -2258,15 +2268,15 @@ def getAmountRecordsLastWeeks(userId):
 ###########################
 
 # Check user login
-@app.route("/loginAPI", methods = ['POST'])
+@app.route("/loginAPI", methods=['POST'])
 @requires_authorization
 def loginAPI():
     updateUserLastLogin(request.authorization.username)
 
-    conn=mysql.connect()
-    cursor=conn.cursor()
+    conn = mysql.connect()
+    cursor = conn.cursor()
 
-    sql=('SELECT ' + app.config['DB_USERS_ID'] + ', '
+    sql = ('SELECT ' + app.config['DB_USERS_ID'] + ', '
            + app.config['DB_USERS_VERIFYTOKEN'] + ' FROM '
            + app.config['DB_TABLE_USERS'] + ' WHERE '
            + app.config['DB_USERS_EMAIL']+' = %s;')
