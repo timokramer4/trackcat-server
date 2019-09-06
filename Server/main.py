@@ -2199,7 +2199,7 @@ def getProductivityLastWeeks(userId):
 
             temp = 100 / time
 
-            percent = rtime * temp
+            percent = Math.floor((rtime * temp) * 100) / 100.0
 
             if i < 7:
                 answer[0].append(percent)
