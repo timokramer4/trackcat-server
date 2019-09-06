@@ -2147,7 +2147,8 @@ def deleteResetRequest():
 
 
 # TODO clean
-def getProductivityLastWeeks(userId):
+@app.route("/getProductivityLastWeeks")
+def getProductivityLastWeeks():
 
     today = datetime.now().date()
     start = today - timedelta(days=today.weekday())
@@ -2177,23 +2178,29 @@ def getProductivityLastWeeks(userId):
         currentEndTs = datetime.timestamp(
             datetime(currentEnd.year, currentEnd.month, currentEnd.day, 0, 0, 0, 0)) * 1000
 
-        sql = ('SELECT ' + app.config['DB_RECORD_RIDETIME']
-               + ', ' + app.config['DB_RECORD_TIME']
-               + ' FROM ' + app.config['DB_TABLE_RECORDS']
+        sql = ('SELECT SUM(' + app.config['DB_RECORD_RIDETIME']
+               + '), SUM(' + app.config['DB_RECORD_TIME']
+               + ') FROM ' + app.config['DB_TABLE_RECORDS']
                + ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' =  %s AND '
                + app.config['DB_RECORD_TIMESTAMP'] + ' > %s AND '
                + app.config['DB_RECORD_TIMESTAMP'] + ' < %s;')
 
-        cursor.execute(sql, (userId, currentStartTs, currentEndTs,))
+        cursor.execute(sql, (1, currentStartTs, currentEndTs,))
 
         result = cursor.fetchall()
         print(result)
         print(i)
 
-        answer.append(result)
+        if result[0][0] is not None:
+            answer.append([int(result[0][0]), int(result[0][1])])
+        else:
+            answer.append([0,0])
 
     cursor.close()
     conn.close()
+
+
+        
 
     print("Today: " + str(datetime.timestamp(datetime(today.year,
                                                       today.month, today.day, 0, 0, 0, 0))))
