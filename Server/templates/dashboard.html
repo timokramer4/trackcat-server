@@ -1,71 +1,20 @@
 {% extends "model/loggedMenu.html" %}
 
 {% block subcontent %}
-<div class="container-fluid px-xl-5">
-  <section class="py-5">
-    <div class="row">
-      <div class="col-xl-3 col-lg-6 mb-4 mb-xl-0">
-        <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
-          <div class="flex-grow-1 d-flex align-items-center">
-            <div class="dot mr-3 bg-red"></div>
-            <div class="text">
-              <h6 class="mb-0">Trainings</h6><span class="text-gray">{{recordsAmount}}</span>
-            </div>
-          </div>
-          <div class="icon text-white bg-red"><i class="fas fa-dumbbell"></i></div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-lg-6 mb-4 mb-xl-0">
-        <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
-          <div class="flex-grow-1 d-flex align-items-center">
-            <div class="dot mr-3 bg-blue"></div>
-            <div class="text">
-              <h6 class="mb-0">Strecke</h6><span
-                class="text-gray">{% if totalDistance / 1000 >= 1 %}{{'%0.2f'| format(totalDistance/1000|float)}}
-                km{% else %}{{'%0.2f'| format(totalDistance|float)}}
-                m{% endif %}</span>
-            </div>
-          </div>
-          <div class="icon text-white bg-blue"><i class="fas fa-fire"></i></div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-lg-6 mb-4 mb-xl-0">
-        <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
-          <div class="flex-grow-1 d-flex align-items-center">
-            <div class="dot mr-3 bg-green"></div>
-            <div class="text">
-              <h6 class="mb-0">Trainingszeit</h6><span class="text-gray">{{(totalTime)|formatSeconds}}</span>
-            </div>
-          </div>
-          <div class="icon text-white bg-green"><i class="fas fa-stopwatch"></i></div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-lg-6 mb-4 mb-xl-0">
-        <div class="bg-white shadow roundy p-4 h-100 d-flex align-items-center justify-content-between">
-          <div class="flex-grow-1 d-flex align-items-center">
-            <div class="dot mr-3 bg-orange"></div>
-            <div class="text">
-              <h6 class="mb-0">Pausezeit</h6><span class="text-gray">{{(totalPauseTime)|formatSeconds}}</span>
-            </div>
-          </div>
-          <div class="icon text-white bg-orange"><i class="fas fa-stopwatch"></i></div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section>
+<div class="container-fluid px-xl-5 py-5">
+  <section class="pb-3">
     <div class="row mb-4">
-      <div class="col-lg-6 mb-4 mb-lg-0">
+      <div class="col-lg-8 mb-4 mb-lg-0">
         <div class="card">
           <div class="card-header">
-            <h2 class="h6 text-uppercase mb-0">Trainingsproduktivität</h2>
+            <h2 class="h6 text-uppercase mb-0">Gesamtproduktivität</h2>
           </div>
           <div class="card-body">
-            <input type="hidden" id="procentProductivity" value="{{procentProductivity}}">
-            <div id="chartProductivity" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+            <input type="hidden" id="procentProductivityTotal" value="{{procentProductivity}}">
+            <div id="chartProductivityTotal" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
             <script>
-              var totalProcent = Math.floor($("#procentProductivity").val()*100)/100;
-              var pauseProcent = Math.floor((100 - totalProcent)*100)/100;
+              var totalProcent = Math.floor($("#procentProductivityTotal").val() * 100) / 100;
+              var pauseProcent = Math.floor((100 - totalProcent) * 100) / 100;
 
               var options = {
                 chart: {
@@ -84,7 +33,7 @@
               }
 
               var chart = new ApexCharts(
-                document.querySelector("#chartProductivity"),
+                document.querySelector("#chartProductivityTotal"),
                 options
               );
 
@@ -93,7 +42,120 @@
           </div>
         </div>
       </div>
-      <div class="col-lg-6 mb-4 mb-lg-0 pl-lg-0">
+      <div class="col-lg-4 mb-4 mb-lg-0 pl-lg-3">
+        <div class="bg-white shadow roundy px-4 py-3 d-flex align-items-center justify-content-between mb-4">
+          <div class="flex-grow-1 d-flex align-items-center">
+            <div class="dot mr-3 bg-red"></div>
+            <div class="text">
+              <h6 class="mb-0">Trainings</h6><span class="text-gray">{{recordsAmount}}</span>
+            </div>
+          </div>
+          <div class="icon text-white bg-red"><i class="fas fa-dumbbell"></i></div>
+        </div>
+        <div class="bg-white shadow roundy px-4 py-3 d-flex align-items-center justify-content-between mb-4">
+          <div class="flex-grow-1 d-flex align-items-center">
+            <div class="dot mr-3 bg-blue"></div>
+            <div class="text">
+              <h6 class="mb-0">Strecke</h6><span
+                class="text-gray">{% if totalDistance / 1000 >= 1 %}{{'%0.2f'| format(totalDistance/1000|float)}}
+                km{% else %}{{'%0.2f'| format(totalDistance|float)}}
+                m{% endif %}</span>
+            </div>
+          </div>
+          <div class="icon text-white bg-blue"><i class="fas fa-fire"></i></div>
+        </div>
+        <div class="bg-white shadow roundy px-4 py-3 d-flex align-items-center justify-content-between mb-4">
+          <div class="flex-grow-1 d-flex align-items-center">
+            <div class="dot mr-3 bg-green"></div>
+            <div class="text">
+              <h6 class="mb-0">Trainingszeit</h6><span class="text-gray">{{(totalTime)|formatSeconds}}</span>
+            </div>
+          </div>
+          <div class="icon text-white bg-green"><i class="fas fa-stopwatch"></i></div>
+        </div>
+        <div class="bg-white shadow roundy px-4 py-3 d-flex align-items-center justify-content-between mb-4">
+          <div class="flex-grow-1 d-flex align-items-center">
+            <div class="dot mr-3 bg-orange"></div>
+            <div class="text">
+              <h6 class="mb-0">Pausezeit</h6><span class="text-gray">{{(totalPauseTime)|formatSeconds}}</span>
+            </div>
+          </div>
+          <div class="icon text-white bg-orange"><i class="fas fa-stopwatch"></i></div>
+        </div>
+        <div class="bg-white shadow roundy px-4 py-3 d-flex align-items-center justify-content-between">
+          <div class="flex-grow-1 d-flex align-items-center">
+            <div class="dot mr-3 bg-red"></div>
+            <div class="text">
+              <h6 class="mb-0">Trainings</h6><span class="text-gray">34</span>
+            </div>
+          </div>
+          <div class="icon text-white bg-red"><i class="fas fa-dumbbell"></i></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="pb-3">
+    <div class="row">
+      <div class="col-lg-7 mb-4 mb-lg-0">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="h6 text-uppercase mb-0">Produktivität im Detail</h2>
+          </div>
+          <div class="card-body">
+            <div class="row align-items-center flex-row">
+              <div id="chartProductivityLast" style="width: 100%;"></div>
+              <script>
+                var options = {
+                  chart: {
+                    height: 400,
+                    type: 'bar',
+                  },
+                  plotOptions: {
+                    bar: {
+                      horizontal: true,
+                      dataLabels: {
+                        position: 'top',
+                      },
+                    }
+                  },
+                  dataLabels: {
+                    enabled: true,
+                    offsetX: -6,
+                    style: {
+                      fontSize: '12px',
+                      colors: ['#fff']
+                    }
+                  },
+                  stroke: {
+                    show: true,
+                    width: 1,
+                    colors: ['#fff']
+                  },
+                  series: [{
+                    name: 'Diese Woche',
+                    data: [44, 55, 41, 64, 22, 43, 21]
+                  }, {
+                    name: 'Letzte Woche',
+                    data: [53, 32, 33, 52, 13, 44, 32]
+                  }],
+                  xaxis: {
+                    categories: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
+                  },
+
+                }
+
+                var chart = new ApexCharts(
+                  document.querySelector("#chartProductivityLast"),
+                  options
+                );
+
+                chart.render();
+              </script>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5 mb-4 mb-lg-0">
         <div class="card mb-3">
           <div class="card-header">
             <h2 class="h6 text-uppercase mb-0">Die letzten Wochen im Vergleich</h2>
@@ -104,7 +166,7 @@
               <script>
                 var options = {
                   chart: {
-                    height: 350,
+                    height: 400,
                     type: 'area',
                   },
                   dataLabels: {
@@ -134,83 +196,14 @@
 
                 chart.render();
               </script>
-              <!-- <div class="col-lg-5">
-                <h2 class="mb-0 d-flex align-items-center"><span>86.4</span><span
-                    class="dot bg-green d-inline-block ml-3"></span></h2><span
-                  class="text-muted text-uppercase small">Work hours</span>
-                <hr><small class="text-muted">Lorem ipsum dolor sit</small>
-              </div>
-              <div class="col-lg-7">
-                <canvas id="pieChartHome1"></canvas>
-              </div> -->
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-body">
-            <div class="row align-items-center flex-row">
-              <div class="col-lg-5">
-                <h2 class="mb-0 d-flex align-items-center"><span>1.724</span><span
-                    class="dot bg-violet d-inline-block ml-3"></span></h2><span
-                  class="text-muted text-uppercase small">Server time</span>
-                <hr><small class="text-muted">Lorem ipsum dolor sit</small>
-              </div>
-              <div class="col-lg-7">
-                <canvas id="pieChartHome2"></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-lg-5 mb-4 mb-lg-0">
-        <div class="card mb-3">
-          <div class="card-body">
-            <div class="row align-items-center mb-3 flex-row">
-              <div class="col-lg-5">
-                <h2 class="mb-0 d-flex align-items-center"><span>86%</span><span
-                    class="dot bg-violet d-inline-block ml-3"></span></h2><span
-                  class="text-muted text-uppercase small">Monthly Usage</span>
-                <hr><small class="text-muted">Lorem ipsum dolor sit</small>
-              </div>
-              <div class="col-lg-7">
-                <canvas id="pieChartHome3"></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-body">
-            <div class="row align-items-center flex-row">
-              <div class="col-lg-5">
-                <h2 class="mb-0 d-flex align-items-center"><span>$126,41</span><span
-                    class="dot bg-green d-inline-block ml-3"></span></h2><span
-                  class="text-muted text-uppercase small">All Income</span>
-                <hr><small class="text-muted">Lorem ipsum dolor sit</small>
-              </div>
-              <div class="col-lg-7">
-                <canvas id="pieChartHome4"></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-7">
-        <div class="card">
-          <div class="card-header">
-            <h2 class="h6 text-uppercase mb-0">Total Overdue</h2>
-          </div>
-          <div class="card-body">
-            <p class="text-gray">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-            <div class="chart-holder">
-              <canvas id="lineChart2" style="max-height: 14rem !important;" class="w-100"></canvas>
             </div>
           </div>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- TODO: Ersetzen oder rausnehmen -->
   <section class="py-5">
     <div class="row text-dark">
       <div class="col-lg-4 mb-4 mb-lg-0">
@@ -352,7 +345,8 @@
         </div>
         <div class="card px-5 py-4">
           <h2 class="mb-0 d-flex align-items-center"><span>86.4</span><span
-              class="dot bg-red d-inline-block ml-3"></span></h2><span class="text-muted">Server time</span>
+              class="dot bg-red d-inline-block ml-3"></span>
+          </h2><span class="text-muted">Server time</span>
           <div class="chart-holder">
             <canvas id="lineChart3" style="max-height: 7rem !important;" class="w-100"> </canvas>
           </div>
