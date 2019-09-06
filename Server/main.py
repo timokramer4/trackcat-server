@@ -2154,7 +2154,7 @@ def getProductivityLastWeeks(userId):
 
     today = datetime.now().date()
     start = today - timedelta(days=today.weekday())
-    start = today - timedelta(days=7)
+    start = today - timedelta(days=6)
     end = start + timedelta(days=14)
     print("Today: " + str(today))
     print("Start: " + str(start))
@@ -2228,7 +2228,7 @@ def getProductivityLastWeeks(userId):
 def getAmountRecordsLastWeeks(userId):
 
     today = datetime.now().date()
-    start = today - timedelta(days=7)
+    start = today - timedelta(days=6)
 
     answer = [[], []]
 
