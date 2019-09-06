@@ -3,7 +3,7 @@
 ###########################
 
 from flask import Flask, flash, request, render_template, redirect, jsonify, session, make_response, send_file
-from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
+from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user, login_required
 from dateutil.relativedelta import relativedelta
 from mailSend import sendVmail, sendResetMail
 from datetime import datetime, timedelta
@@ -2145,6 +2145,64 @@ def deleteResetRequest():
         pass
     return redirect("/")
 
+
+# TODO clean
+def getProductivityLastWeeks(userId):
+
+    today = datetime.now().date()
+    start = today - timedelta(days=today.weekday())
+    start = start - timedelta(days=7)
+    end = start + timedelta(days=14)
+    print("Today: " + str(today))
+    print("Start: " + str(start))
+    print("End: " + str(end))
+
+    startTs = datetime.timestamp(
+        datetime(start.year, start.month, start.day, 0, 0, 0, 0)) * 1000
+    endTs = datetime.timestamp(
+        datetime(end.year, end.month, end.day, 0, 0, 0, 0)) * 1000
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    answer = []
+
+    for i in range(14):
+        currentStart = start + timedelta(days=i)
+        currentEnd = start + timedelta(days=i+1)
+
+        currentStartTs = datetime.timestamp(
+            datetime(currentStart.year, currentStart.month, currentStart.day, 0, 0, 0, 0)) * 1000
+
+        currentEndTs = datetime.timestamp(
+            datetime(currentEnd.year, currentEnd.month, currentEnd.day, 0, 0, 0, 0)) * 1000
+
+        sql = ('SELECT ' + app.config['DB_RECORD_RIDETIME']
+               + ', ' + app.config['DB_RECORD_TIME']
+               + ' FROM ' + app.config['DB_TABLE_RECORDS']
+               + ' WHERE ' + app.config['DB_RECORD_USERS_ID'] + ' =  %s AND '
+               + app.config['DB_RECORD_TIMESTAMP'] + ' > %s AND '
+               + app.config['DB_RECORD_TIMESTAMP'] + ' < %s;')
+
+        cursor.execute(sql, (userId, currentStartTs, currentEndTs,))
+
+        result = cursor.fetchall()
+        print(result)
+        print(i)
+
+        answer.append(result)
+
+    cursor.close()
+    conn.close()
+
+    print("Today: " + str(datetime.timestamp(datetime(today.year,
+                                                      today.month, today.day, 0, 0, 0, 0))))
+    print("Start: " + str(datetime.timestamp(datetime(start.year,
+                                                      start.month, start.day, 0, 0, 0, 0)) * 1000))
+    print("End: " + str(datetime.timestamp(datetime(end.year,
+                                                    end.month, end.day, 0, 0, 0, 0)) * 1000))
+
+    return answer
 
 ###########################
 ###  REST API-Handler   ###
