@@ -36,8 +36,8 @@ app.secret_key = "TOLLERSECRETKEY"  # TODO generate Secret key
 app.config['MYSQL_DATABASE_USER'] = 'remRoot'
 app.config['MYSQL_DATABASE_PASSWORD'] = '1Qayse45&'
 app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
-app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'#'localhost'#
-app.config['MYSQL_DATABASE_PORT'] = 42042#3306#
+app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'  # 'localhost'#
+app.config['MYSQL_DATABASE_PORT'] = 42042  # 3306#
 mysql.init_app(app)
 
 app.config['BASE_URL'] = "http://safe-harbour.de:4242"
@@ -69,6 +69,7 @@ app.config['DB_USERS_LASTLOGIN'] = "lastLogin"
 app.config['DB_USERS_TIMESTAMP'] = "timeStamp"
 app.config['DB_USERS_VERIFYTOKEN'] = "verifyToken"
 app.config['DB_USERS_RESETTOKEN'] = "resetToken"
+app.config['DB_USERS_SESSION_TIME'] = "sessionTime"
 
 # COLUMN-NAMES: users_has_users (friends)
 app.config['DB_USERS_HAS_USERS_ASKER'] = "asker"
@@ -120,7 +121,7 @@ login_manager.init_app(app)
 # Logged user model
 class User(UserMixin):
 
-    def __init__(self, id, email, firstName, lastName, gender, weight, size, dateOfBirth, dateOfRegistration, lastLogin):
+    def __init__(self, id, email, firstName, lastName, gender, weight, size, dateOfBirth, dateOfRegistration, lastLogin, sessionTime):
         self.id = id
         self.email = email
         self.firstName = firstName
@@ -131,7 +132,7 @@ class User(UserMixin):
         self.dateOfBirth = dateOfBirth
         self.dateOfRegistration = dateOfRegistration
         self.lastLogin = lastLogin
-        self.sessionTime = 300
+        self.sessionTime = sessionTime
 
 
 ###########################
@@ -171,20 +172,23 @@ def user_loaderlmgr(id):
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    sql = ('SELECT ' + app.config['DB_USERS_ID']
-           + ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '
-           + app.config['DB_USERS_ID']+' = %s;')
+    sql = ('SELECT ' + app.config['DB_USERS_SESSION_TIME']
+           + ' FROM ' + app.config['DB_TABLE_USERS']
+           + ' WHERE ' + app.config['DB_USERS_ID']
+           + ' = %s;')
 
     cursor.execute(sql, (id,))
+
     result = cursor.fetchone()
+
     cursor.close()
     conn.close()
 
-    jsonUser = getUserFromDB(result[0])
+    jsonUser = getUserFromDB(id)
     user = User(jsonUser['id'], jsonUser['email'],
                 jsonUser['firstName'], jsonUser['lastName'],
                 jsonUser['gender'], jsonUser['weight'], jsonUser['size'], jsonUser['dateOfBirth'],
-                jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
+                jsonUser['dateOfRegistration'], jsonUser['lastLogin'], result[0])
     return user
 
 
@@ -192,7 +196,8 @@ def user_loader(email):
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    sql = ('SELECT ' + app.config['DB_USERS_ID']
+    sql = ('SELECT ' + app.config['DB_USERS_ID'] + ', '
+           + app.config['DB_USERS_SESSION_TIME']
            + ' FROM '+app.config['DB_TABLE_USERS'] + ' WHERE '
            + app.config['DB_USERS_EMAIL']+' = %s;')
 
@@ -206,7 +211,7 @@ def user_loader(email):
     user = User(jsonUser['id'], jsonUser['email'],
                 jsonUser['firstName'], jsonUser['lastName'],
                 jsonUser['gender'], jsonUser['weight'], jsonUser['size'], jsonUser['dateOfBirth'],
-                jsonUser['dateOfRegistration'], jsonUser['lastLogin'])
+                jsonUser['dateOfRegistration'], jsonUser['lastLogin'], result[1])
     return user
 
 
@@ -674,7 +679,7 @@ def getRecordsByID(userId, page):
 
     sql = ('SELECT ' + params + ' FROM '
            + app.config['DB_TABLE_RECORDS'] + ' WHERE '
-           + app.config['DB_RECORD_USERS_ID'] + ' = %s ORDER BY ' 
+           + app.config['DB_RECORD_USERS_ID'] + ' = %s ORDER BY '
            + app.config['DB_RECORD_DATE'] + ' DESC ' + limitter + ";")
 
     cursor.execute(sql, (userId,))
@@ -1597,7 +1602,7 @@ def dashboardPage():
             procentProductivity = (totalActivityTime/totalTime) * 100
         else:
             procentProductivity = -1
-        return render_template("dashboard.html", user=current_user, site="dashboard", recordsAmount=totalRecords, totalDistance=totalDistance, totalActivityTime=totalActivityTime, totalPauseTime=totalPauseTime, procentProductivity=procentProductivity, weeksProductivity = json.dumps(weeksProductivity), weeksRecords = json.dumps(weeksRecords))
+        return render_template("dashboard.html", user=current_user, site="dashboard", recordsAmount=totalRecords, totalDistance=totalDistance, totalActivityTime=totalActivityTime, totalPauseTime=totalPauseTime, procentProductivity=procentProductivity, weeksProductivity=json.dumps(weeksProductivity), weeksRecords=json.dumps(weeksRecords))
     else:
         return redirect("/login")
 
@@ -1757,6 +1762,14 @@ def login():
 
         conn = mysql.connect()
         cursor = conn.cursor()
+
+        sql = ('UPDATE ' + app.config['DB_TABLE_USERS']
+               + ' SET ' + app.config['DB_USERS_SESSION_TIME']
+               + ' = %s WHERE ' + app.config['DB_USERS_ID']
+               + ' = %s;')
+
+        cursor.execute(sql, (current_user.sessionTime, user.id,))
+        conn.commit()
 
         sql = ('SELECT ' + app.config['DB_USERS_VERIFYTOKEN']
                + ' FROM '+app.config['DB_TABLE_USERS']
@@ -2153,7 +2166,7 @@ def getProductivityLastWeeks(userId):
     today = datetime.now().date()
     start = today - timedelta(days=today.weekday())
     start = today - timedelta(days=6)
-   
+
     conn = mysql.connect()
     cursor = conn.cursor()
 
@@ -2179,7 +2192,7 @@ def getProductivityLastWeeks(userId):
         cursor.execute(sql, (userId, currentStartTs, currentEndTs,))
 
         result = cursor.fetchall()
-        
+
         if result[0][0] is not None:
             time = int(result[0][1])
             rtime = int(result[0][0])
