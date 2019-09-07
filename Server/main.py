@@ -2619,13 +2619,19 @@ def synchronizeRecordsAPI():
 
         if result == None:
             # record not in Server DB
-            janswer['missingId'].append(jsn['id'])
+            try:
+                if  jsn['synchronized'] != 'true':
+                    janswer['missingId'].append(int(jsn['id']))
+                pass
+            except Exception as identifier:
+                pass
+
         elif result[0] < timeStamp:
             # update Recordname
             updateRecordDB(jsn['id'], jsn['name'], jsn['timeStamp'])
         elif result[0] > timeStamp:
             jnewName = {}
-            jnewName['id'] = jsn['id']
+            jnewName['id'] = int(jsn['id'])
             jnewName['timeStamp'] = result[0]
             jnewName['name'] = result[1]
 
@@ -2666,6 +2672,18 @@ def synchronizeRecordsAPI():
         pass
 
     try:
+        ids = []
+        ios = False
+        for jsn in jarr:
+            try:
+                if jsn['synchronized'] == 'true':
+                    ios = True
+                    ids.append(int(jsn['id']))
+                pass
+            except Exception as identifier:
+                ids.append(int(jsn['id']))
+                pass
+            
 
         sql = ("SELECT " + app.config['DB_RECORD_ID'] + " FROM "
                + app.config['DB_TABLE_RECORDS'] + " WHERE "
@@ -2683,9 +2701,12 @@ def synchronizeRecordsAPI():
         deletedIds = list(set(ids) - set(idsInDB))
 
         for delID in deletedIds:
-            jid = {}
-            jid['id'] = delID
-            janswer['deletedOnServer'].append(jid)
+            if ios:
+                janswer['deletedOnServer'].append(int(delID))
+            else:
+                jid = {}
+                jid['id'] = delID
+                janswer['deletedOnServer'].append(jid)
 
         pass
     except Exception as identifier:
