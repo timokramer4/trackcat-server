@@ -111,6 +111,7 @@ app.config['DB_LOCATION_RECORD_ID'] = "record_id"
 app.config['ANDROID_LOCATION_RECORD_ID'] = "recordId"
 
 login_manager = LoginManager()
+login_manager.session_protection = "strong"
 login_manager.init_app(app)
 
 ###########################
@@ -1755,10 +1756,13 @@ def login():
         user = user_loader(request.form['email'])
 
         # Set lifetime session
+        sessionRemember = False
         if request.form.get('lifetime') == 'on':
-            current_user.sessionTime = 3600 * 7
+            current_user.sessionTime = -1
+            sessionRemember = True
         else:
             current_user.sessionTime = 300
+            sessionRemember = False
 
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -1787,7 +1791,7 @@ def login():
             return redirect("/login?alert=warning")
         else:
             updateUserLastLogin(request.form['email'])
-            login_user(user)
+            login_user(user, remember = sessionRemember)
             return redirect("/dashboard")
     else:
         flash('Ihre Anmeldedaten sind nicht korrekt!')
