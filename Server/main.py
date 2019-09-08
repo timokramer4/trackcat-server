@@ -36,8 +36,14 @@ app.secret_key = "TOLLERSECRETKEY"  # TODO generate Secret key
 app.config['MYSQL_DATABASE_USER'] = 'remRoot'
 app.config['MYSQL_DATABASE_PASSWORD'] = '1Qayse45&'
 app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
-app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'  # 'localhost'#
-app.config['MYSQL_DATABASE_PORT'] = 42042  # 3306#
+app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
+app.config['MYSQL_DATABASE_PORT'] = 42042
+
+# app.config['MYSQL_DATABASE_USER'] = 'root'
+# app.config['MYSQL_DATABASE_PASSWORD'] = ''
+# app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
+# app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+# app.config['MYSQL_DATABASE_PORT'] = 3306
 mysql.init_app(app)
 
 app.config['BASE_URL'] = "http://safe-harbour.de:4242"

@@ -27,10 +27,14 @@ function validate(allInputs) {
 
     for (var i = 0; i < allInputs.length; i++) {
         var item = allInputs[i];
+        if (i == 5) {
+            console.log(item);
+        }
         if (item.getAttribute("validate") != null || item.getAttribute("validate") || (item.getAttribute("validateNewPass") > 0 && item.getAttribute("validateNewPass") <= 2)) {
-            if (item.value == null) {
-                markField(item, false);
-                result = false;
+            if (item.value == null || item.value.length == 0) {
+                markField(item, item.getAttribute("validate") == "content" ? true : false);
+                setHint(item, false);
+                result = item.getAttribute("validate") == "content" && result ? true : false;
             } else if (item.value.length > 0 || item.type.toLocaleLowerCase() == "date") {
                 if (item.type.toLocaleLowerCase() == "password") {
                     if (item.getAttribute("validateNewPass") != null) {
