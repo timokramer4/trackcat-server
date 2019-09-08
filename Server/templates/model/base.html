@@ -47,30 +47,6 @@
         integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
         crossorigin=""></script>
     <script src="{{ url_for('static', filename='js/bmi.js')}}"></script>
-    <script>
-        String.prototype.replaceAt = function (index, replacement) {
-            return this.substr(0, index) + replacement + this.substr(index + replacement.length);
-        }
-
-        cryptEmail = function (email) {
-            var avg, splitted, part1, part2, tmp;
-            splitted = email.split("@");
-
-            part1 = splitted[0];
-            for (var i = 1; i < part1.length; i++) {
-                part1 = part1.replaceAt(i, "*");
-            }
-
-            tmp = (splitted[1]).split('.');
-            var part2 = splitted[1];
-            for (var i = 0; i < tmp.length - 1; i++) {
-                for (var j = 0; j < tmp[i].length; j++) {
-                    part2 = part2.replaceAt(j, "*");
-                }
-            }
-            return part1 + "@" + part2;
-        };
-    </script>
     {% endblock %}
 </head>
 
@@ -81,15 +57,16 @@
 
     <!-- JavaScript files-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-        crossorigin="anonymous"></script>
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous">
+    </script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-        crossorigin="anonymous"></script>
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous">
+    </script>
     <script src="{{ url_for('static', filename='vendor/jquery.cookie/jquery.cookie.js')}}"> </script>
     <script src="{{ url_for('static', filename='vendor/chart.js/Chart.min.js')}}"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
     <script src="{{ url_for('static', filename='js/front.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/countdown.js')}}"></script>
     <script>
         if ($("[id*='backBtn']")) {
             $("[id*='backBtn']").on("click", function () {
@@ -99,6 +76,7 @@
         }
     </script>
     {% block customScripts %}
+
     {% endblock %}
 </body>
 
