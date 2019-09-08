@@ -32,7 +32,7 @@ app = Flask(__name__)
 mysql = MySQL()
 app.config['SESSION_LIFETIME'] = False
 
-app.secret_key = "TOLLERSECRETKEY"  # TODO generate Secret key
+app.secret_key = "s1ak30GAUSWhpyBo21f7sFgGOYswFUFq"
 app.config['MYSQL_DATABASE_USER'] = 'remRoot'
 app.config['MYSQL_DATABASE_PASSWORD'] = '1Qayse45&'
 app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
