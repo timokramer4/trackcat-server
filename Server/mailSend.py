@@ -12,22 +12,20 @@ def sendVmail(reciever, firstName, verificationLink):
 
     # Create the base text message.
     msg = EmailMessage()
-    msg['Subject'] = "TrackCat Email Verification"
+    msg['Subject'] = "TrackCat Email Bestätigung"
     msg['From'] = FROM
 
-    # TODO remove MAils on release
-    msg['To'] = ["finnjoana56@gmail.com", "timokramer1@me.com", reciever]
+    msg['To'] = [reciever]
 
     msg.set_content("""\
-    Hi """+firstName+""",
+    Hallo """+firstName+""",
 
-    to get full access to all features, you'll need to verify your email address to make sure it really belongs to you.
-    If you have not registered in the Trackcat app or on the website, you can ignore this mail. The account will not be activated and will be deleted automatically after 14 days.
+    um den vollen Umfang von TrackCat nutzen zu können, müssen Sie ihre Email Adresse über den Link bestätigen.
 
     """+verificationLink+"""\
 
-    Thanks,
-    The Trackcat Team""")
+    Vielen Dank,
+    Ihr Trackcat Team""")
 
     # Add the html version.  This converts the message into a multipart/alternative
     # container, with the original text message as the first part and the new html
@@ -40,7 +38,7 @@ def sendVmail(reciever, firstName, verificationLink):
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <meta name="x-apple-disable-message-reformatting" />
-            <title>Trackcat verification</title>
+            <title>Trackcat E-Mail bestätigung</title>
         </head>
         <body style="padding:0;margin:0;">
             <table align="center" style="background-color:#e9ebee;width:100%;max-width:100%;min-width:100%;" border="0" cellpadding="0" cellspacing="0" width="100%">
@@ -60,7 +58,7 @@ def sendVmail(reciever, firstName, verificationLink):
                               <td style="max-width:600px;padding:50px 40px 40px 40px;width:100%;background-color:#fbfbfc;background-color:#ffffff;background-image:linear-gradient(#ffffff,#edf2fa);border-radius:0 0 5px 5px;">
                                 <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
                                     <tr align="center">
-                                      <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;text-align:center;color:#333333;font-size:27px;font-family:ArialMT, Arial, sans-serif;font-weight:light;line-height:36px;">Please verify your email address</td>
+                                      <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;text-align:center;color:#333333;font-size:27px;font-family:ArialMT, Arial, sans-serif;font-weight:light;line-height:36px;">Bitte bestätigen Sie Ihre Email-Adresse</td>
                                     </tr>
                                     <tr align="center">
                                       <td style="width:100%;height:30px;"></td>
@@ -69,14 +67,14 @@ def sendVmail(reciever, firstName, verificationLink):
                                 <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
                                     <tr align="center">
                                       <td style="text-align:left;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;line-height:24px;">
-                                          <p>Hi """+firstName+""",</p><p>to get full access to all features, you'll need to verify your email address to make sure it really belongs to you.</p><p>If you have not registered in the Trackcat app or on the website, you can ignore this mail. The account will not be activated and will be deleted automatically after 14 days.</p>
+                                          <p>Hallo """+firstName+""",</p><p>  um den vollen Umfang von TrackCat nutzen zu können, müssen Sie ihre Email Adresse über den Button bestätigen.</p>
                                           <br>
                                           <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
                                                   <tr align="center">
                                                     <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;width:100%;min-width:360px">
                                                         <table align="center" style="background-color:#407fff;border-radius:3.6px;padding:10px 30px;-webkit-border-radius:3.6px;-moz-border-radius:3.6px;">
                                                           <tr align="center">
-                                                              <td><a href='"""+verificationLink+"""' style="display:inline-block;text-decoration:none;color:#ffffff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">Verify email address</a></td>
+                                                              <td><a href='"""+verificationLink+"""' style="display:inline-block;text-decoration:none;color:#ffffff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">Verifzieren</a></td>
                                                           </tr>
                                                         </table>
                                                     </td>
@@ -85,7 +83,7 @@ def sendVmail(reciever, firstName, verificationLink):
                                                     <td style="width:100%;height:0px;"></td>
                                                   </tr>
                                               </table>
-                                          <p> Thanks,<br /> The Trackcat Team </p>
+                                          <p> Vielen Dank,<br /> Ihr Trackcat Team </p>
                                       </td>
                                     </tr>
                                     <tr align="center">
@@ -181,23 +179,23 @@ def sendResetMail(reciever, firstName, resetLink, deleteLink):
 
       # Create the base text message.
       msg = EmailMessage()
-      msg['Subject'] = "TrackCat Reset Password"
+      msg['Subject'] = "TrackCat Password zurücksetzen"
       msg['From'] = FROM
   
       # TODO remove MAils on release
       msg['To'] = ["finnjoana56@gmail.com", "timokramer1@me.com", reciever]
   
       msg.set_content("""\
-      Hi """+firstName+""",
+      Hallo """+firstName+""",
 
-      you have requested a new password. Below you have the option to set a new password for your personal access. If you have not made this request yourself, please let us know:
+      Sie möchten Ihr Passwort zurücksetzen? Im Folgenden haben Sie die Möglichkeit, Ihr Passwort zurückzusetzen. Wenn Sie Ihr Passwort nicht zurücksetzen möchten, können Sie den Vorgang abbrechen:
 
      
-      Reset password: """+resetLink+"""\
-      Cancel reset: """+ deleteLink +"""\
+      Passwort zurücksetzen: """+resetLink+"""\
+      Zurücksetzen abbrechen: """+ deleteLink +"""\
 
-      Thanks,
-      The Trackcat Team""")
+      Vielen Dank,
+      Ihr Trackcat Team""")
   
       # Add the html version.  This converts the message into a multipart/alternative
       # container, with the original text message as the first part and the new html
@@ -210,7 +208,7 @@ def sendResetMail(reciever, firstName, resetLink, deleteLink):
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <meta name="x-apple-disable-message-reformatting" />
-            <title>Trackcat verification</title>
+            <title>TrackCat Passwort zurücksetzen</title>
         </head>
         <body style="padding:0;margin:0;">
             <table align="center" style="background-color:#e9ebee;width:100%;max-width:100%;min-width:100%;" border="0" cellpadding="0" cellspacing="0" width="100%">
@@ -230,7 +228,7 @@ def sendResetMail(reciever, firstName, resetLink, deleteLink):
                               <td style="max-width:600px;padding:50px 40px 40px 40px;width:100%;background-color:#fbfbfc;background-color:#ffffff;background-image:linear-gradient(#ffffff,#edf2fa);border-radius:0 0 5px 5px;">
                                 <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
                                     <tr align="center">
-                                      <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;text-align:center;color:#333333;font-size:27px;font-family:ArialMT, Arial, sans-serif;font-weight:light;line-height:36px;">Reset password request</td>
+                                      <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;text-align:center;color:#333333;font-size:27px;font-family:ArialMT, Arial, sans-serif;font-weight:light;line-height:36px;">Password zurücksetzen</td>
                                     </tr>
                                     <tr align="center">
                                       <td style="width:100%;height:30px;"></td>
@@ -239,20 +237,20 @@ def sendResetMail(reciever, firstName, resetLink, deleteLink):
                                 <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
                                     <tr align="center">
                                       <td style="text-align:left;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;line-height:24px;">
-                                          <p>Hi """+firstName+""",</p><p>you have requested a new password. Below you have the option to set a new password for your personal access. If you have not made this request yourself, please let us know:</p>
+                                          <p>Hallo """+firstName+""",</p><p>  Sie möchten Ihr Passwort zurücksetzen?. Im Folgenden haben Sie die Möglichkeit, Ihr Passwort zurückzusetzen. Wenn Sie Ihr Passwort nicht zurücksetzen möchten, können Sie den Vorgang abbrechen:</p>
                                           <br>
                                           <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:100%;">
                                                   <tr align="center">
                                                     <td style="text-align:center;border-spacing:0;color:#4c4c4c;font-family:ArialMT, Arial, sans-serif;font-size:15px;width:100%;width:100%;min-width:360px">
                                                         <table align="center" style="background-color:#407fff;border-radius:3.6px;padding:10px 30px;-webkit-border-radius:3.6px;-moz-border-radius:3.6px;">
                                                           <tr align="center">
-                                                              <td><a href='"""+resetLink+"""' style="display:inline-block;text-decoration:none;color:#ffffff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">Reset password</a></td>
+                                                              <td><a href='"""+resetLink+"""' style="display:inline-block;text-decoration:none;color:#ffffff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">Passwort zurücksetzen</a></td>
                                                           </tr>
                                                         </table>
                                                         <br>
                                                         <table align="center" style="border-style:solid;border-color:#407fff;border-radius:3.6px;padding:8.5px 30px;-webkit-border-radius:3.6px;-moz-border-radius:3.6px;">
                                                             <tr align="center">
-                                                                <td><a href='"""+ deleteLink +"""' style="display:inline-block;text-decoration:none;color:#407fff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">That wasn't me</a></td>
+                                                                <td><a href='"""+ deleteLink +"""' style="display:inline-block;text-decoration:none;color:#407fff;font-size:15px;font-family:ArialMT, Arial, sans-serif;font-weight:bold;text-align:center;width:100%;">Abbrechen</a></td>
                                                             </tr>
                                                           </table>
                                                     </td>
@@ -261,7 +259,7 @@ def sendResetMail(reciever, firstName, resetLink, deleteLink):
                                                     <td style="width:100%;height:0px;"></td>
                                                   </tr>
                                               </table>
-                                          <p> Thanks,<br /> The Trackcat Team </p>
+                                          <p> Vielen Dank,<br /> Ihr Trackcat Team </p>
                                       </td>
                                     </tr>
                                     <tr align="center">
@@ -353,5 +351,6 @@ def sendResetMail(reciever, firstName, resetLink, deleteLink):
       server.quit()
 
 # Testing this script
-# sendVmail("finn1212@hotmail.de", "Finn", "http://safe-harbour.de:4242")
-print("Done test Sending")
+# sendResetMail("finnjoana56@gmail.com", "Finn", "http://safe-harbour.de:4242", "")
+# sendVmail("finnjoana56@gmail.com", "Finn", "http://safe-harbour.de:4242")
+# print("Done test Sending")
