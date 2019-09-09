@@ -1845,10 +1845,21 @@ def updateUser():
     if current_user.is_authenticated:
         birthday = int(calendar.timegm(datetime.strptime(
             request.form['birthday'], '%Y-%m-%d').utctimetuple()) * 1000.0)
+
+
+        size = request.form['size']
+        if request.form['size'] == '':
+            size = None
+        
+        weight = request.form['weight']
+        if request.form['weight'] == '':
+            weight = None
+
+
         success = updateUserDB(current_user.id, birthday,
                                request.form['firstName'], request.form['lastName'],
-                               request.form['genderRadio'], request.form['size'],
-                               request.form['weight'], None, str(int(round(time.time() * 1000))), None, None)
+                               request.form['genderRadio'], size,
+                               weight, None, str(int(round(time.time() * 1000))), None, None)
 
         if success:
             flash('Profil erflogreich gespeichert.')
