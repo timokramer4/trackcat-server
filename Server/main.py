@@ -484,7 +484,7 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
             cursor.execute(sql, (gender, userId,))
 
         if size is not None:
-            if weight == "":
+            if size == "":
                 sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '
                    + app.config['DB_USERS_SIZE']+' = NULL WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
@@ -493,7 +493,7 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
                 sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_SIZE']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
-                cursor.execute(sql, (weight, userId,))
+                cursor.execute(sql, (size, userId,))
 
         if weight is not None:
             if weight == "":
