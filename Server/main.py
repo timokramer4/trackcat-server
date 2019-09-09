@@ -37,15 +37,9 @@ app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
 app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
 app.config['MYSQL_DATABASE_PORT'] = 42042
 
-# app.config['MYSQL_DATABASE_USER'] = 'root'
-# app.config['MYSQL_DATABASE_PASSWORD'] = ''
-# app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
-# app.config['MYSQL_DATABASE_HOST'] = 'localhost'
-# app.config['MYSQL_DATABASE_PORT'] = 3306
 mysql.init_app(app)
 
 app.config['BASE_URL'] = "http://safe-harbour.de:4242"
-# app.config['BASE_URL'] = "http://192.168.178.46:5000"
 
 
 # TABLE-NAMES
@@ -1854,20 +1848,10 @@ def updateUser():
         birthday = int(calendar.timegm(datetime.strptime(
             request.form['birthday'], '%Y-%m-%d').utctimetuple()) * 1000.0)
 
-
-        size = request.form['size']
-        if request.form['size'] == '':
-            size = None
-        
-        weight = request.form['weight']
-        if request.form['weight'] == '':
-            weight = None
-
-
         success = updateUserDB(current_user.id, birthday,
                                request.form['firstName'], request.form['lastName'],
-                               request.form['genderRadio'], size,
-                               weight, None, str(int(round(time.time() * 1000))), None, None)
+                               request.form['genderRadio'], request.form['size'],
+                               request.form['weight'], None, str(int(round(time.time() * 1000))), None, None)
 
         if success:
             flash('Profil erflogreich gespeichert.')
