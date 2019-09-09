@@ -30,8 +30,6 @@ import calendar
 
 app = Flask(__name__)
 mysql = MySQL()
-app.config['SESSION_LIFETIME'] = False
-
 app.secret_key = "s1ak30GAUSWhpyBo21f7sFgGOYswFUFq"
 app.config['MYSQL_DATABASE_USER'] = 'remRoot'
 app.config['MYSQL_DATABASE_PASSWORD'] = '1Qayse45&'
@@ -486,18 +484,28 @@ def updateUserDB(userId, dateOfBirth, firstName, lastName,
             cursor.execute(sql, (gender, userId,))
 
         if size is not None:
-            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
+            if weight == "":
+                sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '
+                   + app.config['DB_USERS_SIZE']+' = NULL WHERE '
+                   + app.config['DB_USERS_ID']+' = %s;')
+                cursor.execute(sql, (userId,))
+            else:
+                sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
                    + app.config['DB_USERS_SIZE']+' = %s WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
-
-            cursor.execute(sql, (size, userId,))
+                cursor.execute(sql, (weight, userId,))
 
         if weight is not None:
-            sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '
-                   + app.config['DB_USERS_WEIGHT']+' = %s WHERE '
+            if weight == "":
+                sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '
+                   + app.config['DB_USERS_WEIGHT']+' = NULL WHERE '
                    + app.config['DB_USERS_ID']+' = %s;')
-
-            cursor.execute(sql, (weight, userId,))
+                cursor.execute(sql, (userId,))
+            else:
+                sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET  '
+                    + app.config['DB_USERS_WEIGHT']+' = %s WHERE '
+                    + app.config['DB_USERS_ID']+' = %s;')
+                cursor.execute(sql, (weight, userId,))
 
         if image is not None:
             sql = ('UPDATE '+app.config['DB_TABLE_USERS'] + ' SET '
