@@ -2223,12 +2223,12 @@ def getProductivityLastWeeks(userId):
         result = cursor.fetchall()
 
         if result[0][0] is not None:
-            time = int(result[0][1])
             rtime = int(result[0][0])
+            time = int(result[0][1])
 
             temp = 100 / time
 
-            percent = round((rtime * temp) * 100) / 100.0
+            percent = round(rtime * temp) 
 
             if i < 7:
                 answer[0].append(percent)
@@ -2420,6 +2420,10 @@ def updateUserAPI():
 
     try:
         size = j['size']
+
+        if size == '0':
+            size = ''
+
         pass
     except Exception as identifier:
         size = None
@@ -2427,6 +2431,10 @@ def updateUserAPI():
 
     try:
         weight = j['weight']
+
+        if weight == '0':
+            weight = ''
+
         pass
     except Exception as identifier:
         weight = None
