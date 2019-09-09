@@ -102,9 +102,9 @@
                   <span id="settings_account_name">{{user.firstName}} {{user.lastName}}</span>
                 </h2>
                 <small class="text-muted" id="settings_account_email">{{user.email}}</small>
-                <hr><span class="text-muted text-uppercase small"><span id="online_state"
-                    class="dot bg-green d-inline-block mr-2"></span>
-                  Online</span>
+                <!--<hr>
+                <span class="text-muted text-uppercase small"><span id="online_state"
+                    class="dot bg-green d-inline-block mr-2"></span> Online</span> -->
               </div>
             </div>
           </div>
@@ -255,8 +255,12 @@
 
   /*  */
   var fileDialog = $('#newProfileImg');
-  $('#profileImg').click(function () { fileDialog.trigger('click'); });
-  $('#profileImgIcon').click(function () { fileDialog.trigger('click'); });
+  $('#profileImg').click(function () {
+    fileDialog.trigger('click');
+  });
+  $('#profileImgIcon').click(function () {
+    fileDialog.trigger('click');
+  });
 
   /* Edit general profile data */
   initializeValidation("editGenerals");

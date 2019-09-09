@@ -37,9 +37,8 @@
                                     id="settings_account_email">{% if profileData.id == current_user.id or profileData.areFriends == 1 %}{{profileData.email}}{% else %}
                                     <script>document.write(cryptEmail($('#email-data').data('email')))</script>
                                     {% endif %}</small>
-                                <hr>
-                                <!-- <span class="text-muted text-uppercase small"><span
-                                        class="dot bg-green d-inline-block mr-2"></span> Online</span> -->
+                                <!--<hr>
+                                <span class="text-muted text-uppercase small"><span class="dot bg-green d-inline-block mr-2"></span> Online</span>-->
                             </div>
                         </div>
                     </div>
