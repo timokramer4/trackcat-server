@@ -31,15 +31,15 @@ import calendar
 app = Flask(__name__)
 mysql = MySQL()
 app.secret_key = "s1ak30GAUSWhpyBo21f7sFgGOYswFUFq"
-app.config['MYSQL_DATABASE_USER'] = 'remRoot'
-app.config['MYSQL_DATABASE_PASSWORD'] = '1Qayse45&'
+app.config['MYSQL_DATABASE_USER'] = 'root'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'Geheim-123'
 app.config['MYSQL_DATABASE_DB'] = 'TrackCatDB'
-app.config['MYSQL_DATABASE_HOST'] = 'safe-harbour.de'
-app.config['MYSQL_DATABASE_PORT'] = 42042
+app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+app.config['MYSQL_DATABASE_PORT'] = 3306
 
 mysql.init_app(app)
 
-app.config['BASE_URL'] = "http://safe-harbour.de:4242"
+app.config['BASE_URL'] = "http://HERE_YOUR_ADDRESS:5000"
 
 
 # TABLE-NAMES
@@ -294,7 +294,7 @@ def registerUserDB(firstName, lastName, email, password, birthday, gender):
 
         conn.commit()
 
-        sendVmail(email, firstName,  baseUrl + token)
+        sendVmail(email, firstName,  baseUrl + token, app.config['BASE_URL'])
         success = 0
 
     except Exception as identifier:
@@ -1536,7 +1536,7 @@ def resetUserPassword(email):
 
         # Start mail sending thread
         thread = Thread(target=sendResetMail, args=(
-            email, firstname, baseUrl + token, deleteLink, ))
+            email, firstname, baseUrl + token, deleteLink, app.config['BASE_URL'], ))
         thread.start()
         return 1
         pass

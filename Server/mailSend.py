@@ -4,16 +4,18 @@ from email.message import EmailMessage
 from email.headerregistry import Address
 from email.utils import make_msgid
 
-SERVER = "smtp.strato.de"
-FROM = "no-reply@trackcat.de"
+SMTP_SERVER = "YOUR_SMTP_SERVER_ADDRESS"
+SMTP_FROM = "YOUR_EMAIL_ADDRESS"
+SMTP_PASSWORD = "YOUR_EMAIL_PASSWORD"
+SMTP_PORT = 587
 
 # Send verification mail
-def sendVmail(reciever, firstName, verificationLink):
+def sendVmail(reciever, firstName, verificationLink, baseURL):
 
     # Create the base text message.
     msg = EmailMessage()
     msg['Subject'] = "TrackCat Email Bestätigung"
-    msg['From'] = FROM
+    msg['From'] = SMTP_FROM
 
     msg['To'] = [reciever]
 
@@ -50,7 +52,7 @@ def sendVmail(reciever, firstName, verificationLink):
                     <table border="0" cellpadding="0" cellspacing="0" style="background-color:#e9ebee;min-width:360px;max-width:600px;width:100%;" width="100%">
                         <table align="center" style="max-width:600px;width:100%;" cellpadding="0" cellspacing="0" border="0">
                           <tr align="center">
-                              <td style="max-width:600px;padding:2em 40px 0em;width:100%;background-color:white;border-radius:5px 5px 0 0 ;overflow:hidden;"><a href="http://trackcat.de" style="color:#3b5998;text-decoration:none;"><img src="cid:{asparagus_cid}" style="border:0;max-width:50%;" title="Trackcat Logo" /></a></td>
+                              <td style="max-width:600px;padding:2em 40px 0em;width:100%;background-color:white;border-radius:5px 5px 0 0 ;overflow:hidden;"><a href="""+baseURL+""" style="color:#3b5998;text-decoration:none;"><img src="cid:{asparagus_cid}" style="border:0;max-width:50%;" title="Trackcat Logo" /></a></td>
                           </tr>
                         </table>
                         <table align="center" style="max-width:600px;width:100%;" cellpadding="0" cellspacing="0" border="0">
@@ -154,6 +156,7 @@ def sendVmail(reciever, firstName, verificationLink):
           msg.get_payload()[1].add_related(img.read(), 'image', 'png', cid=asparagus_cid)
       pass
     except Exception as identifier:
+      print(identifier)
       # Now add the related image to the html part.
       with open("./static/img/logo.png", 'rb') as img:
           msg.get_payload()[1].add_related(img.read(), 'image', 'png', cid=asparagus_cid)
@@ -166,24 +169,22 @@ def sendVmail(reciever, firstName, verificationLink):
     #     f.write(bytes(msg))
 
     # Send the message via local SMTP server.
-    server = smtplib.SMTP(SERVER, 587)
+    server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
     server.ehlo()
     server.starttls()
     server.ehlo()
-    server.login(FROM, "@track_c[]t2019")
+    server.login(SMTP_FROM, SMTP_PASSWORD)
     server.send_message(msg)  # sendmail(FROM, TO, msg.as_string())
     server.quit()
 
 # Send reset password mail
-def sendResetMail(reciever, firstName, resetLink, deleteLink):
+def sendResetMail(reciever, firstName, resetLink, deleteLink, baseURL):
 
       # Create the base text message.
       msg = EmailMessage()
       msg['Subject'] = "TrackCat Password zurücksetzen"
-      msg['From'] = FROM
-  
-      # TODO remove MAils on release
-      msg['To'] = ["finnjoana56@gmail.com", "timokramer1@me.com", reciever]
+      msg['From'] = SMTP_FROM
+      msg['To'] = [reciever]
   
       msg.set_content("""\
       Hallo """+firstName+""",
@@ -220,7 +221,7 @@ def sendResetMail(reciever, firstName, resetLink, deleteLink):
                     <table border="0" cellpadding="0" cellspacing="0" style="background-color:#e9ebee;min-width:360px;max-width:600px;width:100%;" width="100%">
                         <table align="center" style="max-width:600px;width:100%;" cellpadding="0" cellspacing="0" border="0">
                           <tr align="center">
-                              <td style="max-width:600px;padding:2em 40px 0em;width:100%;background-color:white;border-radius:5px 5px 0 0 ;overflow:hidden;"><a href="http://trackcat.de" style="color:#3b5998;text-decoration:none;"><img src="cid:{asparagus_cid}" style="border:0;max-width:50%;" title="Trackcat Logo" /></a></td>
+                              <td style="max-width:600px;padding:2em 40px 0em;width:100%;background-color:white;border-radius:5px 5px 0 0 ;overflow:hidden;"><a href="""+baseURL+""" style="color:#3b5998;text-decoration:none;"><img src="cid:{asparagus_cid}" style="border:0;max-width:50%;" title="Trackcat Logo" /></a></td>
                           </tr>
                         </table>
                         <table align="center" style="max-width:600px;width:100%;" cellpadding="0" cellspacing="0" border="0">
@@ -342,11 +343,11 @@ def sendResetMail(reciever, firstName, resetLink, deleteLink):
       #     f.write(bytes(msg))
   
       # Send the message via local SMTP server.
-      server = smtplib.SMTP(SERVER, 587)
+      server = smtplib.SMTP(SMTP_SERVER, 587)
       server.ehlo()
       server.starttls()
       server.ehlo()
-      server.login(FROM, "@track_c[]t2019")
+      server.login(SMTP_FROM, SMTP_PASSWORD)
       server.send_message(msg)  # sendmail(FROM, TO, msg.as_string())
       server.quit()
 
